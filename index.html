@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1E2430">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>📒 Mon Budget Personnel v4</title>
+<style>
+:root{
+  --papier:#F6F5F0; --carte:#FFFFFF; --encre:#1E2430; --encre2:#5A6072;
+  --laiton:#B08D3E; --laiton-clair:#E6C882;
+  --vert:#2E7D5B; --vert-fond:#EAF4EF; --rouge:#C0392B; --rouge-fond:#FAEDEB;
+  --trait:#E4E1D8; --ombre:0 1px 3px rgba(30,36,48,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--papier);color:var(--encre);
+  font-variant-numeric:tabular-nums;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit;-webkit-tap-highlight-color:transparent}
+input,select{font:inherit;color:inherit}
+h1,h2,h3{font-weight:700}
+
+/* ===== En-tête ===== */
+header{background:var(--encre);color:#F6F5F0;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px}
+header .titre{font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+header .titre small{display:block;font-size:10px;letter-spacing:.18em;color:var(--laiton-clair);font-weight:600}
+header .statut{margin-left:auto;font-size:10px;letter-spacing:.1em;color:#9AA1B4;text-transform:uppercase}
+
+/* ===== Navigation basse ===== */
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--encre);display:flex;z-index:30;
+  padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 8px rgba(0,0,0,.18)}
+nav button{flex:1;padding:8px 2px 7px;color:#8A90A3;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:2px;letter-spacing:.02em}
+nav button .ico{font-size:19px;line-height:1}
+nav button.actif{color:var(--laiton-clair)}
+nav button.actif .ico{transform:translateY(-1px)}
+
+main{max-width:760px;margin:0 auto;padding:14px 12px 24px}
+.page{display:none}
+.page.actif{display:block;animation:app .18s ease}
+@keyframes app{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ===== Cartes ===== */
+.carte{background:var(--carte);border:1px solid var(--trait);border-radius:12px;box-shadow:var(--ombre);margin-bottom:12px;overflow:hidden}
+.carte>.tete{display:flex;align-items:baseline;gap:8px;padding:10px 14px;border-bottom:1px solid var(--trait);background:linear-gradient(#FDFCF9,#F8F6F0)}
+.carte>.tete h3{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--encre2)}
+.carte>.tete .tot{margin-left:auto;font-weight:700;font-size:14px}
+.carte .corps{padding:8px 14px 12px}
+.pos{color:var(--vert)} .neg{color:var(--rouge)} .neutre{color:var(--encre2)}
+
+/* ===== Héro : reste du jour ===== */
+.hero{background:var(--encre);color:#F6F5F0;border-radius:14px;padding:18px 16px 16px;margin-bottom:14px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;
+  border:2px solid rgba(230,200,130,.25);pointer-events:none}
+.hero::before{content:"";position:absolute;right:-25px;top:-25px;width:130px;height:130px;border-radius:50%;
+  border:1px solid rgba(230,200,130,.18);pointer-events:none}
+.hero .eti{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--laiton-clair)}
+.hero .gros{font-size:44px;font-weight:800;line-height:1.1;margin:2px 0}
+.hero .gros small{font-size:18px;font-weight:600;color:#B7BCCB}
+.hero .sous{font-size:12px;color:#9AA1B4}
+.hero .jauge{height:6px;background:rgba(255,255,255,.12);border-radius:3px;margin-top:12px;overflow:hidden}
+.hero .jauge>div{height:100%;background:linear-gradient(90deg,var(--laiton),var(--laiton-clair));border-radius:3px;transition:width .4s ease}
+
+/* ===== Grille indicateurs ===== */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kpi{background:var(--carte);border:1px solid var(--trait);border-radius:10px;padding:10px 12px}
+.kpi .eti{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--encre2)}
+.kpi .val{font-size:17px;font-weight:700;margin-top:2px}
+
+/* ===== Lignes éditables ===== */
+.ligne{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px dashed var(--trait)}
+.ligne:last-child{border-bottom:none}
+.ligne input.lab{flex:1;min-width:0;border:none;background:transparent;padding:4px 2px;font-size:14px}
+.ligne input.mnt{width:88px;border:none;background:transparent;text-align:right;padding:4px 2px;font-size:14px;font-weight:600}
+.ligne input:focus{outline:none;background:#FBF7EC;border-radius:6px}
+.ligne .sup{color:#C8C4B8;font-size:15px;padding:2px 4px;flex:none}
+.ligne .sup:active{color:var(--rouge)}
+.ajout{width:100%;padding:7px;margin-top:6px;border:1px dashed var(--laiton);border-radius:8px;color:var(--laiton);
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;background:#FDFAF2}
+
+/* ===== Sélecteur de mois ===== */
+.selmois{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.selmois select{flex:1;padding:9px 12px;border:1px solid var(--trait);border-radius:10px;background:var(--carte);font-weight:700;font-size:15px}
+.selmois button{padding:9px 13px;border:1px solid var(--trait);border-radius:10px;background:var(--carte);font-weight:700}
+
+/* ===== Bilan mensuel bandeau ===== */
+.bilan5{display:grid;grid-template-columns:repeat(5,1fr);background:var(--encre);color:#F6F5F0;border-radius:12px;
+  padding:10px 6px;margin-bottom:12px;text-align:center;gap:2px}
+.bilan5 .eti{font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#9AA1B4;display:block}
+.bilan5 .val{font-size:13px;font-weight:700;display:block;margin-top:2px}
+.bilan5 .val.or{color:var(--laiton-clair)}
+
+/* ===== Tableaux positions ===== */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--encre2);text-align:right;padding:6px 4px;border-bottom:1px solid var(--trait)}
+th:first-child,td:first-child{text-align:left}
+td{padding:6px 4px;border-bottom:1px dashed var(--trait);text-align:right;white-space:nowrap}
+td:first-child{white-space:normal;max-width:120px;overflow-wrap:break-word}
+td input{width:100%;min-width:52px;border:none;background:transparent;text-align:right;font-size:12.5px;padding:2px}
+td input:focus{outline:none;background:#FBF7EC;border-radius:4px}
+tr.total td{font-weight:700;border-top:2px solid var(--encre);border-bottom:none;background:#FBFAF6}
+
+.pastille{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;letter-spacing:.04em}
+.p-actions{background:#C6EFCE}.p-etfs{background:#BDD7EE}.p-pe{background:#E2D5F1}
+.p-cryptos{background:#FFE699}.p-metaux{background:#F8CBAD}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;background:var(--encre);color:#F6F5F0;
+  font-weight:700;font-size:13px;letter-spacing:.04em}
+.btn.or{background:var(--laiton);color:#fff}
+.btn.ligne2{width:100%;justify-content:center;margin-top:8px}
+.btn.discret{background:var(--carte);color:var(--encre);border:1px solid var(--trait)}
+
+.note{font-size:11.5px;color:var(--encre2);line-height:1.5;padding:8px 2px}
+.sep{height:1px;background:var(--trait);margin:14px 0}
+
+/* Graphique */
+.graph{width:100%;height:auto;display:block}
+.legende{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;padding:8px 2px 2px;color:var(--encre2)}
+.legende span::before{content:"";display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle;background:var(--c)}
+
+/* Estimation par jour */
+.grille-jours{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:5px}
+.jour{border:1px solid var(--trait);border-radius:8px;padding:5px 4px;text-align:center;background:var(--carte)}
+.jour.passe{opacity:.38}
+.jour.auj{border-color:var(--laiton);background:#FDF8EC;box-shadow:0 0 0 1px var(--laiton)}
+.jour .n{font-size:9px;color:var(--encre2);letter-spacing:.06em}
+.jour .v{font-size:12px;font-weight:700}
+
+/* Toast */
+#toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+  background:var(--encre);color:#F6F5F0;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;
+  transition:.25s;z-index:50;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+#toast.vu{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Dialogues fichiers */
+.zone-fichier{border:2px dashed var(--trait);border-radius:12px;padding:20px;text-align:center;color:var(--encre2);font-size:13px}
+details.aide{font-size:12px;color:var(--encre2);padding:6px 2px}
+details.aide summary{cursor:pointer;font-weight:600;color:var(--laiton)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (min-width:700px){ .kpis{grid-template-columns:repeat(4,1fr)} }
+/* ===== Compte rendu A4 (impression / PDF) ===== */
+#rapport{display:none}
+.rp{width:210mm;min-height:296mm;box-sizing:border-box;padding:11mm 13mm;background:#fff;color:var(--encre);
+  page-break-after:always;break-after:page;font-variant-numeric:tabular-nums;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rp:last-child{page-break-after:auto}
+.rp .rp-tete{display:flex;align-items:baseline;gap:10px;border-bottom:3px solid var(--encre);padding-bottom:6px;margin-bottom:8px}
+.rp .rp-tete h1{font-size:22px;letter-spacing:.04em}
+.rp .rp-tete .badge{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+  padding:3px 10px;border-radius:99px;background:var(--encre);color:#F6F5F0}
+.rp .rp-tete .badge.prev{background:#fff;color:var(--laiton);border:1.5px solid var(--laiton)}
+.rp .rp-tete .app{margin-left:auto;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--encre2)}
+.rp .kpi5{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:9px}
+.rp .kpi5>div{border:1.5px solid var(--encre);border-radius:8px;padding:6px 8px}
+.rp .kpi5 .e{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--encre2);display:block}
+.rp .kpi5 .v{font-size:13.5px;font-weight:800;display:block;margin-top:2px}
+.rp .cols{display:grid;grid-template-columns:88mm 1fr;gap:8mm;margin-bottom:8px}
+.rp h2{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--encre2);
+  border-bottom:1px solid var(--trait);padding-bottom:3px;margin:7px 0 5px}
+.rp table{width:100%;border-collapse:collapse;font-size:10.5px}
+.rp td{padding:2.5px 3px;border-bottom:1px dashed var(--trait);text-align:right;white-space:nowrap}
+.rp td:first-child{text-align:left;white-space:normal}
+.rp tr.tot td{font-weight:800;border-top:1.5px solid var(--encre);border-bottom:none}
+.rp .puce{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:baseline}
+.rp .rep{border:1.5px solid var(--laiton);border-radius:8px;padding:7px 9px;background:#FDFAF2;margin-top:6px}
+.rp .rep .l{display:flex;justify-content:space-between;font-size:10.5px;padding:2px 0}
+.rp .rep .l b{font-variant-numeric:tabular-nums}
+.rp .rp-pied{display:flex;justify-content:space-between;font-size:9px;color:var(--encre2);
+  border-top:1px solid var(--trait);padding-top:5px;margin-top:8px;letter-spacing:.06em}
+@media print{
+  @page{size:A4 portrait;margin:0}
+  body.impression{padding:0;background:#fff}
+  body.impression header, body.impression main, body.impression nav, body.impression #toast{display:none !important}
+  body.impression #rapport{display:block}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="titre">📒 Budget Personnel<small>Version 4 · Hors-ligne</small></div>
+  <div class="statut" id="statut-sync">—</div>
+</header>
+
+<main>
+  <!-- ============ ACCUEIL ============ -->
+  <section class="page" id="page-accueil">
+    <div class="hero">
+      <div class="eti">Reste disponible aujourd'hui</div>
+      <div class="gros" id="h-jour">— <small>€ / jour</small></div>
+      <div class="sous" id="h-sous">—</div>
+      <div class="jauge"><div id="h-jauge" style="width:0%"></div></div>
+    </div>
+    <div class="kpis" id="kpis-accueil"></div>
+    <div class="carte">
+      <div class="tete"><h3>📊 Estimation dépense par jour</h3><div class="tot" id="est-ref"></div></div>
+      <div class="corps">
+        <div class="ligne" style="border:none;margin-bottom:8px">
+          <span style="font-size:12px;color:var(--encre2)">Référence (€)&nbsp;:</span>
+          <input class="mnt" id="est-montant" inputmode="decimal" style="border:1px solid var(--trait);border-radius:8px;background:var(--carte)">
+          <button class="btn discret" id="est-auto" style="padding:6px 10px;font-size:11px">Auto</button>
+        </div>
+        <div class="grille-jours" id="est-grille"></div>
+        <p class="note">Montant que tu peux dépenser chaque jour si tu commences ce jour-là, pour finir le mois à zéro.</p>
+      </div>
+    </div>
+    <div class="carte">
+      <div class="tete"><h3>🧭 Patrimoine total</h3><div class="tot" id="patri-total"></div></div>
+      <div class="corps" id="patri-detail"></div>
+    </div>
+  </section>
+
+  <!-- ============ MOIS ============ -->
+  <section class="page" id="page-mois">
+    <div class="selmois">
+      <button id="mois-prec" aria-label="Mois précédent">◀</button>
+      <select id="mois-select"></select>
+      <button id="mois-suiv" aria-label="Mois suivant">▶</button>
+      <button id="mois-nouveau" class="btn or" style="padding:9px 12px">＋ Mois</button>
+    </div>
+    <div class="bilan5" id="mois-bilan"></div>
+    <div id="mois-blocs"></div>
+  </section>
+
+  <!-- ============ LIVRETS ============ -->
+  <section class="page" id="page-livrets">
+    <div class="kpis" id="livrets-kpis"></div>
+    <div id="livrets-blocs"></div>
+    <p class="note">Le « cumul des mois » additionne automatiquement la répartition d'épargne (1/3 ↑) de chaque mois saisi. Les mouvements manuels s'ajoutent en dessous.</p>
+  </section>
+
+  <!-- ============ INVESTISSEMENTS ============ -->
+  <section class="page" id="page-invest">
+    <div class="kpis" id="inv-kpis"></div>
+    <div id="inv-blocs"></div>
+    <div class="carte">
+      <div class="tete"><h3>📈 Évolution des portefeuilles (perf. €)</h3></div>
+      <div class="corps">
+        <svg class="graph" id="inv-graph" viewBox="0 0 720 300" role="img" aria-label="Évolution des performances"></svg>
+        <div class="legende">
+          <span style="--c:#B08D3E">Trade Republic</span>
+          <span style="--c:#2E7D5B">PEA</span>
+          <span style="--c:#5A6072">PERin</span>
+          <span style="--c:#1E2430">Total</span>
+        </div>
+        <div id="inv-hist-table"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ACHAT-VENTE ============ -->
+  <section class="page" id="page-av">
+    <div class="kpis" id="av-kpis"></div>
+    <div id="av-blocs"></div>
+  </section>
+
+  <!-- ============ RÉGLAGES ============ -->
+  <section class="page" id="page-reglages">
+    <div class="carte">
+      <div class="tete"><h3>⚙️ Paramètres</h3></div>
+      <div class="corps">
+        <div class="ligne"><input class="lab" value="Enveloppe quotidienne (€/jour)" readonly>
+          <input class="mnt" id="cfg-jour" inputmode="decimal"></div>
+        <div class="ligne"><input class="lab" value="Reste initial (avant 1er mois)" readonly>
+          <input class="mnt" id="cfg-reste" inputmode="decimal"></div>
+      </div>
+    </div>
+    <div class="carte">
+      <div class="tete"><h3>💾 Sauvegarde</h3></div>
+      <div class="corps">
+        <button class="btn ligne2" id="btn-export-json">⬇️ Exporter la sauvegarde (JSON)</button>
+        <button class="btn ligne2 discret" id="btn-import-json">⬆️ Importer une sauvegarde (JSON)</button>
+        <button class="btn ligne2 discret" id="btn-import-xlsx">📗 Importer depuis l'Excel (.xlsx)</button>
+        <input type="file" id="fic-json" accept="application/json" hidden>
+        <input type="file" id="fic-xlsx" accept=".xlsx" hidden>
+        <details class="aide"><summary>Comment ça marche ?</summary>
+          Tout est stocké sur cet appareil (IndexedDB), rien ne part sur internet.
+          Le JSON sert de sauvegarde ou de transfert vers un autre appareil.
+          L'import .xlsx lit un classeur au format « Mon Budget Personnel » (v3) et remplace les données.
+          La lecture .xlsx nécessite une connexion la toute première fois (téléchargement de la librairie, ensuite mise en cache).
+        </details>
+      </div>
+    </div>
+    <div class="carte">
+      <div class="tete"><h3>🖨️ Compte rendu mensuel</h3></div>
+      <div class="corps">
+        <button class="btn ligne2 or" id="btn-rapport">📄 Générer le compte rendu (1 page A4 / mois)</button>
+        <p class="note">Ouvre la boîte d'impression : choisis « Enregistrer en PDF » comme destination.
+        Les mois passés et le mois en cours sont marqués « Réel », les suivants « Prévisionnel ».</p>
+      </div>
+    </div>
+    <div class="carte">
+      <div class="tete"><h3>🧨 Zone sensible</h3></div>
+      <div class="corps">
+        <button class="btn ligne2" style="background:var(--rouge)" id="btn-reset">Tout effacer (application vide)</button>
+        <p class="note">Efface toutes les données de cet appareil et repart d'une application vierge
+        (aucune donnée personnelle n'est embarquée dans les fichiers publiés sur GitHub —
+        recharge tes données via « Importer une sauvegarde JSON »).</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-page="accueil" class="actif"><span class="ico">📒</span>Accueil</button>
+  <button data-page="mois"><span class="ico">📅</span>Mois</button>
+  <button data-page="livrets"><span class="ico">💰</span>Livrets</button>
+  <button data-page="invest"><span class="ico">📈</span>Invest.</button>
+  <button data-page="av"><span class="ico">🔁</span>Achat-Vente</button>
+  <button data-page="reglages"><span class="ico">⚙️</span>Réglages</button>
+</nav>
+<div id="toast"></div>
+<div id="rapport"></div>
+<script>
+"use strict";
+const SEED = {"config":{"eurParJour":41.43,"resteInitial":0},"months":{},"livrets":{"livretA":{"initial":0,"mouvements":[]},"ldds":{"initial":0,"mouvements":[]}},"investissements":{"initiaux":{"tr":0,"pea":0,"per":0},"positionsTR":[],"positionsPEA":[],"positionsPER":[]},"achatVente":{"initial":0,"sorties":[],"txTR":[],"txPEA":[]},"historique":[]};
+
+/* ================= ÉTAT & PERSISTANCE (IndexedDB) ================= */
+let etat = null;
+const DB_NOM = 'budget-v4', DB_STORE = 'app';
+function ouvrirDB(){
+  return new Promise((res, rej) => {
+    const rq = indexedDB.open(DB_NOM, 1);
+    rq.onupgradeneeded = () => rq.result.createObjectStore(DB_STORE);
+    rq.onsuccess = () => res(rq.result);
+    rq.onerror = () => rej(rq.error);
+  });
+}
+async function chargerEtat(){
+  try{
+    const db = await ouvrirDB();
+    const val = await new Promise((res, rej) => {
+      const tx = db.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).get('etat');
+      tx.onsuccess = () => res(tx.result); tx.onerror = () => rej(tx.error);
+    });
+    etat = val || structuredClone(SEED);
+  }catch(e){ etat = structuredClone(SEED); }
+  migrer();
+}
+let sauvegardeTimer = null;
+function sauver(){
+  clearTimeout(sauvegardeTimer);
+  sauvegardeTimer = setTimeout(async () => {
+    try{
+      const db = await ouvrirDB();
+      db.transaction(DB_STORE, 'readwrite').objectStore(DB_STORE).put(structuredClone(etat), 'etat');
+      majStatut('✓ enregistré');
+    }catch(e){ majStatut('⚠️ échec sauvegarde'); }
+  }, 350);
+}
+function majStatut(txt){
+  const el = document.getElementById('statut-sync');
+  el.textContent = txt;
+  clearTimeout(el._t); el._t = setTimeout(() => el.textContent = navigator.onLine ? 'hors-ligne prêt' : 'hors-ligne', 2200);
+}
+function migrer(){
+  etat.config = etat.config || {eurParJour:41.43, resteInitial:0};
+  etat.months = etat.months || {};
+  etat.livrets = etat.livrets || {livretA:{initial:0,mouvements:[]}, ldds:{initial:0,mouvements:[]}};
+  etat.investissements = etat.investissements || {initiaux:{tr:0,pea:0,per:0},positionsTR:[],positionsPEA:[],positionsPER:[]};
+  etat.achatVente = etat.achatVente || {initial:0,sorties:[],txTR:[],txPEA:[]};
+  etat.historique = etat.historique || [];
+  if (!Object.keys(etat.months).length){
+    const d = new Date();
+    etat.months[d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')] = moisVide();
+  }
+  for (const m of Object.values(etat.months)){
+    for (const k of ['entrees','chargesFixes','aboObligatoires','aboLoisirs','echelonnes','transport','depensesLibres',
+                     'remboursements','vacHotel','vacTransport','vacAlim','vacLoisirs','vacAutres',
+                     'trActions','trETF','trMetaux','trCrypto','trPE'])
+      m[k] = m[k] || [];
+    m.invPEA = m.invPEA || 0; m.invPER = m.invPER || 0;
+  }
+}
+
+/* ================= OUTILS ================= */
+const fmt = n => (n == null || isNaN(n)) ? '—' :
+  n.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+const fmtS = n => (n > 0 ? '+' : '') + fmt(n);
+const cls = n => n > 0.004 ? 'pos' : (n < -0.004 ? 'neg' : 'neutre');
+const arrondiSup = (n, d=2) => { // ROUNDUP Excel : s'éloigne de zéro
+  const f = 10**d, v = Math.ceil((Math.abs(n) - 1e-9) * f) / f;
+  return n < 0 ? -v : v;
+};
+// évalue "‑8*4", "12+3.5"… (chiffres et + - * / uniquement, comme les formules du classeur)
+function evalMontant(txt){
+  if (txt == null) return 0;
+  const s = String(txt).replace(/,/g,'.').replace(/€|\s/g,'').replace(/[−–]/g,'-');
+  if (s === '' ) return 0;
+  if (!/^[-+0-9.*/()]+$/.test(s)) return NaN;
+  try { const v = Function('"use strict";return(' + s + ')')(); return (typeof v === 'number' && isFinite(v)) ? v : NaN; }
+  catch(e){ return NaN; }
+}
+const somme = liste => liste.reduce((a, l) => a + (Number(l.montant) || 0), 0);
+const clesMois = () => Object.keys(etat.months).sort();
+const NOMS_MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+function libelleMois(cle){ const [a, m] = cle.split('-'); return NOMS_MOIS[+m-1] + ' ' + a; }
+function joursDansMois(cle){ const [a, m] = cle.split('-'); return new Date(+a, +m, 0).getDate(); }
+function cleAujourdhui(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+function moisCourantCle(){
+  const c = cleAujourdhui();
+  const cles = clesMois();
+  if (cles.includes(c)) return c;
+  return cles.filter(k => k <= c).pop() || cles[0];
+}
+function echap(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function moisVide(){
+  return {entrees: [], chargesFixes: [], aboObligatoires: [], invPEA: 0, invPER: 0,
+          aboLoisirs: [], echelonnes: [], transport: [], depensesLibres: [], remboursements: [],
+          vacHotel: [], vacTransport: [], vacAlim: [], vacLoisirs: [], vacAutres: [],
+          trActions: [], trETF: [], trMetaux: [], trCrypto: [], trPE: []};
+}
+function cleSuivante(cle){
+  let [a, m] = cle.split('-').map(Number);
+  m++; if (m > 12){ m = 1; a++; }
+  return a + '-' + String(m).padStart(2, '0');
+}
+
+/* ===== Propagation des dépenses récurrentes vers les mois suivants =====
+   Règles : un AJOUT dans le mois M apparaît dans tous les mois existants après M
+   (s'ils ne contiennent pas déjà ce libellé) ; une MODIFICATION ou SUPPRESSION
+   n'est répercutée que sur les mois strictement postérieurs au mois calendaire
+   courant, pour ne jamais réécrire l'historique réel. */
+const CATS_RECURRENTES = ['chargesFixes', 'aboObligatoires', 'aboLoisirs',
+                          'trActions', 'trETF', 'trMetaux', 'trCrypto', 'trPE'];
+function propagerRecurrent(cleSource, cat, ancienLabel, ligne){
+  if (!CATS_RECURRENTES.includes(cat)) return 0;
+  const auj = cleAujourdhui(), ref = (ancienLabel ?? ligne.label).trim();
+  if (ligne.label.trim() === '' && ref === '') return 0;
+  let n = 0;
+  for (const k of clesMois()){
+    if (k <= cleSource) continue;
+    const liste = etat.months[k][cat];
+    const ix = liste.findIndex(x => x.label.trim() === ref);
+    if (ix >= 0){
+      if (k > auj && (liste[ix].label !== ligne.label || liste[ix].montant !== ligne.montant)){
+        liste[ix] = {label: ligne.label, montant: ligne.montant}; n++;
+      }
+    } else if (ligne.label.trim() !== ''){
+      liste.push({label: ligne.label, montant: ligne.montant}); n++;
+    }
+  }
+  return n;
+}
+function propagerSuppression(cleSource, cat, label){
+  if (!CATS_RECURRENTES.includes(cat) || label.trim() === '') return 0;
+  const auj = cleAujourdhui();
+  let n = 0;
+  for (const k of clesMois()){
+    if (k <= cleSource || k <= auj) continue;
+    const liste = etat.months[k][cat];
+    const ix = liste.findIndex(x => x.label.trim() === label.trim());
+    if (ix >= 0){ liste.splice(ix, 1); n++; }
+  }
+  return n;
+}
+function propagerDirect(cleSource, champ, valeur){
+  const auj = cleAujourdhui();
+  let n = 0;
+  for (const k of clesMois()){
+    if (k <= cleSource || k <= auj) continue;
+    if (etat.months[k][champ] !== valeur){ etat.months[k][champ] = valeur; n++; }
+  }
+  return n;
+}
+
+/* ================= MOTEUR DE CALCUL (logique du classeur) ================= */
+function calculerMois(cle){
+  const m = etat.months[cle]; if (!m) return null;
+  const cles = clesMois(), idx = cles.indexOf(cle);
+  /* Report "Reste Mois-1" : comme dans le classeur, la chaîne s'arrête à la
+     feuille à jour. Ici la borne est le mois calendaire courant — les mois
+     futurs partent de 0, et le report se remplit tout seul quand le mois arrive. */
+  const resteM1Entree = idx === 0 ? (etat.config.resteInitial || 0)
+                      : (cle > cleAujourdhui() ? 0 : calculerMois(cles[idx-1]).resteEnv);
+  const totTR = somme(m.trActions) + somme(m.trETF) + somme(m.trMetaux) + somme(m.trCrypto) + somme(m.trPE);
+  const totInv = totTR + (Number(m.invPEA) || 0) + (Number(m.invPER) || 0);
+  const tEntrees = somme(m.entrees) + resteM1Entree;
+  const tCharges = somme(m.chargesFixes), tAboO = somme(m.aboObligatoires);
+  const tLoisirs = somme(m.aboLoisirs), tEch = somme(m.echelonnes);
+  const tTrans = somme(m.transport), tLibres = somme(m.depensesLibres);
+  const tRemb = somme(m.remboursements);
+  const tVac = somme(m.vacHotel) + somme(m.vacTransport) + somme(m.vacAlim) + somme(m.vacLoisirs) + somme(m.vacAutres);
+  const sommeMois = m.sommeMoisOverride != null ? m.sommeMoisOverride
+                  : joursDansMois(cle) * (etat.config.eurParJour || 0);
+  const nonAttribue = tEntrees + tCharges + tAboO + totInv - sommeMois;
+  let LA, LDDS, invReste;
+  if (m.repartitionOverride){
+    ({LA, LDDS, invReste} = m.repartitionOverride);
+  } else {
+    LA = arrondiSup(nonAttribue / 3); LDDS = arrondiSup(nonAttribue / 3); invReste = nonAttribue - LA - LDDS;
+  }
+  const totalEntrees = tEntrees + tRemb;
+  const totalSorties = tCharges + tAboO + totInv + tLoisirs + tEch + tTrans + tLibres;
+  const solde = totalEntrees + totalSorties;
+  const resteEnv = sommeMois + tLoisirs + tEch + tTrans + tLibres + tVac + tRemb;
+  const resteFin = solde + resteEnv;
+  return {resteM1Entree, totTR, totInv, tEntrees, tCharges, tAboO, tLoisirs, tEch, tTrans, tLibres, tRemb, tVac,
+          sommeMois, nonAttribue, LA, LDDS, invReste, totalEntrees, totalSorties, solde, resteEnv, resteFin};
+}
+function cumulsRepartition(){
+  /* Équivalent des formules LET/REDUCE du classeur : itère de la 1re feuille
+     à la feuille "MàJ". Ici la borne est le mois calendaire courant — les
+     modèles pré-remplis des mois futurs n'entrent pas dans les cumuls. */
+  let LA = 0, LDDS = 0, inv = 0, invTR = 0, invPEA = 0, invPER = 0;
+  const borne = cleAujourdhui();
+  for (const cle of clesMois()){
+    if (cle > borne) continue;
+    const c = calculerMois(cle);
+    LA += c.LA; LDDS += c.LDDS; inv += c.invReste;
+    invTR += -c.totTR; invPEA += -(Number(etat.months[cle].invPEA) || 0); invPER += -(Number(etat.months[cle].invPER) || 0);
+  }
+  return {LA, LDDS, inv, invTR, invPEA, invPER};
+}
+function calculerAchatVente(){
+  const av = etat.achatVente, cr = cumulsRepartition();
+  const achatsTR = av.txTR.filter(t => t.sens === 'Achat').reduce((a,t) => a + (+t.montant || 0), 0);
+  const ventesTR = av.txTR.filter(t => t.sens === 'Vente').reduce((a,t) => a + (+t.montant || 0), 0);
+  const achatsPEA = av.txPEA.filter(t => t.sens === 'Achat').reduce((a,t) => a + (+t.montant || 0), 0);
+  const ventesPEA = av.txPEA.filter(t => t.sens === 'Vente').reduce((a,t) => a + (+t.montant || 0), 0);
+  const dispo = (Number(av.initial) || 0) + cr.inv - somme(av.sorties) - achatsTR + ventesTR - achatsPEA + ventesPEA;
+  return {dispo, netTR: achatsTR - ventesTR, netPEA: achatsPEA - ventesPEA, cumulEpargne: cr.inv};
+}
+function calculerLivrets(){
+  const cr = cumulsRepartition();
+  const la = (Number(etat.livrets.livretA.initial) || 0) + cr.LA + somme(etat.livrets.livretA.mouvements);
+  const ldds = (Number(etat.livrets.ldds.initial) || 0) + cr.LDDS + somme(etat.livrets.ldds.mouvements);
+  return {la, ldds, total: la + ldds, cumLA: cr.LA, cumLDDS: cr.LDDS};
+}
+function perfPositions(liste){
+  let perfE = 0, valeur = 0, cout = 0;
+  const lignes = liste.map(p => {
+    const nb = +p.nb || 0, pru = +p.pru || 0, prix = +p.prix || 0;
+    const pE = nb * (prix - pru), pP = pru ? (prix / pru - 1) * 100 : 0;
+    perfE += pE; valeur += nb * prix; cout += nb * pru;
+    return {...p, perfE: pE, perfP: pP};
+  });
+  return {lignes, perfE, valeur, cout, perfP: cout ? (valeur / cout - 1) * 100 : 0};
+}
+function calculerInvest(){
+  const cr = cumulsRepartition(), avc = calculerAchatVente();
+  const inv = etat.investissements;
+  const totTR = (Number(inv.initiaux.tr) || 0) + cr.invTR + avc.netTR;
+  const totPEA = (Number(inv.initiaux.pea) || 0) + cr.invPEA + avc.netPEA;
+  const totPER = (Number(inv.initiaux.per) || 0) + cr.invPER;
+  const pTR = perfPositions(inv.positionsTR), pPEA = perfPositions(inv.positionsPEA), pPER = perfPositions(inv.positionsPER);
+  return {totTR, totPEA, totPER, total: totTR + totPEA + totPER, pTR, pPEA, pPER,
+          perfTotale: pTR.perfE + pPEA.perfE + pPER.perfE};
+}
+
+/* ================= RENDU : COMPOSANTS ================= */
+let moisActif = null;
+function ligneEditable(chemin, item, i){
+  return `<div class="ligne">
+    <input class="lab" value="${echap(item.label)}" data-ch="${chemin}" data-i="${i}" data-f="label" placeholder="Intitulé">
+    <input class="mnt ${cls(item.montant)}" value="${item.montant ?? ''}" data-ch="${chemin}" data-i="${i}" data-f="montant" inputmode="text" placeholder="0">
+    <button class="sup" data-supch="${chemin}" data-i="${i}" aria-label="Supprimer">✕</button>
+  </div>`;
+}
+function carteListe(titre, chemin, liste, opts = {}){
+  const total = somme(liste);
+  return `<div class="carte">
+    <div class="tete"><h3>${titre}</h3><div class="tot ${cls(total)}">${fmt(total)}</div></div>
+    <div class="corps">
+      ${liste.map((it, i) => ligneEditable(chemin, it, i)).join('') || '<p class="note">Aucune ligne — ajoute la première.</p>'}
+      <button class="ajout" data-addch="${chemin}" data-signe="${opts.signe || '-'}">＋ Ajouter une ligne</button>
+    </div>
+  </div>`;
+}
+function resoudre(chemin){
+  // "months.2026-07.entrees" | "livrets.livretA.mouvements" | "achatVente.sorties" ...
+  const parts = chemin.split('.');
+  let o = etat;
+  for (const p of parts) o = o[p];
+  return o;
+}
+
+/* ================= RENDU : PAGES ================= */
+function rendreAccueil(){
+  const cle = moisCourantCle(), c = calculerMois(cle);
+  const auj = new Date(); const cleAuj = auj.getFullYear() + '-' + String(auj.getMonth()+1).padStart(2,'0');
+  const estCeMois = cle === cleAuj;
+  const nbJ = joursDansMois(cle);
+  const jour = estCeMois ? auj.getDate() : 1;
+  const ref = etat.config.estimationRef ?? c.resteEnv;
+  const parJour = Math.max(0, ref / (nbJ + 1 - jour));
+  document.getElementById('h-jour').innerHTML =
+    parJour.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' <small>€ / jour</small>';
+  document.getElementById('h-sous').textContent =
+    `Enveloppe restante ${fmt(ref)} · ${nbJ + 1 - jour} jour${nbJ-jour ? 's' : ''} restant${nbJ-jour ? 's' : ''} — ${libelleMois(cle)}`;
+  document.getElementById('h-jauge').style.width = Math.max(0, Math.min(100, ref / c.sommeMois * 100)) + '%';
+
+  const liv = calculerLivrets(), inv = calculerInvest(), avc = calculerAchatVente();
+  document.getElementById('kpis-accueil').innerHTML = [
+    ['Solde du mois', fmtS(c.solde), cls(c.solde)],
+    ['Reste fin de mois', fmt(c.resteFin), cls(c.resteFin)],
+    ['Livrets', fmt(liv.total), ''],
+    ['Investissements', fmt(inv.total), ''],
+  ].map(([e, v, k]) => `<div class="kpi"><span class="eti">${e}</span><div class="val ${k}">${v}</div></div>`).join('');
+
+  // estimation
+  document.getElementById('est-montant').value = ref.toFixed(2);
+  document.getElementById('est-ref').textContent = (etat.config.eurParJour || 0).toLocaleString('fr-FR') + ' €/j de base';
+  let g = '';
+  for (let j = 1; j <= nbJ; j++){
+    const v = Math.max(0, ref / (nbJ + 1 - j));
+    g += `<div class="jour ${estCeMois && j < jour ? 'passe' : ''} ${estCeMois && j === jour ? 'auj' : ''}">
+      <div class="n">J${j}</div><div class="v">${v.toLocaleString('fr-FR',{maximumFractionDigits:1})}</div></div>`;
+  }
+  document.getElementById('est-grille').innerHTML = g;
+
+  document.getElementById('patri-total').textContent = fmt(liv.total + inv.total + avc.dispo);
+  document.getElementById('patri-detail').innerHTML = `
+    <div class="ligne"><input class="lab" value="💰 Livrets (A + LDDS)" readonly><span class="mnt" style="width:auto">${fmt(liv.total)}</span></div>
+    <div class="ligne"><input class="lab" value="📈 Investissements (TR + PEA + PERin)" readonly><span class="mnt" style="width:auto">${fmt(inv.total)}</span></div>
+    <div class="ligne"><input class="lab" value="💵 Disponible à l'investissement" readonly><span class="mnt ${cls(avc.dispo)}" style="width:auto">${fmt(avc.dispo)}</span></div>
+    <div class="ligne"><input class="lab" value="📊 Perf. latente globale" readonly><span class="mnt ${cls(inv.perfTotale)}" style="width:auto">${fmtS(inv.perfTotale)}</span></div>`;
+}
+
+function rendreMois(){
+  const cles = clesMois();
+  if (!moisActif || !cles.includes(moisActif)) moisActif = moisCourantCle();
+  document.getElementById('mois-select').innerHTML =
+    cles.map(k => `<option value="${k}" ${k === moisActif ? 'selected' : ''}>${libelleMois(k)}</option>`).join('');
+  const m = etat.months[moisActif], c = calculerMois(moisActif), P = 'months.' + moisActif + '.';
+  document.getElementById('mois-bilan').innerHTML = [
+    ['💵 Entrées', fmt(c.totalEntrees), ''],
+    ['💸 Sorties', fmt(c.totalSorties), ''],
+    ['📊 Solde', fmtS(c.solde), ''],
+    ['📥 Reste enveloppe', fmt(c.resteEnv), 'or'],
+    ['💰 Reste fin', fmt(c.resteFin), 'or'],
+  ].map(([e, v, k]) => `<div><span class="eti">${e}</span><span class="val ${k}">${v}</span></div>`).join('');
+
+  const totVacBloc = c.tVac;
+  const detTR = c.totTR;
+  document.getElementById('mois-blocs').innerHTML = `
+    <div class="carte"><div class="tete"><h3>💰 Répartition épargne</h3><div class="tot">${fmt(c.nonAttribue)}</div></div>
+      <div class="corps">
+        <div class="ligne"><input class="lab" value="Somme pour le mois ${etat.months[moisActif].sommeMoisOverride != null ? '(montant fixé)' : `(${joursDansMois(moisActif)} j × ${etat.config.eurParJour} €)`}" readonly><span class="mnt">${fmt(c.sommeMois)}</span></div>
+        <div class="ligne"><input class="lab" value="Reste du mois précédent (auto)" readonly><span class="mnt">${fmt(c.resteM1Entree)}</span></div>
+        <div class="ligne"><input class="lab" value="🅰️ Livret A (1/3 ↑)" readonly><span class="mnt pos">${fmt(c.LA)}</span></div>
+        <div class="ligne"><input class="lab" value="🏦 LDDS (1/3 ↑)" readonly><span class="mnt pos">${fmt(c.LDDS)}</span></div>
+        <div class="ligne"><input class="lab" value="📈 Investissements (reste)" readonly><span class="mnt pos">${fmt(c.invReste)}</span></div>
+        ${m.repartitionOverride ? '<p class="note">⚠️ Répartition figée manuellement pour ce mois (valeurs du classeur d\u2019origine).</p>' : ''}
+      </div></div>
+    ${carteListe('💰 Entrées', P + 'entrees', m.entrees, {signe:'+'})}
+    ${carteListe('🏠 Charges fixes', P + 'chargesFixes', m.chargesFixes)}
+    ${carteListe('📱 Abo. obligatoires', P + 'aboObligatoires', m.aboObligatoires)}
+    <div class="carte"><div class="tete"><h3>📈 Investissements</h3><div class="tot neg">${fmt(c.totInv)}</div></div>
+      <div class="corps">
+        <div class="ligne"><input class="lab" value="🏦 Trade Republic (détail ci-dessous)" readonly><span class="mnt neg">${fmt(detTR)}</span></div>
+        <div class="ligne"><input class="lab" value="📈 PEA" readonly>
+          <input class="mnt neg" value="${m.invPEA}" data-direct="invPEA" inputmode="text"></div>
+        <div class="ligne"><input class="lab" value="🛡️ PER" readonly>
+          <input class="mnt neg" value="${m.invPER}" data-direct="invPER" inputmode="text"></div>
+      </div></div>
+    ${carteListe('🎮 Abo. loisirs', P + 'aboLoisirs', m.aboLoisirs)}
+    ${carteListe('💳 Paiements échelonnés', P + 'echelonnes', m.echelonnes)}
+    <div class="carte"><div class="tete"><h3>🧮 Étaler un paiement</h3></div>
+      <div class="corps">
+        <div class="ligne" style="border:none">
+          <input class="lab" id="eta-label" placeholder="Intitulé (ex. Canapé)" style="border:1px solid var(--trait);border-radius:8px;padding:8px">
+        </div>
+        <div class="ligne" style="border:none">
+          <input class="mnt" id="eta-total" inputmode="text" placeholder="Total €" style="border:1px solid var(--trait);border-radius:8px;background:var(--carte);flex:1;text-align:left;padding:8px">
+          <input class="mnt" id="eta-n" inputmode="numeric" placeholder="Nb mois" style="border:1px solid var(--trait);border-radius:8px;background:var(--carte);width:90px;text-align:left;padding:8px">
+          <button class="btn or" id="btn-etaler" style="padding:8px 14px">Étaler</button>
+        </div>
+        <p class="note">Répartit la somme à partir de ${libelleMois(moisActif)} : mensualités égales (arrondies au centime),
+        la dernière récupère le reste des arrondis. Ex. 10 € / 3 mois → 3,33 · 3,33 · 3,34. Les mois manquants sont créés automatiquement.</p>
+      </div></div>
+    ${carteListe('🚗 Transport', P + 'transport', m.transport)}
+    ${carteListe('🛒 Dépenses libres', P + 'depensesLibres', m.depensesLibres)}
+    ${carteListe('💵 Remboursements / entrées', P + 'remboursements', m.remboursements, {signe:'+'})}
+    <div class="carte"><div class="tete"><h3>🏖️ Vacances</h3><div class="tot ${cls(totVacBloc)}">${fmt(totVacBloc)}</div></div><div class="corps"><p class="note">Détail ci-dessous — inclus dans l'enveloppe, hors « Total sorties » (comme le classeur).</p></div></div>
+    ${carteListe('🏨 Vacances · Hôtel / Airbnb', P + 'vacHotel', m.vacHotel)}
+    ${carteListe('✈️ Vacances · Transport', P + 'vacTransport', m.vacTransport)}
+    ${carteListe('🍽️ Vacances · Alimentation', P + 'vacAlim', m.vacAlim)}
+    ${carteListe('🎢 Vacances · Loisirs', P + 'vacLoisirs', m.vacLoisirs)}
+    ${carteListe('📦 Vacances · Autres', P + 'vacAutres', m.vacAutres)}
+    <div class="sep"></div>
+    <div class="carte"><div class="tete"><h3>📈 Détail Trade Republic</h3><div class="tot neg">${fmt(detTR)}</div></div>
+      <div class="corps"><p class="note">Plans d'épargne du mois — astuce : tape « -8*4 » pour 4 semaines à 8 €.</p></div></div>
+    ${carteListe('📊 TR · Actions', P + 'trActions', m.trActions)}
+    ${carteListe('📈 TR · ETF', P + 'trETF', m.trETF)}
+    ${carteListe('🥇 TR · Métaux', P + 'trMetaux', m.trMetaux)}
+    ${carteListe('₿ TR · Crypto', P + 'trCrypto', m.trCrypto)}
+    ${carteListe('🏦 TR · Private Equity', P + 'trPE', m.trPE)}
+    <div class="carte"><div class="tete"><h3>📋 Résumé par catégorie</h3><div class="tot">${fmt(c.totalSorties + c.tRemb + c.tVac)}</div></div>
+      <div class="corps">${[
+        ['Charges fixes', c.tCharges], ['Abo. obligatoires', c.tAboO], ['Abo. loisirs', c.tLoisirs],
+        ['Investissements', c.totInv], ['Paiements échelonnés', c.tEch], ['Transport', c.tTrans],
+        ['Dépenses libres', c.tLibres], ['Remboursements', c.tRemb], ['Vacances', c.tVac],
+      ].map(([l, v]) => `<div class="ligne"><input class="lab" value="${l}" readonly><span class="mnt ${cls(v)}">${fmt(v)}</span></div>`).join('')}
+      </div></div>`;
+}
+
+function rendreLivrets(){
+  const l = calculerLivrets();
+  document.getElementById('livrets-kpis').innerHTML = [
+    ['📊 Total général', fmt(l.total)], ['🅰️ Livret A', fmt(l.la)], ['🏦 LDDS', fmt(l.ldds)],
+    ['Cumul épargne mensuelle', fmt(l.cumLA + l.cumLDDS)],
+  ].map(([e, v]) => `<div class="kpi"><span class="eti">${e}</span><div class="val">${v}</div></div>`).join('');
+  const bloc = (titre, cle, obj, cum) => `
+    <div class="carte"><div class="tete"><h3>${titre}</h3><div class="tot">${fmt((Number(obj.initial)||0) + cum + somme(obj.mouvements))}</div></div>
+      <div class="corps">
+        <div class="ligne"><input class="lab" value="Montant avant ${libelleMois(clesMois()[0]) || 'départ'}" readonly>
+          <input class="mnt" value="${obj.initial}" data-init="${cle}" inputmode="text"></div>
+        <div class="ligne"><input class="lab" value="Total cumulé au fil des mois (auto)" readonly><span class="mnt pos">${fmt(cum)}</span></div>
+        ${obj.mouvements.map((it, i) => ligneEditable('livrets.' + cle + '.mouvements', it, i)).join('')}
+        <button class="ajout" data-addch="livrets.${cle}.mouvements">＋ Ajouter un mouvement</button>
+      </div></div>`;
+  document.getElementById('livrets-blocs').innerHTML =
+    bloc('🅰️ Livret A', 'livretA', etat.livrets.livretA, l.cumLA) +
+    bloc('🏦 LDDS', 'ldds', etat.livrets.ldds, l.cumLDDS);
+}
+
+const PASTILLES = {'Actions':'p-actions','ETFs':'p-etfs','Private Equity':'p-pe','Cryptos':'p-cryptos','Métaux':'p-metaux'};
+function tablePositions(titre, chemin, calc, totalCompte){
+  const lig = calc.lignes.map((p, i) => `<tr>
+      <td><span class="pastille ${PASTILLES[p.type] || 'p-etfs'}">${echap(p.type || '?')}</span><br>${echap(p.label)}</td>
+      <td><input value="${p.nb ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="nb" inputmode="text"></td>
+      <td><input value="${p.pru ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="pru" inputmode="text"></td>
+      <td><input value="${p.prix ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="prix" inputmode="text"></td>
+      <td class="${cls(p.perfP)}">${p.perfP.toFixed(1)} %</td>
+      <td class="${cls(p.perfE)}">${fmtS(p.perfE)}</td>
+      <td><button class="sup" data-psupch="${chemin}" data-i="${i}">✕</button></td>
+    </tr>`).join('');
+  return `<div class="carte">
+    <div class="tete"><h3>${titre}</h3><div class="tot">${fmt(totalCompte)}</div></div>
+    <div class="corps" style="overflow-x:auto">
+      <table><thead><tr><th>Position</th><th>Nb</th><th>PRU €</th><th>Prix €</th><th>Perf %</th><th>Perf €</th><th></th></tr></thead>
+      <tbody>${lig}
+        <tr class="total"><td>TOTAL · perf. latente</td><td colspan="3">valeur ${fmt(calc.valeur)}</td>
+          <td class="${cls(calc.perfP)}">${calc.perfP.toFixed(1)} %</td><td class="${cls(calc.perfE)}">${fmtS(calc.perfE)}</td><td></td></tr>
+      </tbody></table>
+      <button class="ajout" data-paddch="${chemin}">＋ Ajouter une position</button>
+    </div></div>`;
+}
+function rendreInvest(){
+  const v = calculerInvest();
+  document.getElementById('inv-kpis').innerHTML = [
+    ['📊 Total investi', fmt(v.total)], ['🏦 Trade Republic', fmt(v.totTR)],
+    ['📈 PEA Bourse Direct', fmt(v.totPEA)], ['🛡️ PERin BoursoBank', fmt(v.totPER)],
+  ].map(([e, x]) => `<div class="kpi"><span class="eti">${e}</span><div class="val">${x}</div></div>`).join('');
+  document.getElementById('inv-blocs').innerHTML =
+    tablePositions('🏦 Trade Republic — positions', 'positionsTR', v.pTR, v.totTR) +
+    tablePositions('📈 PEA Bourse Direct — positions', 'positionsPEA', v.pPEA, v.totPEA) +
+    tablePositions('🛡️ PERin BoursoBank — positions', 'positionsPER', v.pPER, v.totPER) +
+    `<div class="carte"><div class="tete"><h3>📝 Enregistrer le mois dans l'historique</h3></div>
+      <div class="corps">
+        <p class="note">Fige la performance actuelle (€ et %) des trois portefeuilles pour la période choisie — l'équivalent du « Tapez OUI puis copiez vers Database ».</p>
+        <div class="ligne" style="border:none">
+          <input class="lab" id="hist-periode" value="${new Date().toLocaleDateString('fr-FR',{month:'2-digit'}).padStart(2,'0')}.${new Date().getFullYear()}" style="max-width:110px;border:1px solid var(--trait);border-radius:8px;text-align:center;font-weight:700">
+          <button class="btn or" id="btn-enregistrer-hist" style="flex:1;justify-content:center">✅ Enregistrer</button>
+        </div>
+      </div></div>`;
+  rendreGraph(); rendreHistTable();
+  document.getElementById('btn-enregistrer-hist').onclick = () => {
+    const p = document.getElementById('hist-periode').value.trim();
+    if (!/^\d{2}\.\d{4}$/.test(p)) return toast('Format attendu : MM.AAAA');
+    const w = calculerInvest();
+    const rec = {periode: p, tr: +w.pTR.perfE.toFixed(2), trPct: +(w.pTR.perfP/100).toFixed(4),
+                 pea: +w.pPEA.perfE.toFixed(2), peaPct: +(w.pPEA.perfP/100).toFixed(4),
+                 per: +w.pPER.perfE.toFixed(2), perPct: +(w.pPER.perfP/100).toFixed(4),
+                 total: +w.perfTotale.toFixed(2)};
+    const ix = etat.historique.findIndex(h => h.periode === p);
+    if (ix >= 0) etat.historique[ix] = rec; else etat.historique.push(rec);
+    etat.historique.sort((a, b) => a.periode.split('.').reverse().join('') < b.periode.split('.').reverse().join('') ? -1 : 1);
+    sauver(); rendreInvest(); toast('Période ' + p + ' enregistrée 📈');
+  };
+}
+function rendreGraph(){
+  const svg = document.getElementById('inv-graph'), H = etat.historique;
+  if (H.length < 1){ svg.innerHTML = '<text x="360" y="150" text-anchor="middle" fill="#5A6072" font-size="14">Aucune donnée — enregistre un premier mois.</text>'; return; }
+  const series = [['tr', '#B08D3E'], ['pea', '#2E7D5B'], ['per', '#5A6072'], ['total', '#1E2430']];
+  const tous = H.flatMap(h => series.map(([k]) => +h[k] || 0));
+  const mx = Math.max(...tous, 1), mn = Math.min(...tous, 0);
+  const L = 60, R = 700, T = 16, B = 262;
+  const X = i => H.length === 1 ? (L + R) / 2 : L + (R - L) * i / (H.length - 1);
+  const Y = v => B - (B - T) * (v - mn) / (mx - mn || 1);
+  let out = '';
+  for (let g = 0; g <= 4; g++){
+    const v = mn + (mx - mn) * g / 4, y = Y(v);
+    out += `<line x1="${L}" y1="${y}" x2="${R}" y2="${y}" stroke="#E4E1D8"/>
+      <text x="${L-6}" y="${y+4}" text-anchor="end" font-size="10" fill="#5A6072">${Math.round(v).toLocaleString('fr-FR')}</text>`;
+  }
+  for (const [k, coul] of series){
+    const pts = H.map((h, i) => `${X(i)},${Y(+h[k] || 0)}`).join(' ');
+    out += `<polyline points="${pts}" fill="none" stroke="${coul}" stroke-width="${k === 'total' ? 3 : 2}" stroke-linejoin="round"/>`;
+    out += H.map((h, i) => `<circle cx="${X(i)}" cy="${Y(+h[k] || 0)}" r="3.5" fill="${coul}"/>`).join('');
+  }
+  out += H.map((h, i) => `<text x="${X(i)}" y="${B + 18}" text-anchor="middle" font-size="10" fill="#5A6072">${h.periode}</text>`).join('');
+  svg.innerHTML = out;
+}
+function rendreHistTable(){
+  const H = etat.historique;
+  document.getElementById('inv-hist-table').innerHTML = !H.length ? '' :
+    `<table style="margin-top:10px"><thead><tr><th>Période</th><th>TR €</th><th>PEA €</th><th>PERin €</th><th>Total €</th><th></th></tr></thead><tbody>` +
+    H.map((h, i) => `<tr><td>${h.periode}</td><td class="${cls(h.tr)}">${fmt(h.tr)}</td><td class="${cls(h.pea)}">${fmt(h.pea)}</td>
+      <td class="${cls(h.per)}">${fmt(h.per)}</td><td class="${cls(h.total)}"><b>${fmt(h.total)}</b></td>
+      <td><button class="sup" data-histsup="${i}">✕</button></td></tr>`).join('') + '</tbody></table>';
+}
+
+function rendreAV(){
+  const a = calculerAchatVente(), av = etat.achatVente;
+  document.getElementById('av-kpis').innerHTML = [
+    ['💵 Disponible à investir', fmt(a.dispo)], ['Cumul épargne « reste »', fmt(a.cumulEpargne)],
+    ['🏦 Net investi TR (direct)', fmt(a.netTR)], ['📈 Net investi PEA (direct)', fmt(a.netPEA)],
+  ].map(([e, v]) => `<div class="kpi"><span class="eti">${e}</span><div class="val">${v}</div></div>`).join('');
+  const txTable = (titre, cle, liste) => `
+    <div class="carte"><div class="tete"><h3>${titre}</h3><div class="tot">${fmt(liste.filter(t=>t.sens==='Achat').reduce((s,t)=>s+(+t.montant||0),0) - liste.filter(t=>t.sens==='Vente').reduce((s,t)=>s+(+t.montant||0),0))}</div></div>
+    <div class="corps" style="overflow-x:auto">
+      <table><thead><tr><th>Date</th><th>Sens</th><th>Type</th><th>Intitulé</th><th>€</th><th></th></tr></thead><tbody>
+      ${liste.map((t, i) => `<tr>
+        <td><input type="date" value="${echap(t.date || '')}" data-tch="${cle}" data-i="${i}" data-f="date" style="min-width:118px;text-align:left"></td>
+        <td><select data-tch="${cle}" data-i="${i}" data-f="sens" style="border:none;background:transparent">
+          <option ${t.sens==='Achat'?'selected':''}>Achat</option><option ${t.sens==='Vente'?'selected':''}>Vente</option></select></td>
+        <td><input value="${echap(t.type || '')}" data-tch="${cle}" data-i="${i}" data-f="type" style="min-width:64px;text-align:left"></td>
+        <td><input value="${echap(t.label)}" data-tch="${cle}" data-i="${i}" data-f="label" style="min-width:110px;text-align:left"></td>
+        <td><input value="${t.montant ?? ''}" data-tch="${cle}" data-i="${i}" data-f="montant" inputmode="text"></td>
+        <td><button class="sup" data-tsupch="${cle}" data-i="${i}">✕</button></td></tr>`).join('')}
+      </tbody></table>
+      <button class="ajout" data-taddch="${cle}">＋ Ajouter une opération</button>
+    </div></div>`;
+  // bilan par intitulé
+  const bilan = {};
+  for (const t of av.txTR) bilan[t.label] = (bilan[t.label] || 0) + (t.sens === 'Achat' ? -1 : 1) * (+t.montant || 0);
+  document.getElementById('av-blocs').innerHTML = `
+    <div class="carte"><div class="tete"><h3>➕ Entrées / ➖ Sorties du disponible</h3></div>
+      <div class="corps">
+        <div class="ligne"><input class="lab" value="Montant avant ${libelleMois(clesMois()[0]) || 'départ'}" readonly>
+          <input class="mnt" value="${av.initial}" data-init="avInitial" inputmode="text"></div>
+        <div class="ligne"><input class="lab" value="Total cumulé au fil des mois (auto : 1/3 investissements)" readonly><span class="mnt pos">${fmt(a.cumulEpargne)}</span></div>
+      </div></div>
+    ${carteListe('➖ Sorties (renflouement dépenses)', 'achatVente.sorties', av.sorties)}
+    ${txTable('🏦 Trade Republic — achats / ventes directs', 'txTR', av.txTR)}
+    ${txTable('📈 PEA Bourse Direct — achats / ventes directs', 'txPEA', av.txPEA)}
+    <div class="carte"><div class="tete"><h3>📈 Bilan par intitulé (TR)</h3></div>
+      <div class="corps">${Object.entries(bilan).map(([l, v]) =>
+        `<div class="ligne"><input class="lab" value="${echap(l)}" readonly><span class="mnt ${cls(v)}">${fmt(v)}</span></div>`).join('') || '<p class="note">Aucune opération.</p>'}
+      </div></div>`;
+}
+
+function rendreReglages(){
+  document.getElementById('cfg-jour').value = etat.config.eurParJour;
+  document.getElementById('cfg-reste').value = etat.config.resteInitial;
+}
+function rendreTout(){
+  rendreAccueil(); rendreMois(); rendreLivrets(); rendreInvest(); rendreAV(); rendreReglages();
+}
+
+/* ================= INTERACTIONS ================= */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('vu');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('vu'), 2400);
+}
+function pageActive(){ return document.querySelector('.page.actif').id.replace('page-', ''); }
+function rafraichirPage(){
+  ({accueil: rendreAccueil, mois: rendreMois, livrets: rendreLivrets,
+    invest: rendreInvest, av: rendreAV, reglages: rendreReglages})[pageActive()]();
+}
+
+document.querySelector('nav').addEventListener('click', e => {
+  const b = e.target.closest('button[data-page]'); if (!b) return;
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('actif', x === b));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('actif', p.id === 'page-' + b.dataset.page));
+  rafraichirPage();
+  window.scrollTo({top: 0});
+});
+
+// Délégation générale : édition des lignes, ajouts, suppressions
+document.querySelector('main').addEventListener('change', e => {
+  const el = e.target;
+  if (el.dataset.ch){                       // ligne label/montant
+    const liste = resoudre(el.dataset.ch), it = liste[+el.dataset.i];
+    const chemin = el.dataset.ch.split('.');   // ex. months.2026-08.chargesFixes
+    const ancienLabel = it.label;
+    if (el.dataset.f === 'label') it.label = el.value;
+    else {
+      const v = evalMontant(el.value);
+      if (isNaN(v)) { toast('Montant invalide'); el.value = it.montant ?? ''; return; }
+      it.montant = +v.toFixed(2);
+    }
+    if (chemin[0] === 'months'){
+      const n = propagerRecurrent(chemin[1], chemin[2], ancienLabel, it);
+      if (n > 0) toast(`↪ Répercuté sur ${n} mois suivant${n > 1 ? 's' : ''}`);
+    }
+    sauver(); rafraichirPage();
+  } else if (el.dataset.direct){            // invPEA / invPER du mois
+    const v = evalMontant(el.value);
+    if (isNaN(v)) { toast('Montant invalide'); return; }
+    etat.months[moisActif][el.dataset.direct] = +v.toFixed(2);
+    const n = propagerDirect(moisActif, el.dataset.direct, +v.toFixed(2));
+    if (n > 0) toast(`↪ Répercuté sur ${n} mois suivant${n > 1 ? 's' : ''}`);
+    sauver(); rendreMois();
+  } else if (el.dataset.init){              // initiaux (livrets, achat-vente)
+    const v = evalMontant(el.value);
+    if (isNaN(v)) { toast('Montant invalide'); return; }
+    if (el.dataset.init === 'avInitial') etat.achatVente.initial = v;
+    else etat.livrets[el.dataset.init].initial = v;
+    sauver(); rafraichirPage();
+  } else if (el.dataset.pch){               // positions invest
+    const p = etat.investissements[el.dataset.pch][+el.dataset.i];
+    const v = evalMontant(el.value);
+    if (isNaN(v)) { toast('Valeur invalide'); return; }
+    p[el.dataset.f] = v;
+    sauver(); rendreInvest();
+  } else if (el.dataset.tch){               // transactions achat-vente
+    const t = etat.achatVente[el.dataset.tch][+el.dataset.i];
+    if (el.dataset.f === 'montant'){
+      const v = evalMontant(el.value);
+      if (isNaN(v)) { toast('Montant invalide'); return; }
+      t.montant = v;
+    } else t[el.dataset.f] = el.value;
+    sauver(); rendreAV();
+  }
+});
+document.querySelector('main').addEventListener('click', e => {
+  const el = e.target.closest('button'); if (!el) return;
+  if (el.dataset.addch){
+    resoudre(el.dataset.addch).push({label: '', montant: 0});
+    sauver(); rafraichirPage();
+  } else if (el.dataset.supch){
+    if (!confirm('Supprimer cette ligne ?')) return;
+    const chemin = el.dataset.supch.split('.');
+    const [ligne] = resoudre(el.dataset.supch).splice(+el.dataset.i, 1);
+    if (chemin[0] === 'months' && CATS_RECURRENTES.includes(chemin[2]) && ligne && ligne.label.trim() !== ''
+        && confirm('La retirer aussi de tous les mois suivants (à venir) ?')){
+      const n = propagerSuppression(chemin[1], chemin[2], ligne.label);
+      if (n > 0) toast(`↪ Retirée de ${n} mois suivant${n > 1 ? 's' : ''}`);
+    }
+    sauver(); rafraichirPage();
+  } else if (el.id === 'btn-etaler'){
+    const label = document.getElementById('eta-label').value.trim();
+    const total = evalMontant(document.getElementById('eta-total').value);
+    const n = parseInt(document.getElementById('eta-n').value, 10);
+    if (!label) return toast('Indique un intitulé');
+    if (isNaN(total) || Math.abs(total) < 0.01) return toast('Total invalide');
+    if (!Number.isInteger(n) || n < 1 || n > 60) return toast('Nombre de mois invalide (1 à 60)');
+    const crees = etalerPaiement(moisActif, label, total, n);
+    sauver(); rendreMois();
+    toast(`${label} étalé sur ${n} mois${crees ? ` — ${crees} mois créé${crees > 1 ? 's' : ''}` : ''} ✅`);
+  } else if (el.dataset.paddch){
+    etat.investissements[el.dataset.paddch].push({type: 'Actions', label: '', nb: 0, pru: 0, prix: 0});
+    sauver(); rendreInvest();
+  } else if (el.dataset.psupch){
+    if (!confirm('Supprimer cette position ?')) return;
+    etat.investissements[el.dataset.psupch].splice(+el.dataset.i, 1);
+    sauver(); rendreInvest();
+  } else if (el.dataset.taddch){
+    etat.achatVente[el.dataset.taddch].push({date: new Date().toISOString().slice(0,10), sens: 'Achat', type: 'Actions', label: '', montant: 0});
+    sauver(); rendreAV();
+  } else if (el.dataset.tsupch){
+    if (!confirm('Supprimer cette opération ?')) return;
+    etat.achatVente[el.dataset.tsupch].splice(+el.dataset.i, 1);
+    sauver(); rendreAV();
+  } else if (el.dataset.histsup != null){
+    if (!confirm('Supprimer cette période de l\u2019historique ?')) return;
+    etat.historique.splice(+el.dataset.histsup, 1);
+    sauver(); rendreInvest();
+  }
+});
+
+// Sélecteur de mois
+document.getElementById('mois-select').addEventListener('change', e => { moisActif = e.target.value; rendreMois(); });
+document.getElementById('mois-prec').onclick = () => {
+  const c = clesMois(), i = c.indexOf(moisActif);
+  if (i > 0){ moisActif = c[i-1]; rendreMois(); }
+};
+document.getElementById('mois-suiv').onclick = () => {
+  const c = clesMois(), i = c.indexOf(moisActif);
+  if (i < c.length - 1){ moisActif = c[i+1]; rendreMois(); }
+};
+// Nouveau mois : duplication du récurrent + incrément des compteurs (n/N)
+function creerMoisSuivant(){
+  const cles = clesMois(), dernier = cles[cles.length - 1];
+  const cle = cleSuivante(dernier);
+  const src = etat.months[dernier];
+  const copie = l => l.map(x => ({...x}));
+  const incr = l => l.map(x => {
+    const m2 = x.label.match(/^(.*)\((\d+)\/(\d+)\)\s*$/);
+    if (!m2) return {...x};
+    const n = +m2[2] + 1;
+    return n > +m2[3] ? null : {label: `${m2[1]}(${n}/${m2[3]})`, montant: x.montant};
+  }).filter(Boolean);
+  etat.months[cle] = {
+    entrees: src.entrees.filter(x => /salaire|intérêt/i.test(x.label)).map(x => ({...x})),
+    chargesFixes: copie(src.chargesFixes), aboObligatoires: copie(src.aboObligatoires),
+    invPEA: src.invPEA, invPER: src.invPER,
+    aboLoisirs: copie(src.aboLoisirs), echelonnes: incr(src.echelonnes),
+    transport: [], depensesLibres: [], remboursements: [],
+    vacHotel: [], vacTransport: [], vacAlim: [], vacLoisirs: [], vacAutres: [],
+    trActions: copie(src.trActions), trETF: copie(src.trETF), trMetaux: copie(src.trMetaux),
+    trCrypto: copie(src.trCrypto), trPE: copie(src.trPE),
+  };
+  return cle;
+}
+document.getElementById('mois-nouveau').onclick = () => {
+  const cle = creerMoisSuivant();
+  moisActif = cle; sauver(); rendreMois(); toast(libelleMois(cle) + ' créé — récurrents copiés ✅');
+};
+// Étalement d'un paiement échelonné : total / n mois, dernière mensualité = reste des arrondis
+function etalerPaiement(cleDepart, label, total, n){
+  const totalAbs = Math.abs(total);
+  const mensualite = Math.trunc(totalAbs / n * 100) / 100;
+  const derniere = +(totalAbs - mensualite * (n - 1)).toFixed(2);
+  let cible = cleDepart, crees = 0;
+  for (let i = 1; i <= n; i++){
+    while (!etat.months[cible]){ creerMoisSuivant(); crees++; }
+    const montant = -(i === n ? derniere : mensualite);
+    const cibleLabel = `${label} (${i}/${n})`;
+    const liste = etat.months[cible].echelonnes;
+    const ix = liste.findIndex(x => x.label.trim() === cibleLabel);   // ligne déjà posée par l'incrément (n/N) → remplacée
+    if (ix >= 0) liste.splice(ix, 1);
+    liste.push({label: cibleLabel, montant});
+    cible = cleSuivante(cible);
+  }
+  return crees;
+}
+
+// Estimation par jour
+document.getElementById('est-montant').addEventListener('change', e => {
+  const v = evalMontant(e.target.value);
+  if (isNaN(v)) return toast('Montant invalide');
+  etat.config.estimationRef = v; sauver(); rendreAccueil();
+});
+document.getElementById('est-auto').onclick = () => {
+  delete etat.config.estimationRef; sauver(); rendreAccueil(); toast('Référence auto : reste d\u2019enveloppe du mois');
+};
+
+// Réglages
+document.getElementById('cfg-jour').addEventListener('change', e => {
+  const v = evalMontant(e.target.value);
+  if (isNaN(v) || v <= 0) return toast('Valeur invalide');
+  etat.config.eurParJour = v; sauver(); rendreTout(); toast('Enveloppe : ' + v + ' €/jour');
+});
+document.getElementById('cfg-reste').addEventListener('change', e => {
+  const v = evalMontant(e.target.value);
+  if (isNaN(v)) return toast('Valeur invalide');
+  etat.config.resteInitial = v; sauver(); rendreTout();
+});
+
+/* ================= COMPTE RENDU A4 (impression / PDF) ================= */
+const CAT_COULEURS = [
+  ['Charges fixes', 'tCharges', '#1E2430'], ['Abo. obligatoires', 'tAboO', '#5A6072'],
+  ['Abo. loisirs', 'tLoisirs', '#B08D3E'], ['Investissements', 'totInv', '#2E7D5B'],
+  ['Paiements échelonnés', 'tEch', '#7FA98C'], ['Transport', 'tTrans', '#4E79A7'],
+  ['Dépenses libres', 'tLibres', '#C0392B'], ['Vacances', 'tVac', '#E0A93F'],
+];
+function donutSVG(parts, total){
+  // parts: [{label, valeur, couleur}] — valeurs positives
+  const cx = 80, cy = 80, r = 70, ri = 42;
+  if (total <= 0.004) return `<svg viewBox="0 0 160 160" width="100%"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#E4E1D8" stroke-width="26"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="11" fill="#5A6072">Aucune dépense</text></svg>`;
+  const pol = (rr, a) => [cx + rr * Math.cos(a), cy + rr * Math.sin(a)];
+  let a0 = -Math.PI / 2, out = '';
+  for (const p of parts){
+    if (p.valeur <= 0) continue;
+    let a1 = a0 + (p.valeur / total) * 2 * Math.PI;
+    const complet = p.valeur / total > 0.9999;
+    if (complet) a1 = a0 + 2 * Math.PI - 0.0001;
+    const grand = (a1 - a0) > Math.PI ? 1 : 0;
+    const [x0e, y0e] = pol(r, a0), [x1e, y1e] = pol(r, a1);
+    const [x0i, y0i] = pol(ri, a1), [x1i, y1i] = pol(ri, a0);
+    out += `<path d="M ${x0e} ${y0e} A ${r} ${r} 0 ${grand} 1 ${x1e} ${y1e} L ${x0i} ${y0i} A ${ri} ${ri} 0 ${grand} 0 ${x1i} ${y1i} Z" fill="${p.couleur}" stroke="#fff" stroke-width="1"/>`;
+    a0 = a1;
+  }
+  out += `<text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="15" font-weight="800" fill="#1E2430">${Math.round(total).toLocaleString('fr-FR')} €</text>
+          <text x="${cx}" y="${cy+13}" text-anchor="middle" font-size="8" fill="#5A6072" letter-spacing="1">DÉPENSES</text>`;
+  return `<svg viewBox="0 0 160 160" width="100%">${out}</svg>`;
+}
+function pageRapport(cle){
+  const m = etat.months[cle], c = calculerMois(cle);
+  const reel = cle <= cleAujourdhui();
+  const parts = CAT_COULEURS.map(([label, champ, couleur]) =>
+    ({label, couleur, valeur: Math.max(0, -c[champ])}));
+  const totalParts = parts.reduce((a, p) => a + p.valeur, 0);
+  const lignesCat = parts.map(p => `<tr>
+      <td><span class="puce" style="background:${p.couleur}"></span>${p.label}</td>
+      <td>${p.valeur > 0.004 ? fmt(-p.valeur) : '—'}</td>
+      <td>${totalParts > 0.004 ? (p.valeur / totalParts * 100).toFixed(1) + ' %' : '—'}</td>
+    </tr>`).join('');
+  const topLibres = [...m.depensesLibres].filter(x => (x.montant || 0) < 0)
+    .sort((a, b) => a.montant - b.montant).slice(0, 6)
+    .map(x => `<tr><td>${echap(x.label)}</td><td class="neg">${fmt(x.montant)}</td></tr>`).join('')
+    || '<tr><td colspan="2" style="color:#5A6072">Aucune dépense libre saisie.</td></tr>';
+  const entrees = [
+      {label: 'Reste du mois précédent', montant: c.resteM1Entree},
+      ...m.entrees, ...m.remboursements.map(x => ({...x, label: x.label + ' (remb.)'}))]
+    .filter(x => Math.abs(x.montant || 0) > 0.004)
+    .map(x => `<tr><td>${echap(x.label)}</td><td class="${cls(x.montant)}">${fmt(x.montant)}</td></tr>`).join('');
+  const nbJ = joursDansMois(cle);
+  return `<section class="rp">
+    <div class="rp-tete">
+      <h1>📒 ${libelleMois(cle)}</h1>
+      <span class="badge ${reel ? '' : 'prev'}">${reel ? 'Réel' : 'Prévisionnel'}</span>
+      <span class="app">Mon Budget Personnel · v4</span>
+    </div>
+    <div class="kpi5">
+      <div><span class="e">💵 Entrées</span><span class="v pos">${fmt(c.totalEntrees)}</span></div>
+      <div><span class="e">💸 Sorties</span><span class="v neg">${fmt(c.totalSorties)}</span></div>
+      <div><span class="e">📊 Solde</span><span class="v ${cls(c.solde)}">${fmtS(c.solde)}</span></div>
+      <div><span class="e">📥 Reste enveloppe</span><span class="v">${fmt(c.resteEnv)}</span></div>
+      <div><span class="e">💰 Reste fin de mois</span><span class="v">${fmt(c.resteFin)}</span></div>
+    </div>
+    <div class="cols">
+      <div>
+        <h2>Dépenses par catégorie</h2>
+        ${donutSVG(parts, totalParts)}
+        <table>${lignesCat}
+          <tr class="tot"><td>Total dépenses</td><td>${fmt(-totalParts)}</td><td>100 %</td></tr>
+        </table>
+        <div class="rep">
+          <div class="l"><span>Somme pour le mois ${m.sommeMoisOverride != null ? '(fixée)' : `(${nbJ} j × ${etat.config.eurParJour} €)`}</span><b>${fmt(c.sommeMois)}</b></div>
+          <div class="l"><span>📊 Non attribué</span><b>${fmt(c.nonAttribue)}</b></div>
+          <div class="l"><span>🅰️ Livret A</span><b class="pos">${fmt(c.LA)}</b></div>
+          <div class="l"><span>🏦 LDDS</span><b class="pos">${fmt(c.LDDS)}</b></div>
+          <div class="l"><span>📈 Investissements (reste)</span><b class="pos">${fmt(c.invReste)}</b></div>
+        </div>
+      </div>
+      <div>
+        <h2>Entrées &amp; remboursements — ${fmt(c.totalEntrees)}</h2>
+        <table>${entrees}</table>
+        <h2>Plus grosses dépenses libres</h2>
+        <table>${topLibres}</table>
+        <h2>Investissements du mois — ${fmt(c.totInv)}</h2>
+        <table>
+          <tr><td>🏦 Trade Republic (plans)</td><td class="neg">${fmt(c.totTR)}</td></tr>
+          <tr><td>📈 PEA</td><td class="neg">${fmt(m.invPEA)}</td></tr>
+          <tr><td>🛡️ PER</td><td class="neg">${fmt(m.invPER)}</td></tr>
+        </table>
+        ${c.tVac < -0.004 ? `<h2>Vacances</h2><table><tr><td>Total vacances (hors « Total sorties »)</td><td class="neg">${fmt(c.tVac)}</td></tr></table>` : ''}
+      </div>
+    </div>
+    <div class="rp-pied">
+      <span>Enveloppe quotidienne : ${(c.sommeMois / nbJ).toFixed(2).replace('.', ',')} €/jour sur ${nbJ} jours</span>
+      <span>Édité le ${new Date().toLocaleDateString('fr-FR')} — Budget v4</span>
+    </div>
+  </section>`;
+}
+function genererRapport(){
+  document.getElementById('rapport').innerHTML = clesMois().map(pageRapport).join('');
+  document.body.classList.add('impression');
+  const fin = () => document.body.classList.remove('impression');
+  window.addEventListener('afterprint', fin, {once: true});
+  setTimeout(() => window.print(), 60);
+}
+document.getElementById('btn-rapport').onclick = genererRapport;
+
+/* ================= SAUVEGARDE / IMPORTS ================= */
+document.getElementById('btn-export-json').onclick = () => {
+  const blob = new Blob([JSON.stringify(etat, null, 1)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'budget-v4-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('Sauvegarde exportée 💾');
+};
+document.getElementById('btn-import-json').onclick = () => document.getElementById('fic-json').click();
+document.getElementById('fic-json').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try{
+    const data = JSON.parse(await f.text());
+    if (!data.months || !data.config) throw new Error('structure inattendue');
+    if (!confirm('Remplacer toutes les données actuelles par cette sauvegarde ?')) return;
+    etat = data; migrer(); sauver(); rendreTout(); toast('Sauvegarde importée ✅');
+  }catch(err){ toast('Fichier illisible : ' + err.message); }
+  e.target.value = '';
+});
+document.getElementById('btn-reset').onclick = () => {
+  if (!confirm('Tout effacer et repartir d\u2019une application vide ?')) return;
+  etat = structuredClone(SEED); migrer(); sauver(); rendreTout(); toast('Application vidée — importe ta sauvegarde JSON pour retrouver tes données');
+};
+
+// ---- Import XLSX (SheetJS chargé à la demande, mis en cache par le service worker) ----
+document.getElementById('btn-import-xlsx').onclick = () => document.getElementById('fic-xlsx').click();
+document.getElementById('fic-xlsx').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try{
+    if (!window.XLSX){
+      toast('Chargement du lecteur Excel…');
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = res; s.onerror = () => rej(new Error('librairie inaccessible (connexion requise la 1re fois)'));
+        document.head.appendChild(s);
+      });
+    }
+    const wb = XLSX.read(await f.arrayBuffer(), {type: 'array'});
+    const nouveau = importerClasseur(wb);
+    if (!confirm('Classeur lu : ' + Object.keys(nouveau.months).length + ' mois trouvés. Remplacer les données actuelles ?')) return;
+    etat = nouveau; migrer(); sauver(); rendreTout(); toast('Classeur importé ✅');
+  }catch(err){ toast('Import impossible : ' + err.message); console.error(err); }
+});
+function importerClasseur(wb){
+  /* Miroir exact de l'extraction validée : repérage par en-têtes,
+     arrêt de bloc à la 1re ligne vide, vérification via la colonne "Total". */
+  const txt = v => v == null ? '' : String(v).trim();
+  const num = v => typeof v === 'number' && isFinite(v);
+  const grille = ws => XLSX.utils.sheet_to_json(ws, {header: 1, raw: true, defval: null});
+  const trouver = (g, motif) => {
+    for (let r = 0; r < g.length; r++){
+      const row = g[r] || [];
+      for (let c = 0; c < row.length; c++) if (txt(row[c]).includes(motif)) return [r, c];
+    }
+    return null;
+  };
+  const bloc = (g, motif) => {
+    const pos = trouver(g, motif); if (!pos) return [];
+    const [hr, hc] = pos, out = [];
+    for (let r = hr + 2; r < Math.min(hr + 70, g.length); r++){
+      const row = g[r] || [], lab = txt(row[hc]), val = row[hc + 1];
+      if (lab === '' || lab.startsWith('TOTAL') || lab.includes('RÉCAPITULATIF')) break;
+      if (lab === 'Intitulé') continue;
+      if (num(val)) out.push({label: lab, montant: +val.toFixed(2)});
+    }
+    return out;
+  };
+  const compteBilan = (g, motif) => {
+    // Blocs "Date | Intitulé | Montant" : initial = "Montant avant …", puis mouvements.
+    const pos = trouver(g, motif); if (!pos) return {initial: 0, mouvements: []};
+    const [hr, hc] = pos;
+    let initial = 0, vu = false, vides = 0; const mouvements = [];
+    for (let r = hr + 1; r < Math.min(hr + 40, g.length); r++){
+      const row = g[r] || [], lab = txt(row[hc + 1]);
+      let val = null;
+      for (let k = hc + 2; k < Math.min(hc + 5, row.length); k++) if (num(row[k])){ val = row[k]; break; }
+      if (lab === ''){ if (++vides >= (vu ? 2 : 6)) break; continue; }
+      vides = 0;
+      if (lab === 'Intitulé' || lab.includes('cumulé') || lab.includes('Achat/Vente direct')) continue;
+      if (lab.startsWith('Montant avant') && val != null){ initial = +val.toFixed(2); vu = true; }
+      else if (val != null){ mouvements.push({label: lab, montant: +val.toFixed(2)}); vu = true; }
+    }
+    return {initial, mouvements};
+  };
+  const res = {config: {eurParJour: 41.43, resteInitial: 0}, months: {}, livrets: null,
+               investissements: null, achatVente: null, historique: []};
+  const MOTIFS = [
+    ['entrees', '💰 ENTRÉES'], ['chargesFixes', 'CHARGES FIXES'],
+    ['aboObligatoires', 'ABO. OBLIGATOIRES'], ['aboLoisirs', 'ABO. LOISIRS'],
+    ['echelonnes', 'PAIEMENTS ÉCHELONNÉS'], ['transport', '🚗 TRANSPORT'],
+    ['depensesLibres', 'DÉPENSES LIBRES'], ['remboursements', 'REMBOURSEMENT / ENTRÉE'],
+    ['vacHotel', 'HOTEL / AIRBNB'], ['vacTransport', '✈️ TRANSPORT'],
+    ['vacAlim', 'ALIMENTATION'], ['vacLoisirs', '🎢 LOISIRS'],
+    ['vacAutres', '📦 AUTRES'], ['trActions', '📊 ACTIONS'],
+    ['trETF', '📈 ETF'], ['trMetaux', 'MÉTAUX'], ['trCrypto', 'CRYPTO'],
+    ['trPE', 'PRIVATE EQUITY']];
+  for (const nom of wb.SheetNames){
+    const mm = nom.match(/^(\d{2})\.(\d{4})$/);
+    if (!mm) continue;
+    const g = grille(wb.Sheets[nom]), cle = mm[2] + '-' + mm[1], m = {};
+    for (const [champ, motif] of MOTIFS) m[champ] = bloc(g, motif);
+    // 📈 INVESTISSEMENTS (résumé) : PEA / PER par label exact
+    m.invPEA = 0; m.invPER = 0;
+    const pI = trouver(g, '📈 INVESTISSEMENTS');
+    if (pI){
+      for (let r = pI[0] + 2; r < Math.min(pI[0] + 10, g.length); r++){
+        const row = g[r] || [], lab = txt(row[pI[1]]), val = row[pI[1] + 1];
+        if (lab === '' || lab.startsWith('TOTAL')) break;
+        if (!num(val)) continue;
+        if (lab === 'PEA') m.invPEA = +val.toFixed(2);
+        else if (lab === 'PER') m.invPER = +val.toFixed(2);
+      }
+    }
+    // Reste Mois-1 : retiré des entrées (recalculé par l'app)
+    const rm1 = m.entrees.find(x => x.label.startsWith('Reste Mois-1'));
+    m.entrees = m.entrees.filter(x => !x.label.startsWith('Reste Mois-1'));
+    // 💰 RÉPARTITION ÉPARGNE : enveloppe / répartitions dérogatoires
+    let sm = null, naS = null, vLA = null, vLDDS = null, vInv = null;
+    const pR = trouver(g, 'RÉPARTITION ÉPARGNE');
+    if (pR){
+      for (let r = pR[0] + 1; r < Math.min(pR[0] + 12, g.length); r++){
+        const row = g[r] || [], lab = txt(row[pR[1]]), val = row[pR[1] + 1];
+        if (lab.includes('Vérification')) break;
+        if (!num(val)) continue;
+        if (lab.includes('Somme pour le mois')) sm = val;
+        else if (lab.includes('Non Attribué')) naS = val;
+        else if (lab.includes('Livret A')) vLA = val;
+        else if (lab.includes('LDDS')) vLDDS = val;
+        else if (lab.includes('Investissements (reste)')) vInv = val;
+      }
+    }
+    if (sm != null && Math.abs(sm - joursDansMois(cle) * 41.43) > 0.011)
+      m.sommeMoisOverride = +sm.toFixed(2);
+    if (vLA != null && naS != null && Math.abs(vLA - arrondiSup(naS / 3)) > 0.02){
+      const ldds = vLDDS != null ? vLDDS : 0;
+      const inv = vInv != null ? vInv : naS - vLA - ldds;
+      m.repartitionOverride = {LA: +vLA.toFixed(2), LDDS: +ldds.toFixed(2), invReste: +inv.toFixed(2)};
+    }
+    res.months[cle] = m;
+    if (rm1) m._rm1 = rm1.montant;
+  }
+  const cles = Object.keys(res.months).sort();
+  if (!cles.length) throw new Error('aucune feuille mensuelle MM.AAAA trouvée');
+  if (res.months[cles[0]]._rm1 != null) res.config.resteInitial = res.months[cles[0]]._rm1;
+  for (const k of cles) delete res.months[k]._rm1;
+  // eurParJour depuis un mois à enveloppe standard
+  for (const k of cles){
+    const g = grille(wb.Sheets[k.split('-')[1] + '.' + k.split('-')[0]]);
+    const pR = trouver(g, 'Somme pour le mois');
+    if (pR){
+      const val = (g[pR[0]] || [])[pR[1] + 1];
+      if (num(val) && res.months[k].sommeMoisOverride == null){
+        res.config.eurParJour = +(val / joursDansMois(k)).toFixed(2); break;
+      }
+    }
+  }
+  // ---- Bilan Livret ----
+  const wl = wb.Sheets['Bilan Livret'];
+  if (wl){
+    const gl = grille(wl);
+    res.livrets = {livretA: compteBilan(gl, '🅰️ Livret A'), ldds: compteBilan(gl, '🏦 LDDS')};
+  }
+  // ---- Bilan Investisment ----
+  const wi = wb.Sheets['Bilan Investisment'] || wb.Sheets['Bilan Investissement'];
+  if (wi){
+    const gi = grille(wi);
+    const positions = motif => {
+      const pos = trouver(gi, motif); if (!pos) return [];
+      const out = []; let vides = 0;
+      for (let r = pos[0] + 1; r < Math.min(pos[0] + 60, gi.length); r++){
+        const row = gi[r] || [], typ = txt(row[1]), lab = txt(row[2]);
+        if (typ.startsWith('TOTAL')) break;
+        if (lab === ''){ if (++vides >= 3) break; continue; }
+        vides = 0;
+        if (lab === 'Intitulé') continue;
+        if (num(row[3])) out.push({type: typ, label: lab, nb: row[3],
+                                   pru: num(row[4]) ? row[4] : 0, prix: num(row[5]) ? row[5] : 0});
+      }
+      return out;
+    };
+    res.investissements = {
+      initiaux: {tr: compteBilan(gi, '🏦 Trade Republic').initial,
+                 pea: compteBilan(gi, '📈 PEA Bourse Direct').initial,
+                 per: compteBilan(gi, '🛡️ PERin').initial},
+      positionsTR: positions('🏦 TRADE REPUBLIC'),
+      positionsPEA: positions('📈 PEA BOURSE DIRECT'),
+      positionsPER: positions('🛡️ PERin BOURSO BANK')};
+  }
+  // ---- Achat-Vente ----
+  const wa = wb.Sheets['Achat-Vente'];
+  if (wa){
+    const ga = grille(wa);
+    res.achatVente = {initial: compteBilan(ga, '➕ Entrées').initial, sorties: [], txTR: [], txPEA: []};
+    const pS = trouver(ga, '➖ Sorties');
+    if (pS){
+      let vides = 0;
+      for (let r = pS[0] + 1; r < Math.min(pS[0] + 25, ga.length); r++){
+        const row = ga[r] || [], lab = txt(row[pS[1] + 1]);
+        let val = null;
+        for (let k = pS[1] + 2; k < Math.min(pS[1] + 5, row.length); k++) if (num(row[k])){ val = row[k]; break; }
+        if (lab === ''){ if (++vides >= 2) break; continue; }
+        vides = 0;
+        if (lab === 'Intitulé' || lab.startsWith('TOTAL')) continue;
+        if (val != null) res.achatVente.sorties.push({label: lab, montant: +val.toFixed(2)});
+      }
+    }
+    const txBloc = motif => {
+      const pos = trouver(ga, motif); if (!pos) return [];
+      const out = [];
+      for (let r = pos[0] + 1; r < Math.min(pos[0] + 30, ga.length); r++){
+        const row = ga[r] || [], hc = pos[1];
+        let [d, sens, typ, lab, mnt] = [row[hc], row[hc+1], row[hc+2], row[hc+3], row[hc+4]];
+        if (txt(sens) !== 'Achat' && txt(sens) !== 'Vente') continue;
+        if (num(d)){ const dt = new Date(Date.UTC(1899, 11, 30) + d * 864e5); d = dt.toISOString().slice(0, 10); }
+        out.push({date: txt(d).slice(0, 10), sens: txt(sens), type: txt(typ),
+                  label: txt(lab), montant: num(mnt) ? +mnt.toFixed(2) : 0});
+      }
+      return out;
+    };
+    res.achatVente.txTR = txBloc('🏦 Trade Republic');
+    res.achatVente.txPEA = txBloc('📈 PEA Bourse Direct');
+  }
+  // ---- Database (historique) ----
+  const wd = wb.Sheets['Database'];
+  if (wd){
+    const gd = grille(wd);
+    for (const row of gd){
+      for (let c = 0; c < (row || []).length; c++){
+        if (/^\d{2}\.\d{4}$/.test(txt(row[c])) && row.slice(c + 1, c + 8).every(num)){
+          const v = row.slice(c + 1, c + 8);
+          res.historique.push({periode: txt(row[c]), tr: +v[0].toFixed(2), trPct: v[1],
+            pea: +v[2].toFixed(2), peaPct: v[3], per: +v[4].toFixed(2), perPct: v[5], total: +v[6].toFixed(2)});
+        }
+      }
+    }
+  }
+  res.config.moisDebut = cles[0];
+  return res;
+}
+
+/* ================= DÉMARRAGE ================= */
+(async function init(){
+  await chargerEtat();
+  rendreTout();
+  majStatut('prêt');
+  if ('serviceWorker' in navigator){
+    try{ await navigator.serviceWorker.register('sw.js'); }catch(e){}
+  }
+})();
+</script>
+</body>
+</html>
