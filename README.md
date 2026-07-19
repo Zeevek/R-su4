@@ -1,6 +1,6 @@
 # Budget v4 — Mon Budget Personnel (PWA)
 
-Version application web de ton classeur Excel « Mon Budget Personnel », fidèle à la logique du classeur : enveloppe quotidienne (jours × 41,43 €), report « Reste Mois-1 », répartition du Non Attribué (Livret A = LDDS = arrondi supérieur du tiers, reste vers Investissements), bilans Livrets / Investissements / Achat-Vente, historique de performance.
+Version application web de ton classeur Excel « Mon Budget Personnel », fidèle à la logique du classeur : enveloppe quotidienne (jours × x €), report « Reste Mois-1 », répartition du Non Attribué (Livret A = LDDS = arrondi supérieur du tiers, reste vers Investissements), bilans Livrets / Investissements / Achat-Vente, historique de performance.
 
 Tout fonctionne **hors ligne** après la première visite : les données restent sur ton appareil (IndexedDB), rien ne part sur un serveur.
 
@@ -13,15 +13,6 @@ Tout fonctionne **hors ligne** après la première visite : les données restent
 | `manifest.webmanifest` | Manifeste PWA (installation sur l'écran d'accueil) |
 | `icon-192.png` / `icon-512.png` | Icônes de l'app |
 | `README.md` | Ce fichier |
-
-## Déploiement sur GitHub Pages
-
-1. Sur github.com (compte **Zeevek**), crée un nouveau dépôt, par exemple `budget-v4` (public ou privé — Pages fonctionne dans les deux cas avec ton compte).
-2. Téléverse les 5 fichiers **à la racine** du dépôt (bouton *Add file → Upload files*).
-3. Va dans **Settings → Pages** : Source = *Deploy from a branch*, Branch = `main`, dossier `/ (root)`, puis *Save*.
-4. Après une à deux minutes, l'app est en ligne sur `https://zeevek.github.io/budget-v4/`.
-
-Pour mettre à jour l'app plus tard : remplace les fichiers dans le dépôt. Le service worker utilise un nom de cache versionné (`budget-v4-r2`) — pense à l'incrémenter dans `sw.js` à chaque mise à jour pour forcer le rafraîchissement chez les appareils déjà installés.
 
 ## Installation sur téléphone
 
