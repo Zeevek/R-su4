@@ -201,8 +201,9 @@ html{touch-action:manipulation}
 button{min-height:34px}
 nav button{min-height:48px}
 @media (pointer:coarse){
-  /* iOS zoome sur les champs < 16px : on force 16px sur mobile */
-  input, select, .ligne input.lab, .ligne input.mnt, td input, .saisie-rapide input{font-size:16px}
+  /* iOS zoome dès qu'UN champ est sous 16 px : règle globale, prioritaire
+     sur les styles inline et les sélecteurs plus spécifiques */
+  input, select, textarea{font-size:16px !important}
   .ligne{padding:7px 0}
   .ligne .sup, .chip{min-height:34px}
 }
@@ -245,13 +246,13 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
 </head>
 <body>
 <header>
-  <div class="titre">📒 Budget Personnel<small id="ver">v4.6 · Hors-ligne</small></div>
+  <div class="titre">📒 Budget Personnel<small id="ver">v4.6.2 · Hors-ligne</small></div>
   <div class="statut" id="statut-sync">—</div>
 </header>
 
 <main>
   <!-- ============ ACCUEIL ============ -->
-  <section class="page" id="page-accueil">
+  <section class="page actif" id="page-accueil">
     <div class="hero">
       <div class="eti">Reste disponible aujourd'hui <button class="info-btn" data-infocle="hero" aria-label="Informations" style="border-color:var(--laiton-clair);color:var(--laiton-clair);width:18px;height:18px;min-height:18px;font-size:10px">i</button></div>
       <div class="gros" id="h-jour">— <small>€ / jour</small></div>
@@ -424,7 +425,7 @@ const INFOS = {
   poches: ['Poches d’épargne (suivi)', "Cumul des poches de répartition qui ne vont ni aux livrets ni au disponible d'investissement — par exemple un coussin de sécurité ou un projet. Purement indicatif."],
   av: ['Argent disponible', "Alimenté chaque mois par les poches « disponible investissement », diminué des achats directs (TR / PEA) et des sorties. C'est ta réserve pour investir hors plans programmés."],
   invest: ['Positions', "Nb × prix actuel − Nb × PRU = performance latente. « Enregistrer » fige la performance du moment dans l'historique pour suivre l'évolution mois par mois."],
-  cours: ['Mise à jour des cours', "Saisis une fois l'ISIN (ex. FR0000120271) ou le ticker Yahoo (ex. TTE.PA) de chaque position, puis appuie sur le bouton — à la demande uniquement, par exemple une fois par mois. L'app interroge les cotations publiques (internet requis à ce moment-là), privilégie les places européennes en euros et convertit automatiquement les cotations en dollars. Rien n'est envoyé : aucune donnée de ton portefeuille ne quitte l'appareil, seuls les symboles sont recherchés."],
+  cours: ['Mise à jour des cours', "Saisis une fois l'ISIN (ex. FR0000120271) ou le ticker Yahoo (ex. TTE.PA, 8001.T, BTC-EUR) de chaque position, puis appuie sur le bouton — à la demande, par exemple une fois par mois. Toutes les devises sont converties en euros (USD, JPY, CHF, HKD, GBP, pence…) avec les taux de change récupérés en direct au moment de l'appui. Les produits non cotés (private equity, fonds fermés) n'ont pas de cotation publique : mets leur prix à jour à la main. Internet n'est requis qu'à ce moment-là ; seuls les symboles sont interrogés, rien de ton portefeuille ne sort de l'appareil."],
   rapport: ['Compte rendu PDF', "Génère une page A4 par mois et ouvre la boîte d'impression : choisis « Enregistrer en PDF ». Sur iPhone : Partager → Imprimer, puis pince l'aperçu pour l'enregistrer dans Fichiers."],
 };
 const infoBtn = cle => `<button class="info-btn" data-infocle="${cle}" aria-label="Informations">i</button>`;
@@ -440,8 +441,16 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '4.6.0';
+const APP_VERSION = '4.6.2';
 const CHANGELOG = [
+  {v: '4.6.2', d: '19/07/2026', pts: [
+    "Écran blanc au lancement corrigé : la page Accueil est de nouveau active à l'ouverture (+ filet de sécurité).",
+    "Toutes les devises sont maintenant converties en euros (JPY, CHF, HKD, GBP, pence GBp, USD…) avec les taux de change récupérés en direct à chaque appui sur « Mettre à jour les cours ».",
+    "Import .xlsx : correction du décalage de colonnes des positions (SheetJS indexait depuis la plage utilisée de la feuille — les intitulés devenaient des quantités) ; lecture ancrée en A1 et colonnes relatives aux en-têtes. Ré-importe ton classeur pour réparer les positions.",
+    "Les symboles 🔗 ISIN/Ticker sont conservés lors d'un ré-import de classeur (appariement par intitulé).",
+    "Produits non cotés (private equity…) : message explicite invitant à saisir le prix à la main."]},
+  {v: '4.6.1', d: '19/07/2026', pts: [
+    "Correctif du zoom automatique iOS à la saisie : tous les champs passent réellement à 16 px sur mobile (y compris ceux stylés en ligne), verrou de zoom appliqué uniquement sur iOS (Android conserve le pincement), et dézoom automatique de secours après la saisie si un zoom résiduel subsiste."]},
   {v: '4.6.0', d: '19/07/2026', pts: [
     "Mise à jour des cours à la demande : colonne 🔗 ISIN / Ticker sur chaque position (TR, PEA, PERin) et bouton « 🔄 Mettre à jour les cours » sur la page Investissements — résolution automatique de l'ISIN vers le symbole boursier, priorité aux cotations européennes en euros, conversion USD→EUR, progression affichée et rapport des échecs. Internet requis uniquement au moment de l'appui ; rien d'autre ne quitte l'appareil."]},
   {v: '4.5.0', d: '18/07/2026', pts: [
@@ -908,7 +917,13 @@ function choisirSymbole(quotes){
 function prixDepuisChart(d){
   const meta = d && d.chart && d.chart.result && d.chart.result[0] && d.chart.result[0].meta;
   if (!meta || meta.regularMarketPrice == null) return null;
-  return {prix: meta.regularMarketPrice, devise: String(meta.currency || '').toUpperCase()};
+  // la devise est gardée telle quelle : « GBp » (pence) doit rester distinct de « GBP »
+  return {prix: meta.regularMarketPrice, devise: String(meta.currency || '')};
+}
+function normaliserCotation(prix, devise){
+  // pence britanniques → livres
+  if (devise === 'GBp' || devise === 'GBX') return {prix: prix / 100, devise: 'GBP'};
+  return {prix, devise: devise.toUpperCase()};
 }
 async function recupJSON(url){
   const essais = [url,
@@ -942,32 +957,35 @@ async function mettreAJourCours(){
   if (!avec.length) return toast('Renseigne d\u2019abord un ISIN ou un ticker dans la colonne 🔗');
   btn.disabled = true;
   let maj = 0, convertis = 0, echecs = [];
-  let tauxUSD = null;
+  const taux = {};   // taux de change EUR→devise, récupérés en direct au moment de l'appui
+  const tauxPour = async devise => {
+    if (devise === 'EUR') return 1;
+    if (taux[devise] !== undefined) return taux[devise];
+    const fx = await coursSymbole('EUR' + devise + '=X');
+    taux[devise] = fx ? fx.prix : null;
+    return taux[devise];
+  };
   try{
     for (let i = 0; i < avec.length; i++){
       const p = avec[i];
       btn.textContent = `⏳ ${i + 1}/${avec.length} — ${p.label.slice(0, 22)}…`;
       try{
         const sym = await resoudreSymbole(p.symbole);
-        if (!sym) { echecs.push(p.label + ' (symbole introuvable)'); continue; }
+        if (!sym) { echecs.push((p.label || p.symbole) + ' (symbole introuvable — produit non coté ? saisis le prix à la main)'); continue; }
         if (sym !== p.symbole.trim().toUpperCase() || estISIN(p.symbole)) p.symbole = sym;  // mémorise le symbole résolu
         const c = await coursSymbole(sym);
-        if (!c) { echecs.push(p.label + ' (pas de cours)'); continue; }
-        let prix = c.prix;
-        if (c.devise === 'USD'){
-          if (tauxUSD == null){
-            const fx = await coursSymbole('EURUSD=X');
-            tauxUSD = fx ? fx.prix : null;
-          }
-          if (!tauxUSD){ echecs.push(p.label + ' (conversion USD impossible)'); continue; }
-          prix = prix / tauxUSD; convertis++;
-        } else if (c.devise !== 'EUR'){
-          echecs.push(p.label + ' (devise ' + c.devise + ' non gérée)'); continue;
+        if (!c) { echecs.push((p.label || p.symbole) + ' (pas de cours)'); continue; }
+        const norm = normaliserCotation(c.prix, c.devise);
+        let prix = norm.prix;
+        if (norm.devise !== 'EUR'){
+          const tx = await tauxPour(norm.devise);
+          if (!tx){ echecs.push((p.label || p.symbole) + ' (taux EUR/' + norm.devise + ' introuvable)'); continue; }
+          prix = prix / tx; convertis++;
         }
         p.prix = +Number(prix).toFixed(4);
         maj++;
         await new Promise(res => setTimeout(res, 120));   // on reste courtois avec l'API
-      }catch(e){ echecs.push(p.label + ' (' + (e.message || 'erreur') + ')'); }
+      }catch(e){ echecs.push((p.label || p.symbole) + ' (' + (e.message || 'erreur') + ')'); }
     }
   } finally {
     btn.disabled = false;
@@ -977,7 +995,7 @@ async function mettreAJourCours(){
   sauver(); rendreInvest();
   const sans = positions.length - avec.length;
   let msg = `📈 ${maj} cours mis à jour`;
-  if (convertis) msg += ` (${convertis} converti${convertis > 1 ? 's' : ''} USD→EUR)`;
+  if (convertis) msg += ` (${convertis} converti${convertis > 1 ? 's' : ''} en EUR, taux du jour)`;
   if (echecs.length) msg += ` — ${echecs.length} échec${echecs.length > 1 ? 's' : ''}`;
   if (sans) msg += ` — ${sans} sans ticker`;
   toast(msg);
@@ -1196,7 +1214,7 @@ function tablePositions(titre, chemin, calc, totalCompte){
       <td><input value="${p.nb ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="nb" inputmode="text"></td>
       <td><input value="${p.pru ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="pru" inputmode="text"></td>
       <td><input value="${p.prix ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="prix" inputmode="text"></td>
-      <td><input value="${echap(p.symbole || '')}" data-pch="${chemin}" data-i="${i}" data-f="symbole" placeholder="ISIN / ticker" style="min-width:96px;text-align:left;font-size:11px;color:var(--encre2)"></td>
+      <td><input value="${echap(p.symbole || '')}" data-pch="${chemin}" data-i="${i}" data-f="symbole" placeholder="ISIN / ticker" style="min-width:96px;text-align:left;color:var(--encre2)"></td>
       <td class="${cls(p.perfP)}">${p.perfP.toFixed(1)} %</td>
       <td class="${cls(p.perfE)}">${fmtS(p.perfE)}</td>
       <td><button class="sup" data-psupch="${chemin}" data-i="${i}">✕</button></td>
@@ -1783,7 +1801,20 @@ document.getElementById('fic-xlsx').addEventListener('change', async e => {
     const wb = XLSX.read(await f.arrayBuffer(), {type: 'array'});
     const nouveau = importerClasseur(wb);
     if (!confirm('Classeur lu : ' + Object.keys(nouveau.months).length + ' mois trouvés. Remplacer les données actuelles ?')) return;
-    etat = nouveau; migrer(); sauver(); rendreTout(); toast('Classeur importé ✅');
+    // conserver les symboles 🔗 déjà renseignés (appariement par intitulé)
+    if (etat && etat.investissements && nouveau.investissements){
+      for (const compte of ['positionsTR', 'positionsPEA', 'positionsPER']){
+        const anciens = new Map((etat.investissements[compte] || [])
+          .filter(p => (p.symbole || '').trim())
+          .map(p => [p.label.trim().toLowerCase(), p.symbole]));
+        for (const p of (nouveau.investissements[compte] || [])){
+          const s = anciens.get(String(p.label).trim().toLowerCase());
+          if (s) p.symbole = s;
+        }
+      }
+      nouveau.config.derniereMajCours = etat.config.derniereMajCours;
+    }
+    etat = nouveau; migrer(); sauver(); rendreTout(); toast('Classeur importé ✅ (symboles 🔗 conservés)');
   }catch(err){ toast('Import impossible : ' + err.message); console.error(err); }
 });
 function importerClasseur(wb){
@@ -1791,7 +1822,13 @@ function importerClasseur(wb){
      arrêt de bloc à la 1re ligne vide, vérification via la colonne "Total". */
   const txt = v => v == null ? '' : String(v).trim();
   const num = v => typeof v === 'number' && isFinite(v);
-  const grille = ws => XLSX.utils.sheet_to_json(ws, {header: 1, raw: true, defval: null});
+  const grille = ws => {
+    // ancre la lecture en A1 : sinon SheetJS indexe depuis le début de la plage
+    // utilisée (une colonne A vide décale toutes les colonnes d'un cran)
+    const fin = XLSX.utils.decode_range(ws['!ref'] || 'A1').e;
+    return XLSX.utils.sheet_to_json(ws, {header: 1, raw: true, defval: null,
+      range: {s: {r: 0, c: 0}, e: fin}});
+  };
   const trouver = (g, motif) => {
     for (let r = 0; r < g.length; r++){
       const row = g[r] || [];
@@ -1911,15 +1948,16 @@ function importerClasseur(wb){
     const gi = grille(wi);
     const positions = motif => {
       const pos = trouver(gi, motif); if (!pos) return [];
+      const [hr, hc] = pos;   // colonnes RELATIVES à l'en-tête : Type, Intitulé, Nb, PRU, Prix
       const out = []; let vides = 0;
-      for (let r = pos[0] + 1; r < Math.min(pos[0] + 60, gi.length); r++){
-        const row = gi[r] || [], typ = txt(row[1]), lab = txt(row[2]);
+      for (let r = hr + 1; r < Math.min(hr + 60, gi.length); r++){
+        const row = gi[r] || [], typ = txt(row[hc]), lab = txt(row[hc + 1]);
         if (typ.startsWith('TOTAL')) break;
         if (lab === ''){ if (++vides >= 3) break; continue; }
         vides = 0;
         if (lab === 'Intitulé') continue;
-        if (num(row[3])) out.push({type: typ, label: lab, nb: row[3],
-                                   pru: num(row[4]) ? row[4] : 0, prix: num(row[5]) ? row[5] : 0});
+        if (num(row[hc + 2])) out.push({type: typ, label: lab, nb: row[hc + 2],
+                                   pru: num(row[hc + 3]) ? row[hc + 3] : 0, prix: num(row[hc + 4]) ? row[hc + 4] : 0});
       }
       return out;
     };
@@ -1983,7 +2021,31 @@ function importerClasseur(wb){
   return res;
 }
 
+/* Filet de sécurité : si malgré tout un zoom automatique survient (ancienne
+   version d'iOS, champ exotique), on dézoome après la saisie en ré-affirmant
+   le viewport — Safari revient alors à l'échelle 1. */
+if (window.visualViewport){
+  document.addEventListener('focusout', () => {
+    setTimeout(() => {
+      if (window.visualViewport.scale > 1.02){
+        const vp = document.querySelector('meta[name="viewport"]');
+        if (vp) vp.setAttribute('content', vp.getAttribute('content'));
+      }
+    }, 120);
+  });
+}
+
 /* ================= DÉMARRAGE ================= */
+// iOS : neutralise le zoom automatique à la mise au point d'un champ.
+// Le zoom manuel (pincement) reste possible : iOS ignore maximum-scale pour le geste utilisateur.
+(function(){
+  const estIOS = /iP(hone|ad|od)/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (estIOS){
+    const vp = document.querySelector('meta[name="viewport"]');
+    if (vp) vp.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover');
+  }
+})();
 (async function init(){
   document.getElementById('ver').textContent = 'v' + APP_VERSION + ' · Hors-ligne';
   document.getElementById('changelog-corps').innerHTML = CHANGELOG.map(c => `
@@ -1992,6 +2054,9 @@ function importerClasseur(wb){
     </details>`).join('');
   await chargerEtat();
   rendreTout();
+  // filet : si aucune page n'est active (état inattendu), afficher l'Accueil
+  if (!document.querySelector('.page.actif'))
+    document.getElementById('page-accueil').classList.add('actif');
   majStatut('prêt');
   if ('serviceWorker' in navigator){
     try{ await navigator.serviceWorker.register('sw.js'); }catch(e){}
