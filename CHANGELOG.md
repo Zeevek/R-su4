@@ -9,6 +9,10 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v4.7.0 — 19/07/2026
+- **Correctif iOS — écran blanc au lancement** : Safari pouvait rester bloqué à une échelle de zoom > 1 (conséquence du zoom automatique sur les champs), l'app apparaissant alors vide et figée. Désormais : tous les champs sont à 16 px sur mobile (le zoom automatique ne se déclenche plus), et l'app force le retour à l'échelle 1 à l'ouverture, au changement d'orientation, au retour d'arrière-plan et après chaque saisie.
+- **Cours de bourse multi-devises** : JPY, HKD, CHF, GBP, USD et toutes les autres sont prises en charge. Le taux de change est récupéré **en direct à chaque mise à jour** (une seule requête par devise, jamais de taux périmé), avec repli sur le sens inverse de la paire si nécessaire. Les cotations de Londres en **pence (GBp)** sont divisées par 100 automatiquement. Les taux appliqués sont affichés sous le bouton (« 1 JPY = 0,0057 € ») et les échecs mentionnent l'ISIN concerné plutôt qu'un libellé ambigu.
+
 ## v4.6.1 — 19/07/2026
 - **Correctif iOS — zoom automatique à la saisie** : la règle 16 px s'applique désormais à *tous* les champs sur mobile (`!important` : elle écrase aussi les tailles définies en style inline, comme la colonne ISIN qui restait à 11 px et déclenchait le zoom). Le verrou `maximum-scale` n'est posé que sur iOS (où le pincement manuel reste possible) pour ne pas priver Android du zoom au geste. Et si un zoom résiduel survenait malgré tout, l'app dézoome automatiquement à la fin de la saisie.
 

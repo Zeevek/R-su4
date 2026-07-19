@@ -425,7 +425,7 @@ const INFOS = {
   poches: ['Poches d’épargne (suivi)', "Cumul des poches de répartition qui ne vont ni aux livrets ni au disponible d'investissement — par exemple un coussin de sécurité ou un projet. Purement indicatif."],
   av: ['Argent disponible', "Alimenté chaque mois par les poches « disponible investissement », diminué des achats directs (TR / PEA) et des sorties. C'est ta réserve pour investir hors plans programmés."],
   invest: ['Positions', "Nb × prix actuel − Nb × PRU = performance latente. « Enregistrer » fige la performance du moment dans l'historique pour suivre l'évolution mois par mois."],
-  cours: ['Mise à jour des cours', "Saisis une fois l'ISIN (ex. FR0000120271) ou le ticker Yahoo (ex. TTE.PA, 8001.T, BTC-EUR) de chaque position, puis appuie sur le bouton — à la demande, par exemple une fois par mois. Toutes les devises sont converties en euros (USD, JPY, CHF, HKD, GBP, pence…) avec les taux de change récupérés en direct au moment de l'appui. Les produits non cotés (private equity, fonds fermés) n'ont pas de cotation publique : mets leur prix à jour à la main. Internet n'est requis qu'à ce moment-là ; seuls les symboles sont interrogés, rien de ton portefeuille ne sort de l'appareil."],
+  cours: ['Mise à jour des cours', "Toutes les devises sont gérées : le taux de change est récupéré en direct au moment de l'appui (une requête par devise) et les taux appliqués s'affichent sous le bouton. Saisis une fois l'ISIN (ex. FR0000120271) ou le ticker Yahoo (ex. TTE.PA, 8001.T, BTC-EUR) de chaque position, puis appuie sur le bouton — à la demande, par exemple une fois par mois. Toutes les devises sont converties en euros (USD, JPY, CHF, HKD, GBP, pence…) avec les taux de change récupérés en direct au moment de l'appui. Les produits non cotés (private equity, fonds fermés) n'ont pas de cotation publique : mets leur prix à jour à la main. Internet n'est requis qu'à ce moment-là ; seuls les symboles sont interrogés, rien de ton portefeuille ne sort de l'appareil."],
   rapport: ['Compte rendu PDF', "Génère une page A4 par mois et ouvre la boîte d'impression : choisis « Enregistrer en PDF ». Sur iPhone : Partager → Imprimer, puis pince l'aperçu pour l'enregistrer dans Fichiers."],
 };
 const infoBtn = cle => `<button class="info-btn" data-infocle="${cle}" aria-label="Informations">i</button>`;
@@ -443,6 +443,9 @@ document.addEventListener('click', e => {
 });
 const APP_VERSION = '4.6.2';
 const CHANGELOG = [
+  {v: '4.7.0', d: '19/07/2026', pts: [
+    "Correctif iOS : l'app pouvait rester figée sur un écran blanc quand Safari restait bloqué à un zoom > 1. Tous les champs passent réellement à 16 px (plus de zoom automatique à la saisie) et l'app force le retour à l'échelle 1 à chaque ouverture, changement d'orientation ou retour d'arrière-plan.",
+    "Cours de bourse : toutes les devises sont désormais gérées (JPY, HKD, CHF, GBP, USD…) — le taux de change est récupéré en direct à chaque mise à jour, une seule fois par devise, et les cotations londoniennes en pence (GBp) sont converties correctement. Les taux appliqués sont affichés sous le bouton, et les échecs indiquent l'ISIN concerné."]},
   {v: '4.6.2', d: '19/07/2026', pts: [
     "Écran blanc au lancement corrigé : la page Accueil est de nouveau active à l'ouverture (+ filet de sécurité).",
     "Toutes les devises sont maintenant converties en euros (JPY, CHF, HKD, GBP, pence GBp, USD…) avec les taux de change récupérés en direct à chaque appui sur « Mettre à jour les cours ».",
@@ -914,10 +917,31 @@ function choisirSymbole(quotes){
   }
   return valides.length ? valides[0].symbol : null;
 }
+/* Cotations en sous-unité : pence britanniques (GBp), agorot israéliens (ILa),
+   cents sud-africains (ZAc)… → montant à diviser par 100. */
+function normaliserDevise(devise){
+  const d = String(devise || '').trim();
+  if (!d) return {code: '', diviseur: 1};
+  const sousUnites = {GBP: 'GBp', ILS: 'ILa', ZAR: 'ZAc'};
+  for (const [code, sigle] of Object.entries(sousUnites))
+    if (d === sigle || (d.toUpperCase() === code && d !== d.toUpperCase()))
+      return {code, diviseur: 100};
+  return {code: d.toUpperCase(), diviseur: 1};
+}
+function convertirEnEuro(prix, devise, taux){
+  const {code, diviseur} = normaliserDevise(devise);
+  const brut = Number(prix) / diviseur;
+  if (!isFinite(brut)) return null;
+  if (code === 'EUR' || code === '') return {montant: brut, converti: false};
+  const t = taux[code];
+  if (!t || !isFinite(t) || t <= 0) return null;
+  return {montant: brut * t, converti: true};
+}
 function prixDepuisChart(d){
   const meta = d && d.chart && d.chart.result && d.chart.result[0] && d.chart.result[0].meta;
   if (!meta || meta.regularMarketPrice == null) return null;
   // la devise est gardée telle quelle : « GBp » (pence) doit rester distinct de « GBP »
+  // casse préservée : 'GBp' (pence) et 'GBP' (livres) ne diffèrent que par elle
   return {prix: meta.regularMarketPrice, devise: String(meta.currency || '')};
 }
 function normaliserCotation(prix, devise){
@@ -943,12 +967,22 @@ async function resoudreSymbole(saisie){
   const d = await recupJSON('https://query1.finance.yahoo.com/v1/finance/search?q=' + encodeURIComponent(s.toUpperCase()));
   return choisirSymbole(d.quotes);
 }
+async function tauxVersEuro(code){
+  // 1 unité de <code> vaut combien d'euros ? (ex. JPYEUR=X)
+  try{
+    const direct = await coursSymbole(code + 'EUR=X');
+    if (direct && direct.prix > 0) return direct.prix;
+  }catch(e){ /* repli ci-dessous */ }
+  const inverse = await coursSymbole('EUR' + code + '=X');   // ex. EURJPY=X
+  if (inverse && inverse.prix > 0) return 1 / inverse.prix;
+  return null;
+}
 async function coursSymbole(symbole){
   const d = await recupJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(symbole) + '?range=1d&interval=1d');
   return prixDepuisChart(d);
 }
 async function mettreAJourCours(){
-  const btn = document.getElementById('btn-cours'), statut = document.getElementById('cours-statut');
+  const btn = document.getElementById('btn-cours');
   const positions = [];
   for (const compte of ['positionsTR', 'positionsPEA', 'positionsPER'])
     for (const p of etat.investissements[compte])
@@ -956,52 +990,54 @@ async function mettreAJourCours(){
   const avec = positions.filter(p => (p.symbole || '').trim());
   if (!avec.length) return toast('Renseigne d\u2019abord un ISIN ou un ticker dans la colonne 🔗');
   btn.disabled = true;
-  let maj = 0, convertis = 0, echecs = [];
-  const taux = {};   // taux de change EUR→devise, récupérés en direct au moment de l'appui
-  const tauxPour = async devise => {
-    if (devise === 'EUR') return 1;
-    if (taux[devise] !== undefined) return taux[devise];
-    const fx = await coursSymbole('EUR' + devise + '=X');
-    taux[devise] = fx ? fx.prix : null;
-    return taux[devise];
-  };
+  let maj = 0, convertis = 0;
+  const echecs = [], taux = {}, devisesRatees = new Set();
+  const nomDe = p => (p.symbole || '').trim() || p.label || '?';
   try{
     for (let i = 0; i < avec.length; i++){
       const p = avec[i];
-      btn.textContent = `⏳ ${i + 1}/${avec.length} — ${p.label.slice(0, 22)}…`;
+      btn.textContent = `⏳ ${i + 1}/${avec.length} — ${nomDe(p).slice(0, 20)}…`;
       try{
         const sym = await resoudreSymbole(p.symbole);
-        if (!sym) { echecs.push((p.label || p.symbole) + ' (symbole introuvable — produit non coté ? saisis le prix à la main)'); continue; }
-        if (sym !== p.symbole.trim().toUpperCase() || estISIN(p.symbole)) p.symbole = sym;  // mémorise le symbole résolu
+        if (!sym) { echecs.push(nomDe(p) + ' : symbole introuvable'); continue; }
+        if (sym !== p.symbole.trim().toUpperCase()) p.symbole = sym;   // mémorise le symbole résolu
         const c = await coursSymbole(sym);
-        if (!c) { echecs.push((p.label || p.symbole) + ' (pas de cours)'); continue; }
-        const norm = normaliserCotation(c.prix, c.devise);
-        let prix = norm.prix;
-        if (norm.devise !== 'EUR'){
-          const tx = await tauxPour(norm.devise);
-          if (!tx){ echecs.push((p.label || p.symbole) + ' (taux EUR/' + norm.devise + ' introuvable)'); continue; }
-          prix = prix / tx; convertis++;
+        if (!c) { echecs.push(nomDe(p) + ' : pas de cours'); continue; }
+        const {code} = normaliserDevise(c.devise);
+        // taux récupéré une seule fois par devise, à la volée
+        if (code && code !== 'EUR' && taux[code] == null && !devisesRatees.has(code)){
+          btn.textContent = `💱 taux ${code}→EUR…`;
+          const t = await tauxVersEuro(code);
+          if (t) taux[code] = t; else devisesRatees.add(code);
         }
-        p.prix = +Number(prix).toFixed(4);
-        maj++;
+        const conv = convertirEnEuro(c.prix, c.devise, taux);
+        if (!conv) { echecs.push(nomDe(p) + ' : taux ' + code + ' indisponible'); continue; }
+        p.prix = +conv.montant.toFixed(4);
+        maj++; if (conv.converti) convertis++;
         await new Promise(res => setTimeout(res, 120));   // on reste courtois avec l'API
-      }catch(e){ echecs.push((p.label || p.symbole) + ' (' + (e.message || 'erreur') + ')'); }
+      }catch(e){ echecs.push(nomDe(p) + ' : ' + (e.message || 'erreur')); }
     }
   } finally {
     btn.disabled = false;
     btn.textContent = '🔄 Mettre à jour les cours';
   }
+  etat.config.tauxChange = {date: Date.now(), taux};
   etat.config.derniereMajCours = Date.now();
   sauver(); rendreInvest();
   const sans = positions.length - avec.length;
+  const devises = Object.keys(taux);
   let msg = `📈 ${maj} cours mis à jour`;
   if (convertis) msg += ` (${convertis} converti${convertis > 1 ? 's' : ''} en EUR, taux du jour)`;
   if (echecs.length) msg += ` — ${echecs.length} échec${echecs.length > 1 ? 's' : ''}`;
   if (sans) msg += ` — ${sans} sans ticker`;
   toast(msg);
-  if (echecs.length){
-    const st = document.getElementById('cours-statut');
-    if (st) st.textContent = '⚠️ Échecs : ' + echecs.join(' · ');
+  const st = document.getElementById('cours-statut');
+  if (st && (echecs.length || devises.length)){
+    const parts = [];
+    if (devises.length) parts.push('💱 Taux du jour appliqués : ' +
+      devises.map(d => `1 ${d} = ${taux[d].toFixed(4).replace('.', ',')} €`).join(' · '));
+    if (echecs.length) parts.push('⚠️ Échecs : ' + echecs.join(' · '));
+    st.textContent = parts.join('  —  ');
   }
 }
 
@@ -2021,31 +2057,36 @@ function importerClasseur(wb){
   return res;
 }
 
-/* Filet de sécurité : si malgré tout un zoom automatique survient (ancienne
-   version d'iOS, champ exotique), on dézoome après la saisie en ré-affirmant
-   le viewport — Safari revient alors à l'échelle 1. */
-if (window.visualViewport){
-  document.addEventListener('focusout', () => {
-    setTimeout(() => {
-      if (window.visualViewport.scale > 1.02){
-        const vp = document.querySelector('meta[name="viewport"]');
-        if (vp) vp.setAttribute('content', vp.getAttribute('content'));
-      }
-    }, 120);
+/* ===== Zoom iOS : neutralisation + déblocage =====
+   Safari peut rester bloqué à une échelle > 1 après un zoom automatique
+   (l'app apparaît alors vide/figée). On force le retour à l'échelle 1 en
+   retirant puis réappliquant maximum-scale, à chaque retour sur l'app. */
+const VP_LIBRE = 'width=device-width, initial-scale=1.0, viewport-fit=cover';
+const VP_VERROU = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover';
+const estIOS = /iP(hone|ad|od)/.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function debloquerZoom(){
+  if (!estIOS) return;
+  const vp = document.querySelector('meta[name="viewport"]');
+  if (!vp) return;
+  vp.setAttribute('content', VP_LIBRE);          // relâche la contrainte…
+  requestAnimationFrame(() => {                  // …puis la réapplique : Safari recadre à 1
+    vp.setAttribute('content', VP_VERROU);
+    window.scrollTo(0, window.scrollY);
   });
+}
+if (estIOS){
+  const vpInit = document.querySelector('meta[name="viewport"]');
+  if (vpInit) vpInit.setAttribute('content', VP_VERROU);
+  addEventListener('pageshow', debloquerZoom);
+  addEventListener('orientationchange', () => setTimeout(debloquerZoom, 250));
+  addEventListener('visibilitychange', () => { if (!document.hidden) debloquerZoom(); });
+  document.addEventListener('focusout', () => setTimeout(() => {
+    if (!window.visualViewport || window.visualViewport.scale > 1.02) debloquerZoom();
+  }, 120));
 }
 
 /* ================= DÉMARRAGE ================= */
-// iOS : neutralise le zoom automatique à la mise au point d'un champ.
-// Le zoom manuel (pincement) reste possible : iOS ignore maximum-scale pour le geste utilisateur.
-(function(){
-  const estIOS = /iP(hone|ad|od)/.test(navigator.userAgent)
-    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (estIOS){
-    const vp = document.querySelector('meta[name="viewport"]');
-    if (vp) vp.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover');
-  }
-})();
 (async function init(){
   document.getElementById('ver').textContent = 'v' + APP_VERSION + ' · Hors-ligne';
   document.getElementById('changelog-corps').innerHTML = CHANGELOG.map(c => `
