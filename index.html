@@ -107,6 +107,10 @@ td input:focus{outline:none;background:#FBF7EC;border-radius:4px}
 tr.total td{font-weight:700;border-top:2px solid var(--encre);border-bottom:none;background:#FBFAF6}
 
 .pastille{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;letter-spacing:.04em}
+.barre-tri{display:flex;align-items:center;gap:7px;padding:2px 0 8px;font-size:11px;color:var(--encre2)}
+.barre-tri label{letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.barre-tri select{border:1px solid var(--trait);border-radius:8px;padding:6px 8px;background:var(--carte);font-size:12px;font-weight:600;flex:1;min-width:0}
+.barre-tri .cpt{margin-left:auto;white-space:nowrap}
 .sel-cat{border:none;border-radius:99px;padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:.04em;
   width:auto;max-width:100%;-webkit-appearance:none;appearance:none;text-align:left}
 .p-actions{background:#C6EFCE}.p-etfs{background:#BDD7EE}.p-pe{background:#E2D5F1}
@@ -348,7 +352,7 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
           <input class="mnt" id="cfg-fixe" inputmode="decimal" placeholder="—"></div>
         <div class="ligne"><input class="lab" value="Reste initial (avant 1er mois)" readonly>
           <input class="mnt" id="cfg-reste" inputmode="decimal"></div>
-        <p class="note">Un changement d'enveloppe s'applique au mois en cours et aux suivants : les mois déjà écoulés conservent la valeur avec laquelle ils ont été vécus.</p>
+        <p class="note">Un changement d'enveloppe ne prend effet qu'<b>à partir du mois suivant</b> : le mois en cours et les mois écoulés conservent leurs valeurs, ce qui permet d'anticiper sans fausser le mois entamé.</p>
       </div>
     </div>
     <div class="carte">
@@ -359,7 +363,7 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
         <p class="note">Le non attribué de chaque mois est ventilé dans ces poches, dans l'ordre :
         <b>1/3 ↑</b> (tiers arrondi au centime supérieur), <b>% du NA</b>, <b>€ fixe</b>, puis <b>reste</b> pour le reliquat.
         Destination : Livret A, LDDS, disponible d'investissement (Achat-Vente) ou simple suivi.
-        Toute modification fige d'abord la répartition des mois passés — l'historique ne bouge jamais.</p>
+        Toute modification ne s'applique qu'<b>à partir du mois suivant</b> : le mois en cours et les mois écoulés sont figés, on peut donc préparer un changement à l'avance.</p>
       </div>
     </div>
     <div class="carte">
@@ -423,8 +427,8 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
 /* ===== Bulles d'information ⓘ ===== */
 const INFOS = {
   hero: ['Reste du jour', "Montant que tu peux dépenser chaque jour d'ici la fin du mois pour finir à zéro. Calculé sur le reste d'enveloppe du mois (modifiable dans « Estimation dépense par jour »)."],
-  enveloppe: ['Enveloppe du mois', "Budget de vie du mois : soit un taux journalier (ex. 41,43 €/jour × nombre de jours), soit un montant fixe mensuel — réglable dans Réglages. Un mois peut garder une valeur dérogatoire figée."],
-  repartition: ['Répartition du non attribué', "Le « non attribué » = entrées (avec report du mois précédent) + charges fixes + abonnements obligatoires + investissements − enveloppe. Il est ventilé dans tes poches (pourcentage, montant fixe ou reste) définies dans Réglages. Modifier les poches ne réécrit jamais les mois passés."],
+  enveloppe: ['Enveloppe du mois', "Budget de vie du mois : soit un taux journalier (ex. 41,43 €/jour × nombre de jours), soit un montant fixe mensuel — réglable dans Réglages. Un changement ne s'applique qu'à partir du mois suivant, pour ne pas fausser le mois entamé."],
+  repartition: ['Répartition du non attribué', "Le « non attribué » = entrées (avec report du mois précédent) + charges fixes + abonnements obligatoires + investissements − enveloppe. Il est ventilé dans tes poches définies dans Réglages : part égale (la fraction s'adapte au nombre de poches : 1/3, 1/4, 1/2…), pourcentage, montant fixe ou reste. Une modification des poches ne prend effet qu'à partir du mois suivant — le mois en cours et l'historique sont figés."],
   etaler: ['Étaler un paiement', "Divise une somme en mensualités égales arrondies au centime à partir du mois affiché — la dernière récupère le reste des arrondis (10 € / 3 mois → 3,33 · 3,33 · 3,34). Les mois manquants sont créés, et le compteur (n/N) avance tout seul chaque mois."],
   recurrents: ['Dépenses récurrentes', "Toute ligne ajoutée ici apparaît automatiquement dans les mois suivants. Une modification ou suppression n'est répercutée que sur les mois à venir : l'historique n'est jamais réécrit."],
   flux: ['Flux du mois', "Lecture de gauche à droite : d'où vient l'argent (entrées), et où il part (catégories de dépenses, investissements, épargne). L'épaisseur des rubans est proportionnelle aux montants."],
@@ -450,6 +454,10 @@ document.addEventListener('click', e => {
 });
 const APP_VERSION = '4.6.2';
 const CHANGELOG = [
+  {v: '4.9.0', d: '19/07/2026', pts: [
+    "Les changements de paramètres (€/jour, enveloppe fixe, poches de répartition) prennent effet à partir du mois suivant : le mois en cours conserve ses valeurs, ce qui permet d'anticiper sans fausser le mois que l'on est en train de vivre.",
+    "Quantités de positions gérées jusqu'à 6 décimales (fractions d'actions et de cryptos), à la saisie, à l'affichage et dans le relevé PDF.",
+    "Tri des portefeuilles au choix : ordre de saisie, intitulé A→Z, catégorie, valeur, performance en € ou en %, quantité — mémorisé pour chaque compte."]},
   {v: '4.8.0', d: '19/07/2026', pts: [
     "Saisie uniformisée : toutes les cartes (charges, abonnements, transport, vacances, plans TR, mouvements de livret…) ont la même barre « intitulé + montant + ＋ » que les dépenses libres — signe automatique, Entrée pour enchaîner puis valider, propagation aux mois suivants pour les récurrents.",
     "Répartition : le mode « part égale » s'adapte au nombre de poches — 2 poches + reste donnent 1/3, 3 poches + reste donnent 1/4, une seule poche + reste donne 1/2. Ajouter un portefeuille suffit, plus rien à recalculer.",
@@ -543,6 +551,7 @@ function migrer(){
   etat.achatVente = etat.achatVente || {initial:0,sorties:[],txTR:[],txPEA:[]};
   etat.historique = etat.historique || [];
   if (etat.config.enveloppeFixe == null || etat.config.enveloppeFixe === '' || isNaN(Number(etat.config.enveloppeFixe))) etat.config.enveloppeFixe = null;
+  etat.config.triPositions = etat.config.triPositions || {};
   for (const p of (etat.config.poches || [])) if (p.mode === 'tiers') p.mode = 'part';
   if (!Array.isArray(etat.config.poches) || !etat.config.poches.length)
     etat.config.poches = structuredClone(POCHES_DEFAUT);
@@ -579,6 +588,9 @@ function evalMontant(txt){
   catch(e){ return NaN; }
 }
 const somme = liste => liste.reduce((a, l) => a + (Number(l.montant) || 0), 0);
+// quantités : jusqu'à 6 décimales, sans zéros superflus (2,123849 · 3 · 0,011264)
+const fmtNb = n => (n == null || n === '' || isNaN(n)) ? ''
+  : Number(n).toLocaleString('fr-FR', {maximumFractionDigits: 6, useGrouping: false});
 // Saisie rapide : « 12 » devient -12 (dépense), « +12 » reste positif, expressions acceptées
 function montantDepense(txt){
   const v = evalMontant(txt);
@@ -810,11 +822,11 @@ function calculerLivrets(){
 }
 function perfPositions(liste){
   let perfE = 0, valeur = 0, cout = 0;
-  const lignes = liste.map(p => {
+  const lignes = liste.map((p, idx) => {
     const nb = +p.nb || 0, pru = +p.pru || 0, prix = +p.prix || 0;
     const pE = nb * (prix - pru), pP = pru ? (prix / pru - 1) * 100 : 0;
     perfE += pE; valeur += nb * prix; cout += nb * pru;
-    return {...p, perfE: pE, perfP: pP};
+    return {...p, idx, valeur: nb * prix, perfE: pE, perfP: pP};
   });
   return {lignes, perfE, valeur, cout, perfP: cout ? (valeur / cout - 1) * 100 : 0};
 }
@@ -1323,33 +1335,61 @@ function categorieNormale(t){
   if (bas.startsWith('action')) return 'Actions';
   return s || 'Actions';
 }
+const TRIS = [
+  ['manuel', '↕ Ordre de saisie'], ['nom', '🔤 Intitulé A→Z'], ['type', '🏷️ Catégorie'],
+  ['valeur', '💶 Valeur ↓'], ['perfE', '📈 Perf. € ↓'], ['perfP', '📊 Perf. % ↓'], ['nb', '🔢 Quantité ↓'],
+];
+function trierLignes(lignes, tri){
+  const L = [...lignes];
+  const parNom = (a, b) => String(a.label || '').localeCompare(String(b.label || ''), 'fr', {sensitivity: 'base'});
+  switch (tri){
+    case 'nom':    return L.sort(parNom);
+    case 'type':   return L.sort((a, b) =>
+      categorieNormale(a.type).localeCompare(categorieNormale(b.type), 'fr') || parNom(a, b));
+    case 'valeur': return L.sort((a, b) => (b.valeur || 0) - (a.valeur || 0));
+    case 'perfE':  return L.sort((a, b) => (b.perfE || 0) - (a.perfE || 0));
+    case 'perfP':  return L.sort((a, b) => (b.perfP || 0) - (a.perfP || 0));
+    case 'nb':     return L.sort((a, b) => (+b.nb || 0) - (+a.nb || 0));
+    default:       return L;
+  }
+}
 function tablePositions(titre, chemin, calc, totalCompte){
-  const lig = calc.lignes.map((p, i) => {
+  const tri = (etat.config.triPositions || {})[chemin] || 'manuel';
+  const lig = trierLignes(calc.lignes, tri).map(p => {
     const cat = categorieNormale(p.type);
     return `<tr>
       <td>
-        <select class="sel-cat ${PASTILLES[cat]}" data-pch="${chemin}" data-i="${i}" data-f="type">
+        <select class="sel-cat ${PASTILLES[cat]}" data-pch="${chemin}" data-i="${p.idx}" data-f="type">
           ${CATEGORIES.map(([nom]) => `<option value="${nom}" ${cat === nom ? 'selected' : ''}>${nom}</option>`).join('')}
         </select>
-        <input value="${echap(p.label)}" data-pch="${chemin}" data-i="${i}" data-f="label" placeholder="Intitulé" style="text-align:left;font-weight:600;margin-top:3px">
+        <input value="${echap(p.label)}" data-pch="${chemin}" data-i="${p.idx}" data-f="label" placeholder="Intitulé" style="text-align:left;font-weight:600;margin-top:3px">
       </td>
-      <td><input value="${p.nb ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="nb" inputmode="text"></td>
-      <td><input value="${p.pru ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="pru" inputmode="text"></td>
-      <td><input value="${p.prix ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="prix" inputmode="text"></td>
-      <td><input value="${echap(p.symbole || '')}" data-pch="${chemin}" data-i="${i}" data-f="symbole" placeholder="ISIN / ticker" style="min-width:96px;text-align:left;color:var(--encre2)"></td>
+      <td><input value="${fmtNb(p.nb)}" data-pch="${chemin}" data-i="${p.idx}" data-f="nb" inputmode="text" style="min-width:82px"></td>
+      <td><input value="${p.pru ?? ''}" data-pch="${chemin}" data-i="${p.idx}" data-f="pru" inputmode="text"></td>
+      <td><input value="${p.prix ?? ''}" data-pch="${chemin}" data-i="${p.idx}" data-f="prix" inputmode="text"></td>
+      <td><input value="${echap(p.symbole || '')}" data-pch="${chemin}" data-i="${p.idx}" data-f="symbole" placeholder="ISIN / ticker" style="min-width:96px;text-align:left;color:var(--encre2)"></td>
       <td class="${cls(p.perfP)}">${p.perfP.toFixed(1)} %</td>
       <td class="${cls(p.perfE)}">${fmtS(p.perfE)}</td>
-      <td><button class="sup" data-psupch="${chemin}" data-i="${i}">✕</button></td>
+      <td><button class="sup" data-psupch="${chemin}" data-i="${p.idx}">✕</button></td>
     </tr>`;
   }).join('');
   return `<div class="carte">
     <div class="tete"><h3>${titre}</h3><div class="tot">${fmt(totalCompte)}</div></div>
-    <div class="corps" style="overflow-x:auto">
+    <div class="corps">
+      <div class="barre-tri">
+        <label for="tri-${chemin}">Trier par</label>
+        <select id="tri-${chemin}" data-tri="${chemin}">
+          ${TRIS.map(([v, l]) => `<option value="${v}" ${tri === v ? 'selected' : ''}>${l}</option>`).join('')}
+        </select>
+        <span class="cpt">${calc.lignes.length} position${calc.lignes.length > 1 ? 's' : ''}</span>
+      </div>
+      <div style="overflow-x:auto">
       <table><thead><tr><th>Position</th><th>Nb</th><th>PRU €</th><th>Prix €</th><th>🔗 ISIN / Ticker</th><th>Perf %</th><th>Perf €</th><th></th></tr></thead>
       <tbody>${lig}
         <tr class="total"><td>TOTAL · perf. latente</td><td colspan="4">valeur ${fmt(calc.valeur)}</td>
           <td class="${cls(calc.perfP)}">${calc.perfP.toFixed(1)} %</td><td class="${cls(calc.perfE)}">${fmtS(calc.perfE)}</td><td></td></tr>
       </tbody></table>
+      </div>
       <button class="ajout" data-paddch="${chemin}">＋ Ajouter une position</button>
     </div></div>`;
 }
@@ -1534,6 +1574,10 @@ document.querySelector('main').addEventListener('change', e => {
     if (el.dataset.init === 'avInitial') etat.achatVente.initial = v;
     else etat.livrets[el.dataset.init].initial = v;
     sauver(); rafraichirPage();
+  } else if (el.dataset.tri){               // tri d'un portefeuille
+    etat.config.triPositions = etat.config.triPositions || {};
+    etat.config.triPositions[el.dataset.tri] = el.value;
+    sauver(); rendreInvest();
   } else if (el.dataset.pch){               // positions invest
     const p = etat.investissements[el.dataset.pch][+el.dataset.i];
     if (el.dataset.f === 'symbole'){ p.symbole = el.value.trim(); sauver(); return; }
@@ -1541,7 +1585,8 @@ document.querySelector('main').addEventListener('change', e => {
     if (el.dataset.f === 'type'){ p.type = el.value; sauver(); rendreInvest(); return; }
     const v = evalMontant(el.value);
     if (isNaN(v)) { toast('Valeur invalide'); return; }
-    p[el.dataset.f] = v;
+    // quantités au millionième (fractions d'actions), prix au dix-millième
+    p[el.dataset.f] = +v.toFixed(el.dataset.f === 'nb' ? 6 : 4);
     sauver(); rendreInvest();
   } else if (el.dataset.tch){               // transactions achat-vente
     const t = etat.achatVente[el.dataset.tch][+el.dataset.i];
@@ -1766,13 +1811,13 @@ function reparerPositions(){
     }
   return n;
 }
-/* Fige l'enveloppe calculée des mois passés : un changement de €/jour ou
-   d'enveloppe fixe ne s'applique qu'au mois en cours et aux mois suivants. */
+/* Fige l'enveloppe des mois écoulés ET du mois en cours : un changement de
+   €/jour ou d'enveloppe fixe ne prend effet qu'à partir du mois suivant. */
 function figerEnveloppeHistorique(){
   const auj = cleAujourdhui();
   let n = 0;
   for (const cle of clesMois()){
-    if (cle >= auj) continue;
+    if (cle > auj) continue;
     const m = etat.months[cle];
     if (m.sommeMoisOverride != null) continue;
     m.sommeMoisOverride = +calculerMois(cle).sommeMois.toFixed(2);
@@ -1780,12 +1825,13 @@ function figerEnveloppeHistorique(){
   }
   return n;
 }
-/* Fige la répartition calculée des mois passés avant tout changement de poches */
+/* Fige la répartition des mois écoulés et du mois en cours avant tout
+   changement de poches : les nouvelles règles démarrent au mois suivant. */
 function figerRepartitionHistorique(){
   const auj = cleAujourdhui();
   let n = 0;
   for (const cle of clesMois()){
-    if (cle >= auj) continue;
+    if (cle > auj) continue;
     const m = etat.months[cle];
     if (m.repartitionFigee || m.repartitionOverride) continue;
     m.repartitionFigee = calculerMois(cle).repartition.map(p =>
@@ -1805,7 +1851,7 @@ document.getElementById('poches-liste').addEventListener('change', e => {
     p.valeur = v;
   } else p[el.dataset.pf] = el.value;
   sauver(); rendreReglages();
-  toast('Poches mises à jour — appliquées du mois en cours vers l\u2019avenir');
+  toast('Poches mises à jour — effet à partir du mois prochain');
 });
 document.getElementById('poche-ajouter').onclick = () => {
   figerRepartitionHistorique();
@@ -1824,18 +1870,18 @@ document.getElementById('poches-liste').addEventListener('click', e => {
 document.getElementById('cfg-fixe').addEventListener('change', e => {
   const txt = e.target.value.trim();
   figerEnveloppeHistorique();
-  if (txt === ''){ etat.config.enveloppeFixe = null; sauver(); rendreTout(); return toast('Enveloppe : €/jour × jours — dès ce mois-ci'); }
+  if (txt === ''){ etat.config.enveloppeFixe = null; sauver(); rendreTout(); return toast('Enveloppe : €/jour × jours — à partir du mois prochain'); }
   const v = evalMontant(txt);
   if (isNaN(v) || v <= 0) return toast('Valeur invalide');
   etat.config.enveloppeFixe = +v.toFixed(2);
-  sauver(); rendreTout(); toast('Enveloppe fixe ' + fmt(v) + ' — dès ce mois-ci');
+  sauver(); rendreTout(); toast('Enveloppe fixe ' + fmt(v) + ' — à partir du mois prochain');
 });
 document.getElementById('cfg-jour').addEventListener('change', e => {
   const v = evalMontant(e.target.value);
   if (isNaN(v) || v <= 0) return toast('Valeur invalide');
   figerEnveloppeHistorique();
   etat.config.eurParJour = v; sauver(); rendreTout();
-  toast(v + ' €/jour — appliqué dès ce mois-ci, historique préservé');
+  toast(v + ' €/jour — à partir du mois prochain');
 });
 document.getElementById('cfg-reste').addEventListener('change', e => {
   const v = evalMontant(e.target.value);
@@ -1964,7 +2010,7 @@ function pageReleve(){
       <tr><td><b>Position</b></td><td><b>Nb</b></td><td><b>PRU</b></td><td><b>Cours</b></td><td><b>Valeur</b></td><td><b>Perf.</b></td></tr>
       ${calc.lignes.map(p => `<tr>
         <td><span class="puce" style="background:${COUL_CAT[categorieNormale(p.type)] || '#5A6072'}"></span>${echap(p.label)}</td>
-        <td>${(+p.nb || 0).toLocaleString('fr-FR', {maximumFractionDigits: 4})}</td>
+        <td>${fmtNb(p.nb)}</td>
         <td>${fmt(p.pru)}</td><td>${fmt(p.prix)}</td>
         <td>${fmt((+p.nb || 0) * (+p.prix || 0))}</td>
         <td class="${cls(p.perfE)}">${fmtS(p.perfE)} (${p.perfP.toFixed(1)} %)</td></tr>`).join('')}

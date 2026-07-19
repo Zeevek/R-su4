@@ -9,6 +9,11 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v4.9.0 — 19/07/2026
+- **Paramètres appliqués au mois suivant** : modifier le montant journalier, l'enveloppe fixe ou les poches de répartition n'affecte plus le mois en cours — il garde les valeurs avec lesquelles il a été engagé. Les nouvelles règles démarrent au mois suivant, ce qui permet de préparer un changement à l'avance.
+- **Quantités à 6 décimales** : les fractions d'actions et de cryptos (2,123849 · 0,011264) sont conservées à la saisie, affichées sans zéros superflus et reprises telles quelles dans le relevé PDF ; la colonne a été élargie en conséquence.
+- **Tri des portefeuilles** : chaque compte (TR, PEA, PERin) dispose d'un sélecteur — ordre de saisie, intitulé A→Z (insensible aux accents et à la casse), catégorie, valeur, performance en € ou en %, quantité. Le choix est mémorisé par compte, et l'édition reste liée à la bonne position quel que soit le tri affiché.
+
 ## v4.8.0 — 19/07/2026
 - **Saisie uniformisée partout** : chaque carte de liste (charges fixes, abonnements, transport, dépenses libres, vacances, plans Trade Republic, mouvements de livret…) dispose de la même barre rapide « intitulé + montant + ＋ ». Signe automatique selon la nature de la carte, touche Entrée pour passer au montant puis valider, focus rendu à l'intitulé pour enchaîner, et propagation aux mois suivants pour les catégories récurrentes.
 - **Répartition adaptative** : le mode « part égale » calcule sa fraction selon le nombre de poches — 2 poches + reste → 1/3 chacune, 3 poches + reste → 1/4, 1 poche + reste → 1/2. Ajouter un portefeuille à la répartition suffit, les fractions se réajustent seules et le libellé affiché suit (« 1/4 ↑ »).
