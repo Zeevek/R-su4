@@ -107,8 +107,10 @@ td input:focus{outline:none;background:#FBF7EC;border-radius:4px}
 tr.total td{font-weight:700;border-top:2px solid var(--encre);border-bottom:none;background:#FBFAF6}
 
 .pastille{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;letter-spacing:.04em}
+.sel-cat{border:none;border-radius:99px;padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:.04em;
+  width:auto;max-width:100%;-webkit-appearance:none;appearance:none;text-align:left}
 .p-actions{background:#C6EFCE}.p-etfs{background:#BDD7EE}.p-pe{background:#E2D5F1}
-.p-cryptos{background:#FFE699}.p-metaux{background:#F8CBAD}
+.p-cryptos{background:#FFE699}.p-metaux{background:#F8CBAD}.p-obligations{background:#DCDCE4}
 
 .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;background:var(--encre);color:#F6F5F0;
   font-weight:700;font-size:13px;letter-spacing:.04em}
@@ -346,6 +348,7 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
           <input class="mnt" id="cfg-fixe" inputmode="decimal" placeholder="—"></div>
         <div class="ligne"><input class="lab" value="Reste initial (avant 1er mois)" readonly>
           <input class="mnt" id="cfg-reste" inputmode="decimal"></div>
+        <p class="note">Un changement d'enveloppe s'applique au mois en cours et aux suivants : les mois déjà écoulés conservent la valeur avec laquelle ils ont été vécus.</p>
       </div>
     </div>
     <div class="carte">
@@ -379,7 +382,8 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
       <div class="tete"><h3>🖨️ Compte rendu mensuel</h3><button class="info-btn" data-infocle="rapport" aria-label="Informations">i</button></div>
       <div class="corps">
         <button class="btn ligne2 or" id="btn-rapport">📄 Générer le compte rendu (1 page A4 / mois)</button>
-        <p class="note">Ouvre la boîte d'impression : choisis « Enregistrer en PDF » comme destination.
+        <p class="note">Une page A4 par mois + une page finale « Relevé de portefeuille » (positions, répartition par catégorie, historique).
+        Ouvre la boîte d'impression : choisis « Enregistrer en PDF » comme destination.
         Les mois passés et le mois en cours sont marqués « Réel », les suivants « Prévisionnel ».</p>
       </div>
     </div>
@@ -390,6 +394,9 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
     <div class="carte">
       <div class="tete"><h3>🧨 Zone sensible</h3></div>
       <div class="corps">
+        <button class="btn ligne2 discret" id="btn-reparer" style="margin-top:0">🔧 Réparer les positions décalées</button>
+        <p class="note">À utiliser si les badges de catégorie affichent des noms de produits et les intitulés des nombres :
+        les colonnes sont alors remontées d'un cran (intitulé, quantité, PRU), le prix et l'ISIN étant conservés.</p>
         <button class="btn ligne2" style="background:var(--rouge)" id="btn-reset">Tout effacer (application vide)</button>
         <p class="note">Efface toutes les données de cet appareil et repart d'une application vierge
         (aucune donnée personnelle n'est embarquée dans les fichiers publiés sur GitHub —
@@ -443,6 +450,13 @@ document.addEventListener('click', e => {
 });
 const APP_VERSION = '4.6.2';
 const CHANGELOG = [
+  {v: '4.8.0', d: '19/07/2026', pts: [
+    "Saisie uniformisée : toutes les cartes (charges, abonnements, transport, vacances, plans TR, mouvements de livret…) ont la même barre « intitulé + montant + ＋ » que les dépenses libres — signe automatique, Entrée pour enchaîner puis valider, propagation aux mois suivants pour les récurrents.",
+    "Répartition : le mode « part égale » s'adapte au nombre de poches — 2 poches + reste donnent 1/3, 3 poches + reste donnent 1/4, une seule poche + reste donne 1/2. Ajouter un portefeuille suffit, plus rien à recalculer.",
+    "Les changements de paramètres (€/jour, enveloppe fixe, poches) ne s'appliquent qu'au mois en cours et aux suivants : les mois écoulés sont figés automatiquement avec les valeurs qu'ils ont vécues.",
+    "Investissements : intitulé modifiable et catégorie au choix (Actions, ETFs, Métaux / ETC, Private Equity, Obligations, Cryptos), chacune avec sa couleur — reprise dans le compte rendu.",
+    "Compte rendu PDF : nouvelle page finale « Relevé de portefeuille » (positions par compte, répartition par catégorie en camembert, historique de performance).",
+    "Outil de réparation des positions dont les colonnes ont glissé d'un cran à l'import (Réglages → 🔧)."]},
   {v: '4.7.0', d: '19/07/2026', pts: [
     "Correctif iOS : l'app pouvait rester figée sur un écran blanc quand Safari restait bloqué à un zoom > 1. Tous les champs passent réellement à 16 px (plus de zoom automatique à la saisie) et l'app force le retour à l'échelle 1 à chaque ouverture, changement d'orientation ou retour d'arrière-plan.",
     "Cours de bourse : toutes les devises sont désormais gérées (JPY, HKD, CHF, GBP, USD…) — le taux de change est récupéré en direct à chaque mise à jour, une seule fois par devise, et les cotations londoniennes en pence (GBp) sont converties correctement. Les taux appliqués sont affichés sous le bouton, et les échecs indiquent l'ISIN concerné."]},
@@ -529,6 +543,7 @@ function migrer(){
   etat.achatVente = etat.achatVente || {initial:0,sorties:[],txTR:[],txPEA:[]};
   etat.historique = etat.historique || [];
   if (etat.config.enveloppeFixe == null || etat.config.enveloppeFixe === '' || isNaN(Number(etat.config.enveloppeFixe))) etat.config.enveloppeFixe = null;
+  for (const p of (etat.config.poches || [])) if (p.mode === 'tiers') p.mode = 'part';
   if (!Array.isArray(etat.config.poches) || !etat.config.poches.length)
     etat.config.poches = structuredClone(POCHES_DEFAUT);
   etat.config.poches.forEach((p, i) => { if (!p.id) p.id = 'p' + i + '_' + Date.now().toString(36); });
@@ -678,14 +693,24 @@ function propagerDirect(cleSource, champ, valeur){
 
 /* ================= MOTEUR DE CALCUL (logique du classeur) ================= */
 /* ===== Poches de répartition du Non Attribué =====
-   Chaque poche : nom, mode ('tiers' = arrondi sup du 1/3, 'pct' = % du NA,
+   Chaque poche : nom, mode ('part' = part égale adaptative, 'pct' = % du NA,
    'fixe' = montant fixe, 'reste' = ce qui reste), cible ('livretA', 'ldds',
    'av' = disponible à l'investissement, 'suivi' = simple suivi cumulé). */
 const POCHES_DEFAUT = [
-  {id: 'la',   nom: '🅰️ Livret A',            mode: 'tiers', valeur: 0, cible: 'livretA'},
-  {id: 'ldds', nom: '🏦 LDDS',                 mode: 'tiers', valeur: 0, cible: 'ldds'},
+  {id: 'la',   nom: '🅰️ Livret A',            mode: 'part', valeur: 0, cible: 'livretA'},
+  {id: 'ldds', nom: '🏦 LDDS',                 mode: 'part', valeur: 0, cible: 'ldds'},
   {id: 'inv',  nom: '📈 Investissements',      mode: 'reste', valeur: 0, cible: 'av'},
 ];
+/* Part égale adaptative : chaque poche « part » reçoit 1/(nb parts + nb restes).
+   2 parts + 1 reste → 1/3 · 3 parts + 1 reste → 1/4 · 1 part + 1 reste → 1/2. */
+function nbPartsEgales(poches){
+  const n = poches.filter(p => p.mode === 'part').length + poches.filter(p => p.mode === 'reste').length;
+  return Math.max(1, n);
+}
+function libellePart(poches){
+  const d = nbPartsEgales(poches);
+  return '1/' + d + ' ↑';
+}
 function repartirNA(na, override){
   if (override){   // répartition figée d'un mois (ex. mai 2026) → poches historiques
     return [
@@ -696,9 +721,10 @@ function repartirNA(na, override){
   }
   const poches = (etat.config.poches && etat.config.poches.length) ? etat.config.poches : POCHES_DEFAUT;
   const res = poches.map(p => ({id: p.id, nom: p.nom, cible: p.cible, mode: p.mode, montant: 0}));
+  const diviseur = nbPartsEgales(poches);
   let attribue = 0;
   poches.forEach((p, i) => {
-    if (p.mode === 'tiers') res[i].montant = arrondiSup(na / 3);
+    if (p.mode === 'part') res[i].montant = arrondiSup(na / diviseur);
     else if (p.mode === 'pct') res[i].montant = arrondiSup(na * (Number(p.valeur) || 0) / 100);
     else if (p.mode === 'fixe') res[i].montant = +(Number(p.valeur) || 0).toFixed(2);
     if (p.mode !== 'reste') attribue += res[i].montant;
@@ -1056,11 +1082,45 @@ function carteListe(titre, chemin, liste, opts = {}){
   return `<div class="carte">
     <div class="tete"><h3>${titre}</h3>${opts.info ? infoBtn(opts.info) : ''}<div class="tot ${cls(total)}">${fmt(total)}</div></div>
     <div class="corps">
-      ${liste.map((it, i) => ligneEditable(chemin, it, i)).join('') || '<p class="note">Aucune ligne — ajoute la première.</p>'}
-      <button class="ajout" data-addch="${chemin}" data-signe="${opts.signe || '-'}">＋ Ajouter une ligne</button>
+      ${composeur(chemin, opts.signe || '-', opts.exemple)}
+      ${liste.map((it, i) => ligneEditable(chemin, it, i)).join('') || '<p class="note">Aucune ligne pour l\u2019instant.</p>'}
       ${opts.etaler ? formEtaler(cat) : ''}
     </div>
   </div>`;
+}
+/* Barre de saisie rapide identique dans toutes les cartes :
+   intitulé + montant + ＋, touche Entrée, signe automatique. */
+function composeur(chemin, signe, exemple){
+  return `<div class="saisie-rapide" data-comp="${chemin}" data-signe="${signe}">
+    <input class="sl" data-cl placeholder="＋ ${exemple || 'Intitulé'}" autocomplete="off">
+    <input class="sm" data-cm inputmode="text" placeholder="€" autocomplete="off">
+    <button class="btn or" data-cgo aria-label="Ajouter">＋</button>
+  </div>`;
+}
+function ajouterViaComposeur(zone){
+  const chemin = zone.dataset.comp, signe = zone.dataset.signe;
+  const labEl = zone.querySelector('[data-cl]'), mntEl = zone.querySelector('[data-cm]');
+  const label = labEl.value.trim();
+  if (!label){ toast('Indique un intitulé'); labEl.focus(); return; }
+  const v = evalMontant(mntEl.value);
+  if (isNaN(v)){ toast('Montant invalide'); mntEl.focus(); return; }
+  // « 12 » devient −12 dans une dépense, +12 dans une entrée
+  const montant = +((signe === '-' ? (v > 0 ? -v : v) : (v < 0 ? -v : v))).toFixed(2);
+  const ligne = {label, montant};
+  resoudre(chemin).push(ligne);
+  const parts = chemin.split('.');
+  let sup = '';
+  if (parts[0] === 'months'){
+    const n = propagerRecurrent(parts[1], parts[2], null, ligne);
+    if (n > 0) sup = ` ↪ ${n} mois suivant${n > 1 ? 's' : ''}`;
+  }
+  sauver(); rafraichirPage();
+  toast(`${label} ${fmt(montant)}${sup}`);
+  // le composeur est recréé par le rendu : on rend la main au champ intitulé
+  setTimeout(() => {
+    const z = document.querySelector(`[data-comp="${chemin}"] [data-cl]`);
+    if (z) z.focus();
+  }, 30);
 }
 function formEtaler(cat){
   return `<details class="etaler"><summary>🧮 Étaler un paiement ${infoBtn('etaler')}</summary>
@@ -1142,7 +1202,7 @@ function rendreMois(){
 
   const totVacBloc = c.tVac;
   const detTR = c.totTR;
-  const MODES_TXT = {tiers: '1/3 ↑', pct: '% du NA', fixe: '€ fixe', reste: 'reste'};
+  const MODES_TXT = {part: libellePart(etat.config.poches), pct: '% du NA', fixe: '€ fixe', reste: 'reste'};
   const etiquetteEnv = m.sommeMoisOverride != null ? '(montant fixé)'
     : etat.config.enveloppeFixe != null ? '(fixe / mois)'
     : `(${joursDansMois(moisActif)} j × ${etat.config.eurParJour} €)`;
@@ -1174,11 +1234,7 @@ function rendreMois(){
     ${carteListe('🚗 Transport', P + 'transport', m.transport)}
     <div class="carte"><div class="tete"><h3>🛒 Dépenses libres</h3><div class="tot ${cls(c.tLibres)}">${fmt(c.tLibres)}</div></div>
       <div class="corps">
-        <div class="saisie-rapide">
-          <input class="sl" id="dl-mois-label" list="dl-suggestions" placeholder="＋ Quoi ?" autocomplete="off" style="border-color:var(--laiton);background:#FDFAF2">
-          <input class="sm" id="dl-mois-mnt" inputmode="text" placeholder="€" autocomplete="off" style="border-color:var(--laiton);background:#FDFAF2">
-          <button class="btn or" id="dl-mois-btn">＋</button>
-        </div>
+        ${composeur(P + 'depensesLibres', '-', 'Quoi ? (ex. Boulangerie)')}
         <div class="chips">${chipsHTML('mois')}</div>
         ${m.depensesLibres.map((it, i) => ligneEditable(P + 'depensesLibres', it, i)).reverse().join('') || '<p class="note">Aucune dépense libre ce mois-ci.</p>'}
       </div></div>
@@ -1218,8 +1274,8 @@ function rendreLivrets(){
         <div class="ligne"><input class="lab" value="Montant avant ${libelleMois(clesMois()[0]) || 'départ'}" readonly>
           <input class="mnt" value="${obj.initial}" data-init="${cle}" inputmode="text"></div>
         <div class="ligne"><input class="lab" value="Total cumulé au fil des mois (auto)" readonly><span class="mnt pos">${fmt(cum)}</span></div>
+        ${composeur('livrets.' + cle + '.mouvements', '+', 'Mouvement (ex. Versement)')}
         ${obj.mouvements.map((it, i) => ligneEditable('livrets.' + cle + '.mouvements', it, i)).join('')}
-        <button class="ajout" data-addch="livrets.${cle}.mouvements">＋ Ajouter un mouvement</button>
       </div></div>`;
   const cr = cumulsRepartition();
   const pochesSuivi = (etat.config.poches || []).filter(p => p.cible === 'suivi');
@@ -1243,10 +1299,40 @@ function rendreLivrets(){
     carteSuivi;
 }
 
-const PASTILLES = {'Actions':'p-actions','ETFs':'p-etfs','Private Equity':'p-pe','Cryptos':'p-cryptos','Métaux':'p-metaux'};
+/* Catégories de positions : libellé + couleur de pastille + couleur graphique */
+const CATEGORIES = [
+  ['Actions',        'p-actions',     '#2E7D5B'],
+  ['ETFs',           'p-etfs',        '#4E79A7'],
+  ['Métaux / ETC',   'p-metaux',      '#B08D3E'],
+  ['Private Equity', 'p-pe',          '#7B5EA7'],
+  ['Obligations',    'p-obligations', '#5A6072'],
+  ['Cryptos',        'p-cryptos',     '#E0A93F'],
+];
+const PASTILLES = Object.fromEntries(CATEGORIES.map(([nom, cl]) => [nom, cl]));
+const COUL_CAT = Object.fromEntries(CATEGORIES.map(([nom, , coul]) => [nom, coul]));
+// tolère les anciens libellés (« Métaux », « ETF »…)
+function categorieNormale(t){
+  const s = String(t || '').trim();
+  if (PASTILLES[s]) return s;
+  const bas = s.toLowerCase();
+  if (bas.startsWith('métaux') || bas.startsWith('metaux') || bas.includes('etc')) return 'Métaux / ETC';
+  if (bas.startsWith('etf')) return 'ETFs';
+  if (bas.startsWith('crypto')) return 'Cryptos';
+  if (bas.startsWith('oblig')) return 'Obligations';
+  if (bas.startsWith('private')) return 'Private Equity';
+  if (bas.startsWith('action')) return 'Actions';
+  return s || 'Actions';
+}
 function tablePositions(titre, chemin, calc, totalCompte){
-  const lig = calc.lignes.map((p, i) => `<tr>
-      <td><span class="pastille ${PASTILLES[p.type] || 'p-etfs'}">${echap(p.type || '?')}</span><br>${echap(p.label)}</td>
+  const lig = calc.lignes.map((p, i) => {
+    const cat = categorieNormale(p.type);
+    return `<tr>
+      <td>
+        <select class="sel-cat ${PASTILLES[cat]}" data-pch="${chemin}" data-i="${i}" data-f="type">
+          ${CATEGORIES.map(([nom]) => `<option value="${nom}" ${cat === nom ? 'selected' : ''}>${nom}</option>`).join('')}
+        </select>
+        <input value="${echap(p.label)}" data-pch="${chemin}" data-i="${i}" data-f="label" placeholder="Intitulé" style="text-align:left;font-weight:600;margin-top:3px">
+      </td>
       <td><input value="${p.nb ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="nb" inputmode="text"></td>
       <td><input value="${p.pru ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="pru" inputmode="text"></td>
       <td><input value="${p.prix ?? ''}" data-pch="${chemin}" data-i="${i}" data-f="prix" inputmode="text"></td>
@@ -1254,7 +1340,8 @@ function tablePositions(titre, chemin, calc, totalCompte){
       <td class="${cls(p.perfP)}">${p.perfP.toFixed(1)} %</td>
       <td class="${cls(p.perfE)}">${fmtS(p.perfE)}</td>
       <td><button class="sup" data-psupch="${chemin}" data-i="${i}">✕</button></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
   return `<div class="carte">
     <div class="tete"><h3>${titre}</h3><div class="tot">${fmt(totalCompte)}</div></div>
     <div class="corps" style="overflow-x:auto">
@@ -1381,13 +1468,13 @@ function rendreReglages(){
   document.getElementById('cfg-fixe').value = etat.config.enveloppeFixe != null ? etat.config.enveloppeFixe : '';
   document.getElementById('cfg-reste').value = etat.config.resteInitial;
   const CIBLES = [['livretA', '→ Livret A'], ['ldds', '→ LDDS'], ['av', '→ Dispo invest.'], ['suivi', '→ Suivi']];
-  const MODES = [['tiers', '1/3 ↑'], ['pct', '% du NA'], ['fixe', '€ fixe'], ['reste', 'Reste']];
+  const MODES = [['part', libellePart(etat.config.poches)], ['pct', '% du NA'], ['fixe', '€ fixe'], ['reste', 'Reste']];
   document.getElementById('poches-liste').innerHTML = etat.config.poches.map((p, i) => `
     <div class="poche">
       <input value="${echap(p.nom)}" data-poche="${i}" data-pf="nom" placeholder="Nom">
       <select data-poche="${i}" data-pf="mode">${MODES.map(([v, l]) => `<option value="${v}" ${p.mode === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <input class="p-val" value="${p.mode === 'pct' || p.mode === 'fixe' ? (p.valeur ?? '') : ''}" data-poche="${i}" data-pf="valeur"
-             inputmode="decimal" placeholder="${p.mode === 'pct' ? '%' : p.mode === 'fixe' ? '€' : '—'}" ${p.mode === 'tiers' || p.mode === 'reste' ? 'disabled' : ''}>
+             inputmode="decimal" placeholder="${p.mode === 'pct' ? '%' : p.mode === 'fixe' ? '€' : '—'}" ${p.mode === 'part' || p.mode === 'reste' ? 'disabled' : ''}>
       <select class="p-dest" data-poche="${i}" data-pf="cible">${CIBLES.map(([v, l]) => `<option value="${v}" ${p.cible === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <button class="sup" data-pochesup="${i}" aria-label="Supprimer">✕</button>
     </div>`).join('');
@@ -1449,10 +1536,9 @@ document.querySelector('main').addEventListener('change', e => {
     sauver(); rafraichirPage();
   } else if (el.dataset.pch){               // positions invest
     const p = etat.investissements[el.dataset.pch][+el.dataset.i];
-    if (el.dataset.f === 'symbole'){
-      p.symbole = el.value.trim();
-      sauver(); return;
-    }
+    if (el.dataset.f === 'symbole'){ p.symbole = el.value.trim(); sauver(); return; }
+    if (el.dataset.f === 'label'){ p.label = el.value.trim(); sauver(); rendreInvest(); return; }
+    if (el.dataset.f === 'type'){ p.type = el.value; sauver(); rendreInvest(); return; }
     const v = evalMontant(el.value);
     if (isNaN(v)) { toast('Valeur invalide'); return; }
     p[el.dataset.f] = v;
@@ -1482,15 +1568,19 @@ document.querySelector('main').addEventListener('click', e => {
       if (n > 0) toast(`↪ Retirée de ${n} mois suivant${n > 1 ? 's' : ''}`);
     }
     sauver(); rafraichirPage();
+  } else if (el.hasAttribute('data-cgo')){
+    ajouterViaComposeur(el.closest('[data-comp]'));
   } else if (el.dataset.chip != null){       // puce → pré-remplit la saisie rapide
-    const p = el.dataset.cible === 'acc' ? ['dl-acc-label', 'dl-acc-mnt'] : ['dl-mois-label', 'dl-mois-mnt'];
-    document.getElementById(p[0]).value = el.dataset.chip;
-    document.getElementById(p[1]).value = el.dataset.mnt;
-    document.getElementById(p[1]).focus();
+    let cl, cm;
+    if (el.dataset.cible === 'acc'){
+      cl = document.getElementById('dl-acc-label'); cm = document.getElementById('dl-acc-mnt');
+    } else {
+      const z = document.querySelector(`[data-comp$="depensesLibres"]`);
+      if (z){ cl = z.querySelector('[data-cl]'); cm = z.querySelector('[data-cm]'); }
+    }
+    if (cl && cm){ cl.value = el.dataset.chip; cm.value = el.dataset.mnt; cm.focus(); }
   } else if (el.id === 'dl-acc-btn'){
     ajouterDepenseLibre(cleAujourdhui(), 'dl-acc-label', 'dl-acc-mnt');
-  } else if (el.id === 'dl-mois-btn'){
-    ajouterDepenseLibre(moisActif, 'dl-mois-label', 'dl-mois-mnt');
   } else if (el.classList && el.classList.contains('eta-go')){
     const zone = el.closest('[data-eta]');
     const cat = zone.dataset.eta;
@@ -1506,7 +1596,7 @@ document.querySelector('main').addEventListener('click', e => {
   } else if (el.id === 'btn-cours'){
     mettreAJourCours();
   } else if (el.dataset.paddch){
-    etat.investissements[el.dataset.paddch].push({type: 'Actions', label: '', nb: 0, pru: 0, prix: 0});
+    etat.investissements[el.dataset.paddch].push({type: 'Actions', label: 'Nouvelle position', nb: 0, pru: 0, prix: 0, symbole: ''});
     sauver(); rendreInvest();
   } else if (el.dataset.psupch){
     if (!confirm('Supprimer cette position ?')) return;
@@ -1552,9 +1642,17 @@ document.querySelector('main').addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
   const id = e.target.id;
   if (id === 'dl-acc-label') document.getElementById('dl-acc-mnt').focus();
-  else if (id === 'dl-mois-label') document.getElementById('dl-mois-mnt').focus();
   else if (id === 'dl-acc-mnt') document.getElementById('dl-acc-btn').click();
-  else if (id === 'dl-mois-mnt') document.getElementById('dl-mois-btn').click();
+  else if (e.target.closest && e.target.closest('[data-comp]')){
+    // Entrée dans l'intitulé → passe au montant ; dans le montant → valide
+    if (e.target.hasAttribute('data-cl')){
+      e.preventDefault();
+      e.target.closest('[data-comp]').querySelector('[data-cm]').focus();
+      return;
+    }
+    e.preventDefault();
+    ajouterViaComposeur(e.target.closest('[data-comp]'));
+  }
   else if (e.target.closest && e.target.closest('.corps-eta')){
     const go = e.target.closest('.corps-eta').querySelector('.eta-go');
     if (go){ e.preventDefault(); go.click(); }
@@ -1629,6 +1727,59 @@ document.getElementById('est-auto').onclick = () => {
 };
 
 // Réglages
+/* Détecte les positions dont les colonnes ont glissé d'un cran à l'import
+   (l'intitulé se retrouve dans la catégorie, la quantité dans l'intitulé…). */
+function positionsDecalees(){
+  const out = [];
+  for (const compte of ['positionsTR', 'positionsPEA', 'positionsPER'])
+    for (const p of (etat.investissements[compte] || [])){
+      const lab = String(p.label ?? '').trim();
+      if (lab !== '' && isFinite(Number(lab.replace(',', '.')))) out.push(p);
+    }
+  return out;
+}
+function devinerCategorie(nom){
+  const s = String(nom || '').toLowerCase();
+  if (/bitcoin|ethereum|solana|crypto|btc|eth|sol|xrp|cardano/.test(s)) return 'Cryptos';
+  if (/\bor\b|argent|platine|palladium|cuivre|silver|gold|métaux|metaux/.test(s)) return 'Métaux / ETC';
+  if (/apollo|eqt|private|infrastructure/.test(s)) return 'Private Equity';
+  if (/oblig|bond|treasury/.test(s)) return 'Obligations';
+  if (/etf|msci|s&p|world|nasdaq|stoxx|ftse|index|quality|emerging/.test(s)) return 'ETFs';
+  return 'Actions';
+}
+/* Remet les colonnes en place : intitulé ← catégorie, quantité ← intitulé,
+   PRU ← quantité. Le prix (souvent rafraîchi) et l'ISIN sont conservés. */
+function reparerPositions(){
+  const num = v => { const n = Number(String(v ?? '').replace(',', '.')); return isFinite(n) ? n : 0; };
+  let n = 0;
+  for (const compte of ['positionsTR', 'positionsPEA', 'positionsPER'])
+    for (const p of (etat.investissements[compte] || [])){
+      const lab = String(p.label ?? '').trim();
+      if (lab === '' || !isFinite(Number(lab.replace(',', '.')))) continue;
+      const vraiNom = String(p.type ?? '').trim() || 'Position';
+      const vraiNb = num(p.label), vraiPru = num(p.nb);
+      p.label = vraiNom;
+      p.nb = vraiNb;
+      p.pru = vraiPru;
+      p.type = devinerCategorie(vraiNom);
+      n++;
+    }
+  return n;
+}
+/* Fige l'enveloppe calculée des mois passés : un changement de €/jour ou
+   d'enveloppe fixe ne s'applique qu'au mois en cours et aux mois suivants. */
+function figerEnveloppeHistorique(){
+  const auj = cleAujourdhui();
+  let n = 0;
+  for (const cle of clesMois()){
+    if (cle >= auj) continue;
+    const m = etat.months[cle];
+    if (m.sommeMoisOverride != null) continue;
+    m.sommeMoisOverride = +calculerMois(cle).sommeMois.toFixed(2);
+    n++;
+  }
+  return n;
+}
 /* Fige la répartition calculée des mois passés avant tout changement de poches */
 function figerRepartitionHistorique(){
   const auj = cleAujourdhui();
@@ -1672,16 +1823,19 @@ document.getElementById('poches-liste').addEventListener('click', e => {
 });
 document.getElementById('cfg-fixe').addEventListener('change', e => {
   const txt = e.target.value.trim();
-  if (txt === ''){ etat.config.enveloppeFixe = null; sauver(); rendreTout(); return toast('Enveloppe : €/jour × jours du mois'); }
+  figerEnveloppeHistorique();
+  if (txt === ''){ etat.config.enveloppeFixe = null; sauver(); rendreTout(); return toast('Enveloppe : €/jour × jours — dès ce mois-ci'); }
   const v = evalMontant(txt);
   if (isNaN(v) || v <= 0) return toast('Valeur invalide');
   etat.config.enveloppeFixe = +v.toFixed(2);
-  sauver(); rendreTout(); toast('Enveloppe fixe : ' + fmt(v) + ' / mois');
+  sauver(); rendreTout(); toast('Enveloppe fixe ' + fmt(v) + ' — dès ce mois-ci');
 });
 document.getElementById('cfg-jour').addEventListener('change', e => {
   const v = evalMontant(e.target.value);
   if (isNaN(v) || v <= 0) return toast('Valeur invalide');
-  etat.config.eurParJour = v; sauver(); rendreTout(); toast('Enveloppe : ' + v + ' €/jour');
+  figerEnveloppeHistorique();
+  etat.config.eurParJour = v; sauver(); rendreTout();
+  toast(v + ' €/jour — appliqué dès ce mois-ci, historique préservé');
 });
 document.getElementById('cfg-reste').addEventListener('change', e => {
   const v = evalMontant(e.target.value);
@@ -1786,8 +1940,77 @@ function pageRapport(cle){
     </div>
   </section>`;
 }
+function pageReleve(){
+  const v = calculerInvest(), liv = calculerLivrets(), avc = calculerAchatVente();
+  const comptes = [
+    ['🏦 Trade Republic', v.pTR, v.totTR], ['📈 PEA Bourse Direct', v.pPEA, v.totPEA],
+    ['🛡️ PERin BoursoBank', v.pPER, v.totPER],
+  ];
+  // synthèse par catégorie, tous comptes confondus
+  const parCat = {};
+  for (const [, calc] of comptes.map(c => [c[0], c[1]]))
+    for (const p of calc.lignes){
+      const cat = categorieNormale(p.type);
+      parCat[cat] = parCat[cat] || {valeur: 0, perf: 0};
+      parCat[cat].valeur += (+p.nb || 0) * (+p.prix || 0);
+      parCat[cat].perf += p.perfE;
+    }
+  const totalVal = Object.values(parCat).reduce((s, x) => s + x.valeur, 0);
+  const parts = CATEGORIES.filter(([nom]) => parCat[nom] && parCat[nom].valeur > 0.004)
+    .map(([nom, , coul]) => ({label: nom, couleur: coul, valeur: parCat[nom].valeur}));
+  const tableau = (titre, calc, total) => !calc.lignes.length ? '' : `
+    <h2>${titre} — ${fmt(total)}</h2>
+    <table>
+      <tr><td><b>Position</b></td><td><b>Nb</b></td><td><b>PRU</b></td><td><b>Cours</b></td><td><b>Valeur</b></td><td><b>Perf.</b></td></tr>
+      ${calc.lignes.map(p => `<tr>
+        <td><span class="puce" style="background:${COUL_CAT[categorieNormale(p.type)] || '#5A6072'}"></span>${echap(p.label)}</td>
+        <td>${(+p.nb || 0).toLocaleString('fr-FR', {maximumFractionDigits: 4})}</td>
+        <td>${fmt(p.pru)}</td><td>${fmt(p.prix)}</td>
+        <td>${fmt((+p.nb || 0) * (+p.prix || 0))}</td>
+        <td class="${cls(p.perfE)}">${fmtS(p.perfE)} (${p.perfP.toFixed(1)} %)</td></tr>`).join('')}
+      <tr class="tot"><td>Total</td><td colspan="3"></td><td>${fmt(calc.valeur)}</td>
+        <td class="${cls(calc.perfE)}">${fmtS(calc.perfE)} (${calc.perfP.toFixed(1)} %)</td></tr>
+    </table>`;
+  const hist = etat.historique.slice(-6);
+  return `<section class="rp">
+    <div class="rp-tete">
+      <h1>📈 Relevé de portefeuille</h1>
+      <span class="badge">Au ${new Date().toLocaleDateString('fr-FR')}</span>
+      <span class="app">Mon Budget Personnel · v4</span>
+    </div>
+    <div class="kpi5">
+      <div><span class="e">💰 Livrets</span><span class="v">${fmt(liv.total)}</span></div>
+      <div><span class="e">📈 Investi</span><span class="v">${fmt(v.total)}</span></div>
+      <div><span class="e">💵 Dispo à investir</span><span class="v">${fmt(avc.dispo)}</span></div>
+      <div><span class="e">📊 Valeur portefeuille</span><span class="v">${fmt(totalVal)}</span></div>
+      <div><span class="e">🎯 Perf. latente</span><span class="v ${cls(v.perfTotale)}">${fmtS(v.perfTotale)}</span></div>
+    </div>
+    <div class="cols">
+      <div>
+        <h2>Répartition par catégorie</h2>
+        ${donutSVG(parts, totalVal)}
+        <table>${CATEGORIES.filter(([nom]) => parCat[nom]).map(([nom, , coul]) => `<tr>
+          <td><span class="puce" style="background:${coul}"></span>${nom}</td>
+          <td>${fmt(parCat[nom].valeur)}</td>
+          <td>${totalVal > 0 ? (parCat[nom].valeur / totalVal * 100).toFixed(1) + ' %' : '—'}</td>
+          <td class="${cls(parCat[nom].perf)}">${fmtS(parCat[nom].perf)}</td></tr>`).join('')}
+        </table>
+        ${hist.length ? `<h2>Historique de performance</h2><table>
+          <tr><td><b>Période</b></td><td><b>TR</b></td><td><b>PEA</b></td><td><b>PER</b></td><td><b>Total</b></td></tr>
+          ${hist.map(h => `<tr><td>${h.periode}</td><td class="${cls(h.tr)}">${fmt(h.tr)}</td>
+            <td class="${cls(h.pea)}">${fmt(h.pea)}</td><td class="${cls(h.per)}">${fmt(h.per)}</td>
+            <td class="${cls(h.total)}"><b>${fmt(h.total)}</b></td></tr>`).join('')}</table>` : ''}
+      </div>
+      <div>${comptes.map(([t, calc, tot]) => tableau(t, calc, tot)).join('')}</div>
+    </div>
+    <div class="rp-pied">
+      <span>Cours ${etat.config.derniereMajCours ? 'mis à jour le ' + new Date(etat.config.derniereMajCours).toLocaleDateString('fr-FR') : 'saisis manuellement'}</span>
+      <span>Édité le ${new Date().toLocaleDateString('fr-FR')} — Budget v4</span>
+    </div>
+  </section>`;
+}
 function genererRapport(){
-  document.getElementById('rapport').innerHTML = clesMois().map(pageRapport).join('');
+  document.getElementById('rapport').innerHTML = clesMois().map(pageRapport).join('') + pageReleve();
   document.body.classList.add('impression');
   const fin = () => document.body.classList.remove('impression');
   window.addEventListener('afterprint', fin, {once: true});
@@ -1815,6 +2038,16 @@ document.getElementById('fic-json').addEventListener('change', async e => {
   }catch(err){ toast('Fichier illisible : ' + err.message); }
   e.target.value = '';
 });
+document.getElementById('btn-reparer').onclick = () => {
+  const touchees = positionsDecalees();
+  if (!touchees.length) return toast('✅ Aucune position décalée détectée');
+  const ex = touchees[0];
+  const apercu = `${touchees.length} position(s) à corriger.\n\nExemple :\n« ${ex.type} » / « ${ex.label} »\n→ intitulé « ${ex.type} », quantité ${ex.label}, PRU ${ex.nb}\n\nAppliquer ?`;
+  if (!confirm(apercu)) return;
+  const n = reparerPositions();
+  sauver(); rendreTout();
+  toast(`🔧 ${n} position${n > 1 ? 's' : ''} réparée${n > 1 ? 's' : ''} — vérifie les catégories`);
+};
 document.getElementById('btn-reset').onclick = () => {
   if (!confirm('Tout effacer et repartir d\u2019une application vide ?')) return;
   etat = structuredClone(SEED); migrer(); sauver(); rendreTout(); toast('Application vidée — importe ta sauvegarde JSON pour retrouver tes données');
