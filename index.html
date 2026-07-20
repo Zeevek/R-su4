@@ -449,6 +449,10 @@ const INFOS = {
   poches: ['Poches d’épargne (suivi)', "Cumul des poches de répartition qui ne vont ni aux livrets ni au disponible d'investissement — par exemple un coussin de sécurité ou un projet. Purement indicatif."],
   av: ['Argent disponible', "Alimenté chaque mois par les poches « disponible investissement », diminué des achats directs (TR / PEA) et des sorties. C'est ta réserve pour investir hors plans programmés."],
   fraicheur: ['Code couleur des prix', "Pour un produit non coté (private equity, fonds evergreen…), inscris « manuel » dans la colonne 🔗 : la ligne est alors exclue de la mise à jour et affichée en gris, sans être signalée comme oubliée. Colonne Prix : fond neutre = cours rafraîchi lors de la dernière mise à jour automatique ; fond vert = prix que tu as saisi à la main depuis ; fond ambré avec barre dorée = ni l'un ni l'autre, c'est une ligne à mettre à jour manuellement (pas d'ISIN renseigné, ou récupération en échec)."],
+  perfreelle: ['TRI et TWR', "Le TRI est le taux annuel qui rend la valeur actuelle de ton portefeuille cohérente avec le calendrier réel de tes versements : c'est ce que ton argent t'a rapporté. Le TWR neutralise l'effet des dates et montants de versement, ce qui permet de te comparer à un indice. Si le TRI dépasse le TWR, tes versements sont tombés à de bons moments. Les deux se calculent tout seuls à partir des mois enregistrés — aucune saisie supplémentaire."],
+  projection: ['Projection', "L'app lit ton allocation par catégorie, applique à chacune trois hypothèses de rendement annuel (pessimiste, neutre, optimiste), en fait une moyenne pondérée, puis projette ton capital actuel et tes versements mensuels. La zone dorée représente 8 trajectoires sur 10 simulées en tenant compte de la volatilité. À mesure que ton historique s'allonge, ton rendement réellement observé remplace progressivement l'hypothèse théorique. Ce sont des conventions de calcul, pas des prévisions."],
+  perfreelle: ['Performance réelle (TRI / TWR)', "Deux façons de mesurer, calculées sans aucune saisie : le TRI est le taux annuel que ton argent a réellement rapporté compte tenu du calendrier de tes versements — c'est ta performance à toi. Le TWR neutralise l'effet des versements : c'est celui qu'on compare à un indice. Si le TRI dépasse le TWR, tes versements sont tombés à de bons moments. Il faut au moins deux mois enregistrés, et une dizaine pour que ce soit parlant."],
+  projection: ['Projection', "Trois scénarios construits à partir de ton allocation réelle par catégorie, à laquelle sont appliqués des taux annuels conventionnels (actions 2/6/9 %, obligations 1/3/4 %, crypto −50/+10/+40 %…). Le faisceau montre la zone probable plutôt qu'un trait illusoire : 10 % des trajectoires finissent sous la borne basse, 10 % au-dessus de la haute. À mesure que ton historique s'allonge, ton rendement réellement observé remplace progressivement la théorie. Ce sont des conventions de place, pas des prévisions."],
   invest: ['Positions', "Nb × prix actuel − Nb × PRU = performance latente. « Enregistrer » fige la performance du moment dans l'historique pour suivre l'évolution mois par mois."],
   cours: ['Mise à jour des cours', "Si un ISIN n'est pas trouvé, saisis le ticker de la place de cotation (ex. TSM pour l'ADR TSMC, SGLN.L pour l'or iShares en pence, SOL-EUR pour Solana). Pour un fonds non coté, inscris « manuel ». Toutes les devises sont gérées : le taux de change est récupéré en direct au moment de l'appui (une requête par devise) et les taux appliqués s'affichent sous le bouton. Saisis une fois l'ISIN (ex. FR0000120271) ou le ticker Yahoo (ex. TTE.PA, 8001.T, BTC-EUR) de chaque position, puis appuie sur le bouton — à la demande, par exemple une fois par mois. Toutes les devises sont converties en euros (USD, JPY, CHF, HKD, GBP, pence…) avec les taux de change récupérés en direct au moment de l'appui. Les produits non cotés (private equity, fonds fermés) n'ont pas de cotation publique : mets leur prix à jour à la main. Internet n'est requis qu'à ce moment-là ; seuls les symboles sont interrogés, rien de ton portefeuille ne sort de l'appareil."],
   rapport: ['Compte rendu PDF', "Génère une page A4 par mois et ouvre la boîte d'impression : choisis « Enregistrer en PDF ». Sur iPhone : Partager → Imprimer, puis pince l'aperçu pour l'enregistrer dans Fichiers."],
@@ -466,8 +470,13 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '4.11.0';
+const APP_VERSION = '5.0.0';
 const CHANGELOG = [
+  {v: '5.0.0', d: '19/07/2026', pts: [
+    "Socle d'analyse : à chaque enregistrement mensuel, l'app mémorise désormais aussi la valeur du portefeuille et les apports du mois — déduits du budget et des positions, sans aucune saisie supplémentaire. Les périodes déjà enregistrées sont complétées rétroactivement.",
+    "Performance réelle : TRI (le rendement annuel réellement obtenu compte tenu du calendrier des versements) et TWR (le rendement du portefeuille hors effet des versements, comparable à un indice).",
+    "Projection du patrimoine à trois scénarios, construite sur l'allocation réelle par catégorie, avec faisceau P10/P50/P90 par simulation et pondération progressive par la performance observée (poids n/(n+36), borné à ±30 %).",
+    "Ménage interne : trois implémentations concurrentes du socle avaient été empilées — une seule subsiste. Correction d'un double comptage des achats directs dans le capital investi, et de leur absence dans les apports (ils étaient pris pour une hausse du marché)."]},
   {v: '4.11.0', d: '19/07/2026', pts: [
     "Résolution des symboles renforcée : les codes crypto courts sont complétés automatiquement (SOL → SOL-EUR), les tickers déjà complets sont testés directement, et les ISIN introuvables par la recherche passent par un second point d'entrée Yahoo.",
     "Nouveau mode « prix manuel » : inscris « manuel » dans la colonne 🔗 pour un produit non coté (private equity, fonds evergreen) — la ligne est exclue de la mise à jour, affichée en gris 🔒 et n'est plus comptée comme oubliée.",
@@ -573,6 +582,8 @@ function migrer(){
   etat.historique = etat.historique || [];
   if (etat.config.enveloppeFixe == null || etat.config.enveloppeFixe === '' || isNaN(Number(etat.config.enveloppeFixe))) etat.config.enveloppeFixe = null;
   etat.config.triPositions = etat.config.triPositions || {};
+  if (typeof enrichirHistorique === 'function') enrichirHistorique();
+  if (typeof enrichirHistorique === 'function' && etat.historique.length) enrichirHistorique();
   for (const p of (etat.config.poches || [])) if (p.mode === 'tiers') p.mode = 'part';
   if (!Array.isArray(etat.config.poches) || !etat.config.poches.length)
     etat.config.poches = structuredClone(POCHES_DEFAUT);
@@ -862,6 +873,97 @@ function calculerInvest(){
           perfTotale: pTR.perfE + pPEA.perfE + pPER.perfE};
 }
 
+
+
+/* ================= PROJECTION À TROIS SCÉNARIOS =================
+   Hypothèses annualisées par catégorie (conventions de place, pas des
+   prévisions), pondérées par l'allocation réelle du portefeuille. */
+const HYPOTHESES = {
+  'Actions':        {pess: 0.02,  neutre: 0.06, opti: 0.09,  vol: 0.18},
+  'ETFs':           {pess: 0.02,  neutre: 0.06, opti: 0.085, vol: 0.16},
+  'Métaux / ETC':   {pess: 0.00,  neutre: 0.03, opti: 0.06,  vol: 0.15},
+  'Private Equity': {pess: 0.02,  neutre: 0.08, opti: 0.12,  vol: 0.20},
+  'Obligations':    {pess: 0.01,  neutre: 0.03, opti: 0.04,  vol: 0.06},
+  'Cryptos':        {pess: -0.50, neutre: 0.10, opti: 0.40,  vol: 0.70},
+};
+function allocationActuelle(){
+  const v = calculerInvest();
+  const parCat = {}; let total = 0;
+  for (const calc of [v.pTR, v.pPEA, v.pPER])
+    for (const p of calc.lignes){
+      const val = (+p.nb || 0) * (+p.prix || 0);
+      if (!(val > 0)) continue;
+      const cat = categorieNormale(p.type);
+      parCat[cat] = (parCat[cat] || 0) + val;
+      total += val;
+    }
+  return {parCat, total};
+}
+function tauxPortefeuille(){
+  const {parCat, total} = allocationActuelle();
+  if (!(total > 0)) return null;
+  let pess = 0, neutre = 0, opti = 0, vol = 0;
+  for (const [cat, val] of Object.entries(parCat)){
+    const h = HYPOTHESES[cat] || HYPOTHESES['Actions'];
+    const w = val / total;
+    pess += w * h.pess; neutre += w * h.neutre; opti += w * h.opti; vol += w * h.vol;
+  }
+  return {pess, neutre, opti, vol, parCat, total};
+}
+/* Le « recul » : plus l'historique s'allonge, plus le vécu pèse face à la théorie.
+   Poids = n/(n+36) — 3 mois ≈ 8 %, 3 ans = 50 %, 10 ans ≈ 77 %. */
+function melangeAvecHistorique(tauxTheorique, twrAnnualise, nMois){
+  if (twrAnnualise == null || !isFinite(twrAnnualise) || !nMois)
+    return {taux: tauxTheorique, poids: 0, borne: null};
+  const poids = nMois / (nMois + 36);
+  const borne = Math.max(-0.30, Math.min(0.30, twrAnnualise));   // garde-fou anti-extrapolation
+  return {taux: tauxTheorique * (1 - poids) + borne * poids, poids, borne};
+}
+function projeter(V0, apportsMensuels, tauxAnnuel, mois){
+  const r = Math.pow(1 + tauxAnnuel, 1 / 12) - 1;
+  let v = V0; const pts = [v];
+  for (let i = 1; i <= mois; i++){ v = v * (1 + r) + apportsMensuels; pts.push(v); }
+  return pts;
+}
+function apportsMensuelsMoyens(n = 3){
+  const cles = clesMois().filter(k => k <= cleAujourdhui()).slice(-n);
+  if (!cles.length) return 0;
+  return cles.reduce((s, k) => s + apportsDuMois(k).total, 0) / cles.length;
+}
+/* Générateur pseudo-aléatoire à graine : la projection ne bouge pas d'un affichage à l'autre. */
+function rngGraine(graine){
+  let a = graine >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function loiNormale(u1, u2){
+  return Math.sqrt(-2 * Math.log(u1 || 1e-12)) * Math.cos(2 * Math.PI * u2);
+}
+/* Faisceau de trajectoires : donne une zone probable plutôt qu'un trait illusoire. */
+function monteCarlo(V0, apports, tauxAnnuel, vol, mois, tirages = 600, graine = 4242){
+  const alea = rngGraine(graine);
+  const sig = vol / Math.sqrt(12);
+  const mu = Math.log(1 + Math.max(-0.95, tauxAnnuel)) / 12 - sig * sig / 2;
+  const jalons = [];
+  for (let an = 1; an * 12 <= mois; an++) jalons.push(an * 12);
+  const paniers = jalons.map(() => []);
+  for (let k = 0; k < tirages; k++){
+    let v = V0, j = 0;
+    for (let i = 1; i <= mois; i++){
+      v = v * Math.exp(mu + sig * loiNormale(alea(), alea())) + apports;
+      if (j < jalons.length && i === jalons[j]) paniers[j++].push(v);
+    }
+  }
+  return jalons.map((m, i) => {
+    const s = paniers[i].sort((a, b) => a - b);
+    const q = p => s[Math.min(s.length - 1, Math.max(0, Math.floor(p * s.length)))];
+    return {mois: m, annee: m / 12, p10: q(0.10), p50: q(0.50), p90: q(0.90)};
+  });
+}
 
 /* ================= FLUX DU MOIS (diagramme de Sankey maison) ================= */
 function construireFlux(cle){
@@ -1155,6 +1257,221 @@ async function mettreAJourCours(){
     st.textContent = parts.join('  —  ');
   }
 }
+
+/* ================= SOCLE : VALEUR, APPORTS, TRI, TWR =================
+   Tout est calculé à partir de données déjà présentes dans l'app :
+   les plans mensuels du budget donnent les apports, les positions donnent
+   la valeur. Aucune saisie supplémentaire n'est demandée. */
+const cleDepuisPeriode = p => String(p).slice(3) + '-' + String(p).slice(0, 2);   // '07.2026' → '2026-07'
+const periodeDepuisCle = c => c.slice(5) + '.' + c.slice(0, 4);
+function finDuMois(cle){
+  const [a, m] = cle.split('-').map(Number);
+  return cle + '-' + String(new Date(a, m, 0).getDate()).padStart(2, '0');
+}
+/* Apports du mois, par compte (montants positifs) : plans mensuels du budget
+   ET achats directs du mois (nets des ventes), pour rester cohérent avec
+   baseCoutAu — sans quoi un achat direct passerait pour une hausse du marché. */
+function apportsDuMois(cle){
+  const m = etat.months[cle];
+  if (!m) return {tr: 0, pea: 0, per: 0, total: 0};
+  let tr = -(somme(m.trActions) + somme(m.trETF) + somme(m.trMetaux) + somme(m.trCrypto) + somme(m.trPE));
+  let pea = -(Number(m.invPEA) || 0);
+  const per = -(Number(m.invPER) || 0);
+  const netDuMois = liste => (liste || []).reduce((s, t) =>
+    s + (String(t.date || '').slice(0, 7) === cle ? (t.sens === 'Vente' ? -1 : 1) * (+t.montant || 0) : 0), 0);
+  tr += netDuMois(etat.achatVente.txTR);
+  pea += netDuMois(etat.achatVente.txPEA);
+  return {tr, pea, per, total: tr + pea + per};
+}
+/* Capital investi (prix de revient) à la fin d'un mois donné */
+function baseCoutAu(cleFin){
+  const i = etat.investissements.initiaux || {};
+  let tr = +i.tr || 0, pea = +i.pea || 0, per = +i.per || 0;
+  for (const k of clesMois()){
+    if (k > cleFin) break;
+    const a = apportsDuMois(k);
+    tr += a.tr; pea += a.pea; per += a.per;
+  }
+  // les achats directs sont déjà inclus dans apportsDuMois : pas de double compte ici
+  return {tr, pea, per, total: tr + pea + per};
+}
+/* Complète les enregistrements d'historique avec valeur et apports (rétroactif) */
+function enrichirHistorique(){
+  let n = 0;
+  for (const h of etat.historique){
+    if (h.valTotal != null) continue;
+    const cle = cleDepuisPeriode(h.periode);
+    const base = baseCoutAu(cle), ap = apportsDuMois(cle);
+    h.valTR = +(base.tr + (+h.tr || 0)).toFixed(2);
+    h.valPEA = +(base.pea + (+h.pea || 0)).toFixed(2);
+    h.valPER = +(base.per + (+h.per || 0)).toFixed(2);
+    h.valTotal = +(h.valTR + h.valPEA + h.valPER).toFixed(2);
+    h.apTR = +ap.tr.toFixed(2); h.apPEA = +ap.pea.toFixed(2);
+    h.apPER = +ap.per.toFixed(2); h.apTotal = +ap.total.toFixed(2);
+    n++;
+  }
+  return n;
+}
+/* Taux de rendement interne (TRI) : le taux annuel qui rend la valeur
+   actuelle cohérente avec le calendrier réel des versements. */
+function calculTRI(flux){
+  // flux : [{t: rang du mois, cf: montant}] — négatif = versement, positif = valeur récupérée
+  if (flux.length < 2) return null;
+  const van = r => flux.reduce((s, f) => s + f.cf / Math.pow(1 + r, f.t), 0);
+  let bas = -0.9, haut = 1.0;
+  if (van(bas) * van(haut) > 0) return null;
+  for (let i = 0; i < 200; i++){
+    const mid = (bas + haut) / 2;
+    (van(bas) * van(mid) <= 0 ? haut = mid : bas = mid);
+  }
+  const mensuel = (bas + haut) / 2;
+  return Math.pow(1 + mensuel, 12) - 1;   // annualisé
+}
+/* Rendement pondéré par le temps (TWR) : performance du portefeuille
+   indépendamment des dates et montants de versement (comparable à un indice). */
+function calculTWR(points){
+  // points : [{valeur, apport}] mensuels consécutifs, du plus ancien au plus récent
+  if (points.length < 2) return null;
+  let produit = 1, mois = 0;
+  for (let i = 1; i < points.length; i++){
+    const v0 = points[i - 1].valeur, v1 = points[i].valeur, c = points[i].apport || 0;
+    const denom = v0 + c / 2;
+    if (denom <= 0) continue;
+    produit *= 1 + (v1 - v0 - c) / denom;
+    mois++;
+  }
+  if (!mois || produit <= 0) return null;
+  return Math.pow(produit, 12 / mois) - 1;
+}
+/* Synthèse : TRI, TWR et données de base issues de l'historique enrichi */
+function performanceReelle(){
+  const H = etat.historique.filter(h => h.valTotal != null);
+  if (H.length < 2) return {points: H.length};
+  const flux = [];
+  flux.push({t: 0, cf: -(H[0].valTotal - (H[0].apTotal || 0))});   // capital au départ du suivi
+  flux.push({t: 0, cf: -(H[0].apTotal || 0)});
+  for (let i = 1; i < H.length; i++) flux.push({t: i, cf: -(H[i].apTotal || 0)});
+  flux.push({t: H.length - 1, cf: H[H.length - 1].valTotal});
+  const pts = H.map(h => ({valeur: h.valTotal, apport: h.apTotal || 0}));
+  const apports = H.reduce((s, h) => s + (h.apTotal || 0), 0);
+  return {
+    points: H.length, debut: H[0].periode, fin: H[H.length - 1].periode,
+    valeur: H[H.length - 1].valTotal, apports,
+    tri: calculTRI(flux), twr: calculTWR(pts),
+    plusValue: H[H.length - 1].total,
+  };
+}
+
+/* ================= RENDU : PERFORMANCE RÉELLE & PROJECTION ================= */
+const pct = (x, d = 1) => (x == null || !isFinite(x)) ? '—'
+  : (x >= 0 ? '+' : '') + (x * 100).toLocaleString('fr-FR', {minimumFractionDigits: d, maximumFractionDigits: d}) + ' %';
+function cartePerformanceReelle(){
+  const p = performanceReelle();
+  if (p.points < 2){
+    return `<div class="carte"><div class="tete"><h3>📐 Performance réelle</h3>${infoBtn('perfreelle')}</div>
+      <div class="corps"><p class="note">Il faut au moins deux mois enregistrés dans l'historique pour calculer un rendement.
+      ${p.points === 1 ? 'Un mois est enregistré : reviens le mois prochain après avoir appuyé sur « Enregistrer ».'
+                       : 'Appuie sur « Enregistrer » ci-dessus à la fin de chaque mois.'}</p></div></div>`;
+  }
+  return `<div class="carte">
+    <div class="tete"><h3>📐 Performance réelle</h3>${infoBtn('perfreelle')}<div class="tot">${p.debut} → ${p.fin}</div></div>
+    <div class="corps">
+      <div class="kpis" style="margin-bottom:8px">
+        <div class="kpi"><span class="eti">📊 TRI (ton rendement)</span><div class="val ${cls(p.tri)}">${pct(p.tri)} / an</div></div>
+        <div class="kpi"><span class="eti">🌍 TWR (vs marché)</span><div class="val ${cls(p.twr)}">${pct(p.twr)} / an</div></div>
+        <div class="kpi"><span class="eti">💶 Valeur</span><div class="val">${fmt(p.valeur)}</div></div>
+        <div class="kpi"><span class="eti">📈 Plus-value latente</span><div class="val ${cls(p.plusValue)}">${fmtS(p.plusValue)}</div></div>
+      </div>
+      <p class="note">Sur ${p.points} mois enregistrés, dont ${fmt(p.apports)} de versements.
+      Le <b>TRI</b> tient compte des dates de tes versements — c'est ce que ton argent t'a réellement rapporté.
+      Le <b>TWR</b> les neutralise : c'est lui qu'on compare à un indice.
+      ${p.points < 6 ? ' ⚠️ Sur si peu de mois, ces taux annualisés sont très instables.' : ''}</p>
+    </div></div>`;
+}
+function projectionSVG(series, mc, annees){
+  const L = 720, H = 300, ml = 58, mr = 14, mt = 12, mb = 26;
+  const toutes = [...series.pess, ...series.opti, ...mc.map(x => x.p90), ...mc.map(x => x.p10)];
+  const max = Math.max(...toutes, 1), min = 0;
+  const X = an => ml + (L - ml - mr) * (an / annees);
+  const Y = v => H - mb - (H - mt - mb) * ((v - min) / (max - min || 1));
+  let out = '';
+  for (let g = 0; g <= 4; g++){
+    const v = min + (max - min) * g / 4, y = Y(v);
+    out += `<line x1="${ml}" y1="${y}" x2="${L - mr}" y2="${y}" stroke="#E4E1D8"/>
+      <text x="${ml - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#5A6072">${Math.round(v / 1000)} k€</text>`;
+  }
+  // faisceau P10–P90
+  const hautP = mc.map(x => `${X(x.annee)},${Y(x.p90)}`).join(' ');
+  const basP = [...mc].reverse().map(x => `${X(x.annee)},${Y(x.p10)}`).join(' ');
+  out += `<polygon points="${X(0)},${Y(series.pess[0])} ${hautP} ${basP}" fill="#B08D3E" opacity="0.16"/>`;
+  const ligne = (pts, coul, larg, tirets) =>
+    `<polyline points="${pts}" fill="none" stroke="${coul}" stroke-width="${larg}" stroke-linejoin="round"
+      ${tirets ? `stroke-dasharray="${tirets}"` : ''}/>`;
+  const parAn = serie => serie.filter((_, i) => i % 12 === 0).map((v, an) => `${X(an)},${Y(v)}`).join(' ');
+  out += ligne(parAn(series.opti), '#2E7D5B', 1.6, '5 4');
+  out += ligne(parAn(series.pess), '#C0392B', 1.6, '5 4');
+  out += ligne([`${X(0)},${Y(series.neutre[0])}`, ...mc.map(x => `${X(x.annee)},${Y(x.p50)}`)].join(' '), '#B08D3E', 1.4, '2 3');
+  out += ligne(parAn(series.neutre), '#1E2430', 2.6);
+  for (let an = 0; an <= annees; an += Math.max(1, Math.round(annees / 5)))
+    out += `<text x="${X(an)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#5A6072">${an ? an + ' an' + (an > 1 ? 's' : '') : 'auj.'}</text>`;
+  return `<svg viewBox="0 0 ${L} ${H}" role="img" aria-label="Projection du patrimoine">${out}</svg>`;
+}
+function carteProjection(){
+  const tp = tauxPortefeuille();
+  if (!tp) return `<div class="carte"><div class="tete"><h3>🔮 Projection du patrimoine</h3>${infoBtn('projection')}</div>
+    <div class="corps"><p class="note">Renseigne les quantités et les prix de tes positions pour obtenir une projection.</p></div></div>`;
+  const perf = performanceReelle();
+  const nMois = perf.points >= 2 ? perf.points - 1 : 0;
+  const mel = melangeAvecHistorique(tp.neutre, perf.twr, nMois);
+  const annees = etat.config.horizonProjection || 10;
+  const mois = annees * 12;
+  const V0 = tp.total, apports = apportsMensuelsMoyens(3);
+  const series = {
+    pess: projeter(V0, apports, tp.pess, mois),
+    neutre: projeter(V0, apports, mel.taux, mois),
+    opti: projeter(V0, apports, tp.opti, mois),
+  };
+  const mc = monteCarlo(V0, apports, mel.taux, tp.vol, mois);
+  const jalons = [1, 3, 5, 10, 15, 20].filter(a => a <= annees);
+  const lignes = jalons.map(an => {
+    const i = an * 12, m = mc.find(x => x.annee === an);
+    const verse = V0 + apports * i;
+    return `<tr><td><b>${an} an${an > 1 ? 's' : ''}</b></td>
+      <td>${fmt(verse)}</td>
+      <td class="neg">${fmt(series.pess[i])}</td>
+      <td><b>${fmt(series.neutre[i])}</b></td>
+      <td class="pos">${fmt(series.opti[i])}</td>
+      <td style="color:var(--laiton)">${m ? fmt(m.p10) + ' – ' + fmt(m.p90) : '—'}</td></tr>`;
+  }).join('');
+  const alloc = Object.entries(tp.parCat).sort((a, b) => b[1] - a[1])
+    .map(([c, v]) => `<span class="pastille ${PASTILLES[c] || 'p-etfs'}">${c} ${(v / tp.total * 100).toFixed(0)} %</span>`).join(' ');
+  return `<div class="carte">
+    <div class="tete"><h3>🔮 Projection du patrimoine</h3>${infoBtn('projection')}<div class="tot">${fmt(V0)} aujourd'hui</div></div>
+    <div class="corps">
+      <div class="barre-tri">
+        <label>Horizon</label>
+        ${[5, 10, 20, 30].map(a => `<button class="btn ${a === annees ? 'or' : 'discret'}" data-horizon="${a}"
+          style="padding:6px 12px;font-size:12px">${a} ans</button>`).join('')}
+      </div>
+      ${projectionSVG(series, mc, annees)}
+      <div class="legende">
+        <span style="--c:#1E2430">Scénario neutre</span><span style="--c:#2E7D5B">Optimiste</span>
+        <span style="--c:#C0392B">Pessimiste</span><span style="--c:#B08D3E">Zone probable (8 cas sur 10)</span>
+      </div>
+      <div style="overflow-x:auto;margin-top:8px">
+        <table><thead><tr><th>Horizon</th><th>Versé</th><th>Pessimiste</th><th>Neutre</th><th>Optimiste</th><th>Zone probable</th></tr></thead>
+        <tbody>${lignes}</tbody></table>
+      </div>
+      <p class="note" style="margin-top:8px">Allocation retenue : ${alloc}<br>
+      Taux annuels correspondants : <b class="neg">${pct(tp.pess)}</b> · <b>${pct(mel.taux)}</b> · <b class="pos">${pct(tp.opti)}</b>,
+      avec ${fmt(apports)} de versements mensuels (moyenne des 3 derniers mois).<br>
+      ${nMois >= 1 && mel.poids > 0
+        ? `Ton rendement observé (${pct(mel.borne)}) pèse <b>${(mel.poids * 100).toFixed(0)} %</b> dans le scénario neutre, contre ${(100 - mel.poids * 100).toFixed(0)} % pour l'hypothèse théorique — sa part grandira avec l'historique.`
+        : `Le scénario neutre repose entièrement sur les hypothèses théoriques : deux mois enregistrés suffiront à commencer à tenir compte de ton vécu.`}<br>
+      ⚠️ Ces taux sont des conventions servant à comparer des ordres de grandeur, pas des prévisions — aucun marché ne progresse en ligne droite, et je ne suis pas conseiller financier.</p>
+    </div></div>`;
+}
+
 
 /* ================= RENDU : COMPOSANTS ================= */
 let moisActif = null;
@@ -1517,15 +1834,23 @@ function rendreInvest(){
           <button class="btn or" id="btn-enregistrer-hist" style="flex:1;justify-content:center">✅ Enregistrer</button>
         </div>
       </div></div>`;
+  document.getElementById('inv-blocs').insertAdjacentHTML('beforeend', cartePerformanceReelle() + carteProjection());
   rendreGraph(); rendreHistTable();
   document.getElementById('btn-enregistrer-hist').onclick = () => {
     const p = document.getElementById('hist-periode').value.trim();
     if (!/^\d{2}\.\d{4}$/.test(p)) return toast('Format attendu : MM.AAAA');
     const w = calculerInvest();
+    const cleP = cleDepuisPeriode(p), ap = apportsDuMois(cleP);
     const rec = {periode: p, tr: +w.pTR.perfE.toFixed(2), trPct: +(w.pTR.perfP/100).toFixed(4),
                  pea: +w.pPEA.perfE.toFixed(2), peaPct: +(w.pPEA.perfP/100).toFixed(4),
                  per: +w.pPER.perfE.toFixed(2), perPct: +(w.pPER.perfP/100).toFixed(4),
-                 total: +w.perfTotale.toFixed(2)};
+                 total: +w.perfTotale.toFixed(2),
+                 // socle d'analyse : valeur du portefeuille et apports du mois
+                 valTR: +(w.totTR + w.pTR.perfE).toFixed(2), valPEA: +(w.totPEA + w.pPEA.perfE).toFixed(2),
+                 valPER: +(w.totPER + w.pPER.perfE).toFixed(2),
+                 valTotal: +(w.total + w.perfTotale).toFixed(2),
+                 apTR: +ap.tr.toFixed(2), apPEA: +ap.pea.toFixed(2), apPER: +ap.per.toFixed(2),
+                 apTotal: +ap.total.toFixed(2)};
     const ix = etat.historique.findIndex(h => h.periode === p);
     if (ix >= 0) etat.historique[ix] = rec; else etat.historique.push(rec);
     etat.historique.sort((a, b) => a.periode.split('.').reverse().join('') < b.periode.split('.').reverse().join('') ? -1 : 1);
@@ -1677,6 +2002,8 @@ document.querySelector('main').addEventListener('change', e => {
     sauver(); rafraichirPage();
   } else if (el.dataset.tri){               // tri d'un portefeuille
     etat.config.triPositions = etat.config.triPositions || {};
+  if (typeof enrichirHistorique === 'function') enrichirHistorique();
+  if (typeof enrichirHistorique === 'function' && etat.historique.length) enrichirHistorique();
     etat.config.triPositions[el.dataset.tri] = el.value;
     sauver(); rendreInvest();
   } else if (el.dataset.pch){               // positions invest
@@ -1740,6 +2067,9 @@ document.querySelector('main').addEventListener('click', e => {
     const crees = etalerPaiement(moisActif, cat, label, total, n);
     sauver(); rendreMois();
     toast(`${label} étalé sur ${n} mois${crees ? ` — ${crees} mois créé${crees > 1 ? 's' : ''}` : ''} ✅`);
+  } else if (el.dataset.horizon){
+    etat.config.horizonProjection = +el.dataset.horizon;
+    sauver(); rendreInvest();
   } else if (el.id === 'btn-cours'){
     mettreAJourCours();
   } else if (el.dataset.paddch){

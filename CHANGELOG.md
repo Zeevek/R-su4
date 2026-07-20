@@ -9,6 +9,12 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v5.0.0 — 19/07/2026
+- **Socle d'analyse** : le bouton « Enregistrer » mémorise désormais, en plus de la performance, la **valeur du portefeuille** et les **apports du mois** par compte — tout est déduit du budget (plans mensuels, achats directs) et des positions, sans une seule saisie de plus. Les périodes déjà enregistrées sont complétées rétroactivement au premier lancement.
+- **Performance réelle (TRI / TWR)** : le TRI donne le taux annuel réellement obtenu compte tenu du calendrier des versements ; le TWR neutralise cet effet et se compare à un indice. Un écart entre les deux indique si les versements sont tombés à des moments favorables.
+- **Projection du patrimoine** : trois scénarios (pessimiste / neutre / optimiste) bâtis sur l'allocation réelle par catégorie et des taux conventionnels par classe d'actifs, complétés d'un **faisceau P10/P50/P90** par simulation (600 trajectoires, graine fixe pour un affichage stable). À mesure que l'historique s'allonge, la performance observée remplace progressivement la théorie (poids n/(n+36), borné à ±30 % pour éviter d'extrapoler un bon mois).
+- **Corrections** : trois implémentations concurrentes du socle s'étaient empilées au fil des versions — une seule subsiste. Les achats directs étaient comptés deux fois dans le capital investi et absents des apports, ce qui les faisait passer pour une hausse du marché dans le calcul de performance.
+
 ## v4.11.0 — 19/07/2026
 - **Résolution des symboles renforcée** : un code crypto court est complété automatiquement (SOL → SOL-EUR, puis -USD), un ticker déjà complet est testé tel quel, et un ISIN que la recherche Yahoo ne connaît pas est retenté via le point d'entrée « lookup ».
 - **Mode « prix manuel »** : inscrire `manuel` (ou `-`) dans la colonne 🔗 exclut la position de la mise à jour automatique. Elle s'affiche en gris avec un 🔒 et n'est plus comptée parmi les lignes à revoir — pensé pour le private equity et les fonds evergreen non cotés.
