@@ -107,6 +107,16 @@ td input:focus{outline:none;background:#FBF7EC;border-radius:4px}
 tr.total td{font-weight:700;border-top:2px solid var(--encre);border-bottom:none;background:#FBFAF6}
 
 .pastille{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;letter-spacing:.04em}
+/* Fraîcheur des cours : la colonne Prix change de teinte */
+td.px-ancien{background:#FDF3E3;box-shadow:inset 2px 0 0 var(--laiton)}
+td.px-ancien input{color:#8A6D1F;font-weight:700}
+td.px-manuel{background:#EFF6F2}
+td.px-manuel input{color:var(--vert)}
+.legende-prix{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+.legende-prix .lp{font-size:10.5px;padding:3px 9px;border-radius:99px;font-weight:700;letter-spacing:.02em}
+.legende-prix .px-ancien{background:#FDF3E3;color:#8A6D1F}
+.legende-prix .px-manuel{background:#EFF6F2;color:var(--vert)}
+.legende-prix .px-auto{background:#F1F1EC;color:var(--encre2)}
 .barre-tri{display:flex;align-items:center;gap:7px;padding:2px 0 8px;font-size:11px;color:var(--encre2)}
 .barre-tri label{letter-spacing:.08em;text-transform:uppercase;font-weight:600}
 .barre-tri select{border:1px solid var(--trait);border-radius:8px;padding:6px 8px;background:var(--carte);font-size:12px;font-weight:600;flex:1;min-width:0}
@@ -435,6 +445,7 @@ const INFOS = {
   livrets: ['Cumul des livrets', "Chaque mois, les poches destinées au Livret A et au LDDS s'additionnent automatiquement ici, du premier mois jusqu'au mois calendaire en cours. Les mouvements manuels s'ajoutent en dessous."],
   poches: ['Poches d’épargne (suivi)', "Cumul des poches de répartition qui ne vont ni aux livrets ni au disponible d'investissement — par exemple un coussin de sécurité ou un projet. Purement indicatif."],
   av: ['Argent disponible', "Alimenté chaque mois par les poches « disponible investissement », diminué des achats directs (TR / PEA) et des sorties. C'est ta réserve pour investir hors plans programmés."],
+  fraicheur: ['Code couleur des prix', "Colonne Prix : fond neutre = cours rafraîchi lors de la dernière mise à jour automatique ; fond vert = prix que tu as saisi à la main depuis ; fond ambré avec barre dorée = ni l'un ni l'autre, c'est une ligne à mettre à jour manuellement (pas d'ISIN renseigné, ou récupération en échec)."],
   invest: ['Positions', "Nb × prix actuel − Nb × PRU = performance latente. « Enregistrer » fige la performance du moment dans l'historique pour suivre l'évolution mois par mois."],
   cours: ['Mise à jour des cours', "Toutes les devises sont gérées : le taux de change est récupéré en direct au moment de l'appui (une requête par devise) et les taux appliqués s'affichent sous le bouton. Saisis une fois l'ISIN (ex. FR0000120271) ou le ticker Yahoo (ex. TTE.PA, 8001.T, BTC-EUR) de chaque position, puis appuie sur le bouton — à la demande, par exemple une fois par mois. Toutes les devises sont converties en euros (USD, JPY, CHF, HKD, GBP, pence…) avec les taux de change récupérés en direct au moment de l'appui. Les produits non cotés (private equity, fonds fermés) n'ont pas de cotation publique : mets leur prix à jour à la main. Internet n'est requis qu'à ce moment-là ; seuls les symboles sont interrogés, rien de ton portefeuille ne sort de l'appareil."],
   rapport: ['Compte rendu PDF', "Génère une page A4 par mois et ouvre la boîte d'impression : choisis « Enregistrer en PDF ». Sur iPhone : Partager → Imprimer, puis pince l'aperçu pour l'enregistrer dans Fichiers."],
@@ -454,6 +465,8 @@ document.addEventListener('click', e => {
 });
 const APP_VERSION = '4.6.2';
 const CHANGELOG = [
+  {v: '4.10.0', d: '19/07/2026', pts: [
+    "Repérage des cours à rafraîchir : dans les portefeuilles, la colonne Prix se teinte en ambre (barre dorée) quand la valeur n'a pas été rafraîchie lors de la dernière mise à jour automatique, en vert quand tu l'as saisie toi-même depuis, et reste neutre quand elle est à jour. Un compteur sous le bouton résume les trois états."]},
   {v: '4.9.0', d: '19/07/2026', pts: [
     "Les changements de paramètres (€/jour, enveloppe fixe, poches de répartition) prennent effet à partir du mois suivant : le mois en cours conserve ses valeurs, ce qui permet d'anticiper sans fausser le mois que l'on est en train de vivre.",
     "Quantités de positions gérées jusqu'à 6 décimales (fractions d'actions et de cryptos), à la saisie, à l'affichage et dans le relevé PDF.",
@@ -975,6 +988,18 @@ function convertirEnEuro(prix, devise, taux){
   if (!t || !isFinite(t) || t <= 0) return null;
   return {montant: brut * t, converti: true};
 }
+/* Fraîcheur du prix d'une position, par rapport à la dernière mise à jour globale :
+   'auto'   → rafraîchi automatiquement lors de la dernière mise à jour
+   'manuel' → saisi à la main depuis cette mise à jour
+   'ancien' → ni l'un ni l'autre : à revoir manuellement
+   'inconnu'→ aucune mise à jour automatique n'a encore été lancée */
+function statutPrix(p, derniereMaj){
+  const run = derniereMaj || 0;
+  if (!run) return 'inconnu';
+  if (p.majAuto === run) return 'auto';
+  if ((p.majManuel || 0) > run) return 'manuel';
+  return 'ancien';
+}
 function prixDepuisChart(d){
   const meta = d && d.chart && d.chart.result && d.chart.result[0] && d.chart.result[0].meta;
   if (!meta || meta.regularMarketPrice == null) return null;
@@ -1028,6 +1053,7 @@ async function mettreAJourCours(){
   const avec = positions.filter(p => (p.symbole || '').trim());
   if (!avec.length) return toast('Renseigne d\u2019abord un ISIN ou un ticker dans la colonne 🔗');
   btn.disabled = true;
+  const run = Date.now();
   let maj = 0, convertis = 0;
   const echecs = [], taux = {}, devisesRatees = new Set();
   const nomDe = p => (p.symbole || '').trim() || p.label || '?';
@@ -1051,6 +1077,7 @@ async function mettreAJourCours(){
         const conv = convertirEnEuro(c.prix, c.devise, taux);
         if (!conv) { echecs.push(nomDe(p) + ' : taux ' + code + ' indisponible'); continue; }
         p.prix = +conv.montant.toFixed(4);
+        p.majAuto = run;                     // trace de la dernière mise à jour réussie
         maj++; if (conv.converti) convertis++;
         await new Promise(res => setTimeout(res, 120));   // on reste courtois avec l'API
       }catch(e){ echecs.push(nomDe(p) + ' : ' + (e.message || 'erreur')); }
@@ -1059,8 +1086,8 @@ async function mettreAJourCours(){
     btn.disabled = false;
     btn.textContent = '🔄 Mettre à jour les cours';
   }
-  etat.config.tauxChange = {date: Date.now(), taux};
-  etat.config.derniereMajCours = Date.now();
+  etat.config.tauxChange = {date: run, taux};
+  etat.config.derniereMajCours = run;
   sauver(); rendreInvest();
   const sans = positions.length - avec.length;
   const devises = Object.keys(taux);
@@ -1335,6 +1362,12 @@ function categorieNormale(t){
   if (bas.startsWith('action')) return 'Actions';
   return s || 'Actions';
 }
+const LEGENDE_PRIX = {
+  auto: 'Cours rafraîchi automatiquement lors de la dernière mise à jour',
+  manuel: 'Prix saisi à la main depuis la dernière mise à jour',
+  ancien: 'Non rafraîchi automatiquement — à mettre à jour à la main',
+  inconnu: 'Aucune mise à jour automatique lancée pour l\u2019instant',
+};
 const TRIS = [
   ['manuel', '↕ Ordre de saisie'], ['nom', '🔤 Intitulé A→Z'], ['type', '🏷️ Catégorie'],
   ['valeur', '💶 Valeur ↓'], ['perfE', '📈 Perf. € ↓'], ['perfP', '📊 Perf. % ↓'], ['nb', '🔢 Quantité ↓'],
@@ -1366,7 +1399,9 @@ function tablePositions(titre, chemin, calc, totalCompte){
       </td>
       <td><input value="${fmtNb(p.nb)}" data-pch="${chemin}" data-i="${p.idx}" data-f="nb" inputmode="text" style="min-width:82px"></td>
       <td><input value="${p.pru ?? ''}" data-pch="${chemin}" data-i="${p.idx}" data-f="pru" inputmode="text"></td>
-      <td><input value="${p.prix ?? ''}" data-pch="${chemin}" data-i="${p.idx}" data-f="prix" inputmode="text"></td>
+      <td class="px-${statutPrix(p, etat.config.derniereMajCours)}">
+        <input value="${p.prix ?? ''}" data-pch="${chemin}" data-i="${p.idx}" data-f="prix" inputmode="text"
+               title="${LEGENDE_PRIX[statutPrix(p, etat.config.derniereMajCours)]}"></td>
       <td><input value="${echap(p.symbole || '')}" data-pch="${chemin}" data-i="${p.idx}" data-f="symbole" placeholder="ISIN / ticker" style="min-width:96px;text-align:left;color:var(--encre2)"></td>
       <td class="${cls(p.perfP)}">${p.perfP.toFixed(1)} %</td>
       <td class="${cls(p.perfE)}">${fmtS(p.perfE)}</td>
@@ -1400,9 +1435,21 @@ function rendreInvest(){
     ['📈 PEA Bourse Direct', fmt(v.totPEA)], ['🛡️ PERin BoursoBank', fmt(v.totPER)],
   ].map(([e, x]) => `<div class="kpi"><span class="eti">${e}</span><div class="val">${x}</div></div>`).join('');
   document.getElementById('inv-blocs').innerHTML =
-    `<div class="carte"><div class="tete"><h3>🔄 Cours de bourse</h3>${infoBtn('cours')}</div>
+    `<div class="carte"><div class="tete"><h3>🔄 Cours de bourse</h3>${infoBtn('cours')}${infoBtn('fraicheur')}</div>
       <div class="corps">
         <button class="btn or ligne2" id="btn-cours" style="margin-top:0">🔄 Mettre à jour les cours</button>
+        ${(() => {
+          const tous = ['positionsTR', 'positionsPEA', 'positionsPER']
+            .flatMap(c => etat.investissements[c] || []);
+          const aRevoir = tous.filter(p => statutPrix(p, etat.config.derniereMajCours) === 'ancien').length;
+          const manuels = tous.filter(p => statutPrix(p, etat.config.derniereMajCours) === 'manuel').length;
+          if (!etat.config.derniereMajCours) return '';
+          return `<div class="legende-prix">
+            <span class="lp px-ancien">${aRevoir} à revoir à la main</span>
+            ${manuels ? `<span class="lp px-manuel">${manuels} saisi${manuels > 1 ? 's' : ''} à la main</span>` : ''}
+            <span class="lp px-auto">${tous.length - aRevoir - manuels} à jour</span>
+          </div>`;
+        })()}
         <p class="note" id="cours-statut">Renseigne l'ISIN ou le ticker dans la colonne 🔗 de chaque position, puis appuie ici (connexion internet requise, à la demande uniquement). Dernière mise à jour : ${etat.config.derniereMajCours ? new Date(etat.config.derniereMajCours).toLocaleDateString('fr-FR') : 'jamais'}.</p>
       </div></div>` +
     tablePositions('🏦 Trade Republic — positions', 'positionsTR', v.pTR, v.totTR).replace('</h3>', '</h3>' + infoBtn('invest')) +
@@ -1587,6 +1634,7 @@ document.querySelector('main').addEventListener('change', e => {
     if (isNaN(v)) { toast('Valeur invalide'); return; }
     // quantités au millionième (fractions d'actions), prix au dix-millième
     p[el.dataset.f] = +v.toFixed(el.dataset.f === 'nb' ? 6 : 4);
+    if (el.dataset.f === 'prix') p.majManuel = Date.now();   // saisie manuelle : prix considéré à jour
     sauver(); rendreInvest();
   } else if (el.dataset.tch){               // transactions achat-vente
     const t = etat.achatVente[el.dataset.tch][+el.dataset.i];
