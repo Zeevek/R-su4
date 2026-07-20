@@ -117,6 +117,9 @@ td.px-manuel input{color:var(--vert)}
 .legende-prix .px-ancien{background:#FDF3E3;color:#8A6D1F}
 .legende-prix .px-manuel{background:#EFF6F2;color:var(--vert)}
 .legende-prix .px-auto{background:#F1F1EC;color:var(--encre2)}
+.legende-prix .px-fige{background:#ECEEF4;color:#4A5570}
+td.px-fige{background:#F4F5F8}
+td.px-fige input{color:#4A5570;font-style:italic}
 .barre-tri{display:flex;align-items:center;gap:7px;padding:2px 0 8px;font-size:11px;color:var(--encre2)}
 .barre-tri label{letter-spacing:.08em;text-transform:uppercase;font-weight:600}
 .barre-tri select{border:1px solid var(--trait);border-radius:8px;padding:6px 8px;background:var(--carte);font-size:12px;font-weight:600;flex:1;min-width:0}
@@ -262,7 +265,7 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
 </head>
 <body>
 <header>
-  <div class="titre">📒 Budget Personnel<small id="ver">v4.6.2 · Hors-ligne</small></div>
+  <div class="titre">📒 Budget Personnel<small id="ver">·</small></div>
   <div class="statut" id="statut-sync">—</div>
 </header>
 
@@ -445,9 +448,9 @@ const INFOS = {
   livrets: ['Cumul des livrets', "Chaque mois, les poches destinées au Livret A et au LDDS s'additionnent automatiquement ici, du premier mois jusqu'au mois calendaire en cours. Les mouvements manuels s'ajoutent en dessous."],
   poches: ['Poches d’épargne (suivi)', "Cumul des poches de répartition qui ne vont ni aux livrets ni au disponible d'investissement — par exemple un coussin de sécurité ou un projet. Purement indicatif."],
   av: ['Argent disponible', "Alimenté chaque mois par les poches « disponible investissement », diminué des achats directs (TR / PEA) et des sorties. C'est ta réserve pour investir hors plans programmés."],
-  fraicheur: ['Code couleur des prix', "Colonne Prix : fond neutre = cours rafraîchi lors de la dernière mise à jour automatique ; fond vert = prix que tu as saisi à la main depuis ; fond ambré avec barre dorée = ni l'un ni l'autre, c'est une ligne à mettre à jour manuellement (pas d'ISIN renseigné, ou récupération en échec)."],
+  fraicheur: ['Code couleur des prix', "Pour un produit non coté (private equity, fonds evergreen…), inscris « manuel » dans la colonne 🔗 : la ligne est alors exclue de la mise à jour et affichée en gris, sans être signalée comme oubliée. Colonne Prix : fond neutre = cours rafraîchi lors de la dernière mise à jour automatique ; fond vert = prix que tu as saisi à la main depuis ; fond ambré avec barre dorée = ni l'un ni l'autre, c'est une ligne à mettre à jour manuellement (pas d'ISIN renseigné, ou récupération en échec)."],
   invest: ['Positions', "Nb × prix actuel − Nb × PRU = performance latente. « Enregistrer » fige la performance du moment dans l'historique pour suivre l'évolution mois par mois."],
-  cours: ['Mise à jour des cours', "Toutes les devises sont gérées : le taux de change est récupéré en direct au moment de l'appui (une requête par devise) et les taux appliqués s'affichent sous le bouton. Saisis une fois l'ISIN (ex. FR0000120271) ou le ticker Yahoo (ex. TTE.PA, 8001.T, BTC-EUR) de chaque position, puis appuie sur le bouton — à la demande, par exemple une fois par mois. Toutes les devises sont converties en euros (USD, JPY, CHF, HKD, GBP, pence…) avec les taux de change récupérés en direct au moment de l'appui. Les produits non cotés (private equity, fonds fermés) n'ont pas de cotation publique : mets leur prix à jour à la main. Internet n'est requis qu'à ce moment-là ; seuls les symboles sont interrogés, rien de ton portefeuille ne sort de l'appareil."],
+  cours: ['Mise à jour des cours', "Si un ISIN n'est pas trouvé, saisis le ticker de la place de cotation (ex. TSM pour l'ADR TSMC, SGLN.L pour l'or iShares en pence, SOL-EUR pour Solana). Pour un fonds non coté, inscris « manuel ». Toutes les devises sont gérées : le taux de change est récupéré en direct au moment de l'appui (une requête par devise) et les taux appliqués s'affichent sous le bouton. Saisis une fois l'ISIN (ex. FR0000120271) ou le ticker Yahoo (ex. TTE.PA, 8001.T, BTC-EUR) de chaque position, puis appuie sur le bouton — à la demande, par exemple une fois par mois. Toutes les devises sont converties en euros (USD, JPY, CHF, HKD, GBP, pence…) avec les taux de change récupérés en direct au moment de l'appui. Les produits non cotés (private equity, fonds fermés) n'ont pas de cotation publique : mets leur prix à jour à la main. Internet n'est requis qu'à ce moment-là ; seuls les symboles sont interrogés, rien de ton portefeuille ne sort de l'appareil."],
   rapport: ['Compte rendu PDF', "Génère une page A4 par mois et ouvre la boîte d'impression : choisis « Enregistrer en PDF ». Sur iPhone : Partager → Imprimer, puis pince l'aperçu pour l'enregistrer dans Fichiers."],
 };
 const infoBtn = cle => `<button class="info-btn" data-infocle="${cle}" aria-label="Informations">i</button>`;
@@ -463,8 +466,13 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '4.6.2';
+const APP_VERSION = '4.11.0';
 const CHANGELOG = [
+  {v: '4.11.0', d: '19/07/2026', pts: [
+    "Résolution des symboles renforcée : les codes crypto courts sont complétés automatiquement (SOL → SOL-EUR), les tickers déjà complets sont testés directement, et les ISIN introuvables par la recherche passent par un second point d'entrée Yahoo.",
+    "Nouveau mode « prix manuel » : inscris « manuel » dans la colonne 🔗 pour un produit non coté (private equity, fonds evergreen) — la ligne est exclue de la mise à jour, affichée en gris 🔒 et n'est plus comptée comme oubliée.",
+    "Messages d'échec plus utiles : ils suggèrent le ticker de place ou la paire crypto à essayer.",
+    "Correction du numéro de version affiché dans l'en-tête (il était resté bloqué sur 4.6.2)."]},
   {v: '4.10.0', d: '19/07/2026', pts: [
     "Repérage des cours à rafraîchir : dans les portefeuilles, la colonne Prix se teinte en ambre (barre dorée) quand la valeur n'a pas été rafraîchie lors de la dernière mise à jour automatique, en vert quand tu l'as saisie toi-même depuis, et reste neutre quand elle est à jour. Un compteur sous le bouton résume les trois états."]},
   {v: '4.9.0', d: '19/07/2026', pts: [
@@ -994,6 +1002,7 @@ function convertirEnEuro(prix, devise, taux){
    'ancien' → ni l'un ni l'autre : à revoir manuellement
    'inconnu'→ aucune mise à jour automatique n'a encore été lancée */
 function statutPrix(p, derniereMaj){
+  if (estManuel(p.symbole)) return 'fige';   // exclu volontairement de la mise à jour
   const run = derniereMaj || 0;
   if (!run) return 'inconnu';
   if (p.majAuto === run) return 'auto';
@@ -1024,11 +1033,44 @@ async function recupJSON(url){
   }
   throw new Error('réseau inaccessible');
 }
+/* Codes marqués « prix manuel » : la position est volontairement exclue de la
+   mise à jour automatique (fonds non cotés, private equity, immobilier…). */
+const MARQUEURS_MANUELS = ['MANUEL', 'MANUELLE', 'MANUAL', '-', '—', 'N/A', 'NA'];
+const estManuel = s => MARQUEURS_MANUELS.includes(String(s || '').trim().toUpperCase());
+/* Cryptos : Yahoo ne cote pas « SOL » seul, mais « SOL-EUR » ou « SOL-USD ». */
+function estCodeCrypto(s){
+  return /^[A-Z]{2,6}$/.test(String(s || '').trim().toUpperCase()) && !estISIN(s);
+}
 async function resoudreSymbole(saisie){
-  const s = String(saisie || '').trim();
-  if (!estISIN(s)) return s.toUpperCase();
-  const d = await recupJSON('https://query1.finance.yahoo.com/v1/finance/search?q=' + encodeURIComponent(s.toUpperCase()));
-  return choisirSymbole(d.quotes);
+  const s = String(saisie || '').trim().toUpperCase();
+  if (!s || estManuel(s)) return null;
+  if (!estISIN(s)){
+    // ticker déjà complet (TTE.PA, BTC-EUR…) → tel quel
+    if (/[.\-=]/.test(s)) return s;
+    // code court : on teste la cotation directe, puis les paires crypto
+    try{ if (await coursSymbole(s)) return s; }catch(e){ /* on continue */ }
+    if (estCodeCrypto(s)){
+      for (const paire of [s + '-EUR', s + '-USD']){
+        try{ if (await coursSymbole(paire)) return paire; }catch(e){ /* suivant */ }
+      }
+    }
+    return s;   // laissé tel quel : l'échec sera signalé avec son libellé
+  }
+  // ISIN : recherche Yahoo, puis point d'entrée « lookup » en second recours
+  try{
+    const d = await recupJSON('https://query1.finance.yahoo.com/v1/finance/search?q='
+      + encodeURIComponent(s) + '&quotesCount=10&newsCount=0&enableFuzzyQuery=true');
+    const sym = choisirSymbole(d.quotes);
+    if (sym) return sym;
+  }catch(e){ /* second recours ci-dessous */ }
+  try{
+    const d2 = await recupJSON('https://query1.finance.yahoo.com/v1/finance/lookup?query='
+      + encodeURIComponent(s) + '&type=equity,etf,mutualfund&count=10');
+    const docs = (d2 && d2.finance && d2.finance.result && d2.finance.result[0] && d2.finance.result[0].documents) || [];
+    const sym2 = choisirSymbole(docs.map(x => ({symbol: x.symbol})));
+    if (sym2) return sym2;
+  }catch(e){ /* abandon */ }
+  return null;
 }
 async function tauxVersEuro(code){
   // 1 unité de <code> vaut combien d'euros ? (ex. JPYEUR=X)
@@ -1050,7 +1092,8 @@ async function mettreAJourCours(){
   for (const compte of ['positionsTR', 'positionsPEA', 'positionsPER'])
     for (const p of etat.investissements[compte])
       positions.push(p);
-  const avec = positions.filter(p => (p.symbole || '').trim());
+  const avec = positions.filter(p => (p.symbole || '').trim() && !estManuel(p.symbole));
+  const figes = positions.filter(p => estManuel(p.symbole)).length;
   if (!avec.length) return toast('Renseigne d\u2019abord un ISIN ou un ticker dans la colonne 🔗');
   btn.disabled = true;
   const run = Date.now();
@@ -1063,10 +1106,16 @@ async function mettreAJourCours(){
       btn.textContent = `⏳ ${i + 1}/${avec.length} — ${nomDe(p).slice(0, 20)}…`;
       try{
         const sym = await resoudreSymbole(p.symbole);
-        if (!sym) { echecs.push(nomDe(p) + ' : symbole introuvable'); continue; }
+        if (!sym) {
+          echecs.push(nomDe(p) + ' : introuvable — essaie le ticker de la place (ex. SGLN.L, TSM) ou inscris « manuel »');
+          continue;
+        }
         if (sym !== p.symbole.trim().toUpperCase()) p.symbole = sym;   // mémorise le symbole résolu
         const c = await coursSymbole(sym);
-        if (!c) { echecs.push(nomDe(p) + ' : pas de cours'); continue; }
+        if (!c) {
+          echecs.push(nomDe(p) + ' : pas de cours' + (estCodeCrypto(p.symbole) ? ` — essaie ${String(p.symbole).toUpperCase()}-EUR` : ''));
+          continue;
+        }
         const {code} = normaliserDevise(c.devise);
         // taux récupéré une seule fois par devise, à la volée
         if (code && code !== 'EUR' && taux[code] == null && !devisesRatees.has(code)){
@@ -1095,6 +1144,7 @@ async function mettreAJourCours(){
   if (convertis) msg += ` (${convertis} converti${convertis > 1 ? 's' : ''} en EUR, taux du jour)`;
   if (echecs.length) msg += ` — ${echecs.length} échec${echecs.length > 1 ? 's' : ''}`;
   if (sans) msg += ` — ${sans} sans ticker`;
+  if (figes) msg += ` — ${figes} en prix manuel`;
   toast(msg);
   const st = document.getElementById('cours-statut');
   if (st && (echecs.length || devises.length)){
@@ -1367,6 +1417,7 @@ const LEGENDE_PRIX = {
   manuel: 'Prix saisi à la main depuis la dernière mise à jour',
   ancien: 'Non rafraîchi automatiquement — à mettre à jour à la main',
   inconnu: 'Aucune mise à jour automatique lancée pour l\u2019instant',
+  fige: 'Prix manuel assumé (non coté) — exclu de la mise à jour automatique',
 };
 const TRIS = [
   ['manuel', '↕ Ordre de saisie'], ['nom', '🔤 Intitulé A→Z'], ['type', '🏷️ Catégorie'],
@@ -1441,13 +1492,16 @@ function rendreInvest(){
         ${(() => {
           const tous = ['positionsTR', 'positionsPEA', 'positionsPER']
             .flatMap(c => etat.investissements[c] || []);
-          const aRevoir = tous.filter(p => statutPrix(p, etat.config.derniereMajCours) === 'ancien').length;
-          const manuels = tous.filter(p => statutPrix(p, etat.config.derniereMajCours) === 'manuel').length;
+          const st = p => statutPrix(p, etat.config.derniereMajCours);
+          const aRevoir = tous.filter(p => st(p) === 'ancien').length;
+          const manuels = tous.filter(p => st(p) === 'manuel').length;
+          const figes = tous.filter(p => st(p) === 'fige').length;
           if (!etat.config.derniereMajCours) return '';
           return `<div class="legende-prix">
-            <span class="lp px-ancien">${aRevoir} à revoir à la main</span>
+            ${aRevoir ? `<span class="lp px-ancien">${aRevoir} à revoir à la main</span>` : ''}
             ${manuels ? `<span class="lp px-manuel">${manuels} saisi${manuels > 1 ? 's' : ''} à la main</span>` : ''}
-            <span class="lp px-auto">${tous.length - aRevoir - manuels} à jour</span>
+            ${figes ? `<span class="lp px-fige">${figes} en prix manuel 🔒</span>` : ''}
+            <span class="lp px-auto">${tous.length - aRevoir - manuels - figes} à jour</span>
           </div>`;
         })()}
         <p class="note" id="cours-statut">Renseigne l'ISIN ou le ticker dans la colonne 🔗 de chaque position, puis appuie ici (connexion internet requise, à la demande uniquement). Dernière mise à jour : ${etat.config.derniereMajCours ? new Date(etat.config.derniereMajCours).toLocaleDateString('fr-FR') : 'jamais'}.</p>

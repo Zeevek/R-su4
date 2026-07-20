@@ -9,6 +9,12 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v4.11.0 — 19/07/2026
+- **Résolution des symboles renforcée** : un code crypto court est complété automatiquement (SOL → SOL-EUR, puis -USD), un ticker déjà complet est testé tel quel, et un ISIN que la recherche Yahoo ne connaît pas est retenté via le point d'entrée « lookup ».
+- **Mode « prix manuel »** : inscrire `manuel` (ou `-`) dans la colonne 🔗 exclut la position de la mise à jour automatique. Elle s'affiche en gris avec un 🔒 et n'est plus comptée parmi les lignes à revoir — pensé pour le private equity et les fonds evergreen non cotés.
+- **Messages d'échec plus utiles** : ils suggèrent désormais quoi essayer (ticker de la place de cotation, paire crypto en euros, ou passage en prix manuel).
+- **Correction du numéro de version** affiché dans l'en-tête, resté bloqué sur 4.6.2 depuis plusieurs mises à jour.
+
 ## v4.10.0 — 19/07/2026
 - **Repérage visuel des cours à mettre à jour à la main** : dans les tableaux de positions, la colonne Prix prend une teinte ambrée avec une barre dorée lorsque la valeur n'a pas été rafraîchie lors de la dernière mise à jour automatique (ISIN absent ou récupération en échec), une teinte verte lorsque tu l'as saisie manuellement depuis cette mise à jour, et reste neutre lorsqu'elle est à jour. Un compteur sous le bouton « Mettre à jour les cours » résume les trois états, et chaque cellule porte une infobulle explicative.
 
