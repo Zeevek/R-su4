@@ -9,6 +9,9 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v4.10.0 — 19/07/2026
+- **Repérage visuel des cours à mettre à jour à la main** : dans les tableaux de positions, la colonne Prix prend une teinte ambrée avec une barre dorée lorsque la valeur n'a pas été rafraîchie lors de la dernière mise à jour automatique (ISIN absent ou récupération en échec), une teinte verte lorsque tu l'as saisie manuellement depuis cette mise à jour, et reste neutre lorsqu'elle est à jour. Un compteur sous le bouton « Mettre à jour les cours » résume les trois états, et chaque cellule porte une infobulle explicative.
+
 ## v4.9.0 — 19/07/2026
 - **Paramètres appliqués au mois suivant** : modifier le montant journalier, l'enveloppe fixe ou les poches de répartition n'affecte plus le mois en cours — il garde les valeurs avec lesquelles il a été engagé. Les nouvelles règles démarrent au mois suivant, ce qui permet de préparer un changement à l'avance.
 - **Quantités à 6 décimales** : les fractions d'actions et de cryptos (2,123849 · 0,011264) sont conservées à la saisie, affichées sans zéros superflus et reprises telles quelles dans le relevé PDF ; la colonne a été élargie en conséquence.
