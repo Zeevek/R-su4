@@ -9,6 +9,12 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v5.3.0 — 22/07/2026
+- **Revue de code** : suppression des fonctions et constantes mortes accumulées au fil des versions (`normaliserCotation`, `finDuMois`, `periodeDepuisCle`, `THEMES_SOMBRES`), et l'enrichissement de l'historique n'est plus exécuté deux fois à chaque démarrage.
+- **Performance** : la simulation de projection (600 trajectoires Monte-Carlo) est désormais mise en cache et invalidée avec les autres calculs — la page Investissements ne la recalculait pas moins de… à chaque frappe dans une position.
+- **Protection des données** : une ligne dont le libellé contient une date (« Dividende TotalEnergie (02/07/2026) ») n'est plus propagée aux mois suivants par le mécanisme des récurrents — un dividende daté est ponctuel par nature. Les lignes normales (« Loyer ») se propagent comme avant.
+- **Validé sur données réelles** : la suite de tests (313) rejoue désormais la sauvegarde du 22/07 et vérifie que le moteur reproduit exactement les chiffres affichés sur le téléphone (reste fin de mois 642,07 €).
+
 ## v5.2.2 — 22/07/2026
 - **Croix ✕ des puces réparée** : la croix est un élément *à l'intérieur* du bouton de puce, or le gestionnaire de clic remontait d'abord au bouton puis cherchait la croix parmi ses ancêtres — jamais trouvée, le tap remplissait donc la saisie au lieu de masquer. Le gestionnaire part maintenant de la cible réelle du clic.
 - **Case « aujourd'hui » lisible en thème sombre** : le fond crème codé en dur rendait les chiffres invisibles la nuit ; en clair les chiffres passent en doré foncé, en sombre la case devient dorée translucide avec chiffres dorés.

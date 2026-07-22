@@ -565,7 +565,6 @@ window.addEventListener('error', e => {
 });
 
 /* ================= THÈME (clair / sombre / forêt / minuit) ================= */
-const THEMES_SOMBRES = ['sombre', 'minuit'];
 function resoudreTheme(choix, systemeSombre){
   if (!choix || choix === 'auto') return systemeSombre ? 'sombre' : 'clair';
   return ['clair', 'sombre', 'foret', 'minuit'].includes(choix) ? choix : 'clair';
@@ -716,8 +715,13 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '5.2.2';
+const APP_VERSION = '5.3.0';
 const CHANGELOG = [
+  {v: '5.3.0', d: '22/07/2026', pts: [
+    "Revue de code : fonctions mortes et constantes orphelines supprimées, double enrichissement de l'historique au démarrage ramené à un seul passage.",
+    "Performance : la simulation de projection (600 trajectoires) est mise en cache — la page Investissements ne la recalcule plus à chaque modification d'une position.",
+    "Protection : les lignes datées (« Dividende X (02/07/2026) ») ne sont plus propagées aux mois suivants — elles sont ponctuelles par nature.",
+    "Validation sur données réelles : le moteur reproduit exactement les chiffres du téléphone (313 tests, dont la sauvegarde du 22/07)."]},
   {v: '5.2.2', d: '22/07/2026', pts: [
     "La croix ✕ des puces de saisie rapide fonctionne : le clic visait le bouton parent au lieu de la croix elle-même, et remplissait la saisie au lieu de masquer la puce.",
     "Thèmes sombres : la case « aujourd'hui » du calendrier d'estimation est à nouveau lisible (fond doré translucide, chiffres dorés)."]},
@@ -842,8 +846,7 @@ function migrer(){
   if (etat.config.enveloppeFixe == null || etat.config.enveloppeFixe === '' || isNaN(Number(etat.config.enveloppeFixe))) etat.config.enveloppeFixe = null;
   etat.config.triPositions = etat.config.triPositions || {};
   etat.config.chipsMasquees = etat.config.chipsMasquees || [];
-  if (typeof enrichirHistorique === 'function') enrichirHistorique();
-  if (typeof enrichirHistorique === 'function' && etat.historique.length) enrichirHistorique();
+  enrichirHistorique();
   for (const p of (etat.config.poches || [])) if (p.mode === 'tiers') p.mode = 'part';
   if (!Array.isArray(etat.config.poches) || !etat.config.poches.length)
     etat.config.poches = structuredClone(POCHES_DEFAUT);
@@ -959,6 +962,8 @@ function propagerRecurrent(cleSource, cat, ancienLabel, ligne){
   if (ligne.label.trim() === '' && ref === '') return 0;
   // Les lignes à compteur (n/N) sont gérées par l'étalement et l'incrément mensuel
   if (/\(\d+\/\d+\)\s*$/.test(ligne.label) || /\(\d+\/\d+\)\s*$/.test(ref)) return 0;
+  // Les lignes datées (« Dividende X (02/07/2026) ») sont ponctuelles par nature
+  if (/\d{2}\/\d{2}\/\d{4}/.test(ligne.label) || /\d{2}\/\d{2}\/\d{4}/.test(ref)) return 0;
   let n = 0;
   for (const k of clesMois()){
     if (k <= cleSource) continue;
@@ -1045,7 +1050,7 @@ function repartirNA(na, override){
   return res;
 }
 let _cacheMois = new Map();
-function invaliderCalculs(){ _cacheMois.clear(); }
+function invaliderCalculs(){ _cacheMois.clear(); if (typeof _cacheMC !== 'undefined') _cacheMC.clear(); }
 function calculerMois(cle){
   if (_cacheMois.has(cle)) return _cacheMois.get(cle);
   const m = etat.months[cle]; if (!m) return null;
@@ -1205,7 +1210,10 @@ function loiNormale(u1, u2){
   return Math.sqrt(-2 * Math.log(u1 || 1e-12)) * Math.cos(2 * Math.PI * u2);
 }
 /* Faisceau de trajectoires : donne une zone probable plutôt qu'un trait illusoire. */
+const _cacheMC = new Map();
 function monteCarlo(V0, apports, tauxAnnuel, vol, mois, tirages = 600, graine = 4242){
+  const cle = [V0, apports, tauxAnnuel, vol, mois, tirages, graine].map(x => Math.round(x * 1e6)).join('|');
+  if (_cacheMC.has(cle)) return _cacheMC.get(cle);
   const alea = rngGraine(graine);
   const sig = vol / Math.sqrt(12);
   const mu = Math.log(1 + Math.max(-0.95, tauxAnnuel)) / 12 - sig * sig / 2;
@@ -1219,11 +1227,14 @@ function monteCarlo(V0, apports, tauxAnnuel, vol, mois, tirages = 600, graine = 
       if (j < jalons.length && i === jalons[j]) paniers[j++].push(v);
     }
   }
-  return jalons.map((m, i) => {
+  const res = jalons.map((m, i) => {
     const s = paniers[i].sort((a, b) => a - b);
     const q = p => s[Math.min(s.length - 1, Math.max(0, Math.floor(p * s.length)))];
     return {mois: m, annee: m / 12, p10: q(0.10), p50: q(0.50), p90: q(0.90)};
   });
+  if (_cacheMC.size > 24) _cacheMC.clear();   // borne mémoire
+  _cacheMC.set(cle, res);
+  return res;
 }
 
 /* ================= FLUX DU MOIS (diagramme de Sankey maison) ================= */
@@ -1379,11 +1390,6 @@ function prixDepuisChart(d){
   // casse préservée : 'GBp' (pence) et 'GBP' (livres) ne diffèrent que par elle
   return {prix: meta.regularMarketPrice, devise: String(meta.currency || '')};
 }
-function normaliserCotation(prix, devise){
-  // pence britanniques → livres
-  if (devise === 'GBp' || devise === 'GBX') return {prix: prix / 100, devise: 'GBP'};
-  return {prix, devise: devise.toUpperCase()};
-}
 async function recupJSON(url){
   const essais = [url,
     'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
@@ -1524,11 +1530,6 @@ async function mettreAJourCours(){
    les plans mensuels du budget donnent les apports, les positions donnent
    la valeur. Aucune saisie supplémentaire n'est demandée. */
 const cleDepuisPeriode = p => String(p).slice(3) + '-' + String(p).slice(0, 2);   // '07.2026' → '2026-07'
-const periodeDepuisCle = c => c.slice(5) + '.' + c.slice(0, 4);
-function finDuMois(cle){
-  const [a, m] = cle.split('-').map(Number);
-  return cle + '-' + String(new Date(a, m, 0).getDate()).padStart(2, '0');
-}
 /* Apports du mois, par compte (montants positifs) : plans mensuels du budget
    ET achats directs du mois (nets des ventes), pour rester cohérent avec
    baseCoutAu — sans quoi un achat direct passerait pour une hausse du marché. */
