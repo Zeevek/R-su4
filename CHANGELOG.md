@@ -9,6 +9,11 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v5.2.1 — 22/07/2026
+- **Correctif critique de la v5.2.0** : le gestionnaire du bouton « ♻️ Réafficher les puces » référençait un bouton jamais inséré dans la page — l'erreur stoppait le script en plein vol : navigation active mais thème, Face ID, export et tout le rendu initial inertes (écrans vides). Le bouton est rétabli, les lignes de code égarées dans le gestionnaire de tri sont nettoyées, et **un test d'intégrité permanent** vérifie désormais que chaque élément référencé par le script existe dans la page.
+- **Thème sombre cohérent** : la barre de navigation, les bandeaux de cartes, le héro, les boutons et le toast restaient clairs en thème sombre (ils reposaient sur la couleur d'encre, qui devient claire la nuit). Tous utilisent maintenant les variables d'en-tête du thème.
+- **Filet de sécurité visible** : toute erreur de script s'affiche en haut de l'écran (« ⚠️ Erreur : … ») — plus jamais d'app muette sans explication.
+
 ## v5.2.0 — 22/07/2026
 - **Verrouillage à l'ouverture** (Réglages → 🔐) : l'app demande **Face ID / Touch ID** via le trousseau du téléphone (API WebAuthn — c'est la voie offerte aux applications web, l'option « Exiger Face ID » du menu iOS étant réservée aux apps de l'App Store). Un **code de secours** à 4-6 chiffres prend le relais si la biométrie échoue ou n'est pas disponible. Reverrouillage automatique après 2 minutes en arrière-plan. Honnêteté oblige : c'est un verrou d'écran qui décourage l'accès de passage — les données restent stockées en clair dans le navigateur.
 - **Rappel de sauvegarde hebdomadaire** : chaque lundi, une fenêtre rappelle d'exporter la sauvegarde JSON, avec le bouton d'export intégré. Elle ne s'affiche qu'une fois par lundi, et pas du tout si l'export du jour est déjà fait.

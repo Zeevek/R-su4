@@ -17,7 +17,7 @@
   --laiton:#B08D3E; --laiton-clair:#E6C882;
   --vert:#2E7D5B; --vert-fond:#EAF4EF; --rouge:#C0392B; --rouge-fond:#FAEDEB;
   --trait:#E4E1D8; --ombre:0 1px 3px rgba(30,36,48,.08);
-  --entete:#1E2430; --entete-texte:#F6F5F0;
+  --entete:#1E2430; --entete-texte:#F6F5F0; --tete:#FBF9F2; --papier2:#FBF9F2;
 }
 /* 🌙 Sombre */
 [data-theme="sombre"]{
@@ -25,7 +25,7 @@
   --laiton:#C9A55C; --laiton-clair:#8A6D1F;
   --vert:#63BE93; --vert-fond:#1C2B24; --rouge:#E07862; --rouge-fond:#33201C;
   --trait:#2E3542; --ombre:0 1px 3px rgba(0,0,0,.4);
-  --entete:#0D1016; --entete-texte:#E9E5D9;
+  --entete:#0D1016; --entete-texte:#E9E5D9; --tete:#232936; --papier2:#232936;
 }
 /* 🌲 Forêt (clair, accents verts) */
 [data-theme="foret"]{
@@ -33,7 +33,7 @@
   --laiton:#3E7D5B; --laiton-clair:#A7CDB8;
   --vert:#2E7D5B; --vert-fond:#E6F2EA; --rouge:#B5543B; --rouge-fond:#F8ECE7;
   --trait:#DCE4D8; --ombre:0 1px 3px rgba(31,46,34,.08);
-  --entete:#1F3527; --entete-texte:#EFF5EE;
+  --entete:#1F3527; --entete-texte:#EFF5EE; --tete:#F4F8F1; --papier2:#F4F8F1;
 }
 /* 🌌 Minuit (sombre, bleu nuit et or) */
 [data-theme="minuit"]{
@@ -41,7 +41,7 @@
   --laiton:#D8B45E; --laiton-clair:#8A701F;
   --vert:#5EC6A0; --vert-fond:#15302A; --rouge:#E8826B; --rouge-fond:#39221D;
   --trait:#26304A; --ombre:0 1px 3px rgba(0,0,0,.5);
-  --entete:#080D1A; --entete-texte:#E8E9F2;
+  --entete:#080D1A; --entete-texte:#E8E9F2; --tete:#1E2740; --papier2:#1E2740;
 }
 /* Ajustements des fonds clairs codés en dur sur les thèmes sombres */
 [data-theme="sombre"] .chip, [data-theme="minuit"] .chip{background:rgba(255,255,255,.06);color:var(--encre2);border-color:var(--trait)}
@@ -74,7 +74,7 @@ header .titre small{display:block;font-size:10px;letter-spacing:.18em;color:var(
 header .statut{margin-left:auto;font-size:10px;letter-spacing:.1em;color:#9AA1B4;text-transform:uppercase}
 
 /* ===== Navigation basse ===== */
-nav{position:fixed;bottom:0;left:0;right:0;background:var(--encre);display:flex;z-index:30;
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--entete);display:flex;z-index:30;
   padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 8px rgba(0,0,0,.18)}
 nav button{flex:1;padding:8px 2px 7px;color:#8A90A3;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:2px;letter-spacing:.02em}
 nav button .ico{font-size:19px;line-height:1}
@@ -88,14 +88,14 @@ main{max-width:760px;margin:0 auto;padding:14px 12px 24px}
 
 /* ===== Cartes ===== */
 .carte{background:var(--carte);border:1px solid var(--trait);border-radius:12px;box-shadow:var(--ombre);margin-bottom:12px;overflow:hidden}
-.carte>.tete{display:flex;align-items:baseline;gap:8px;padding:10px 14px;border-bottom:1px solid var(--trait);background:linear-gradient(#FDFCF9,#F8F6F0)}
+.carte>.tete{display:flex;align-items:baseline;gap:8px;padding:10px 14px;border-bottom:1px solid var(--trait);background:var(--tete)}
 .carte>.tete h3{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--encre2)}
 .carte>.tete .tot{margin-left:auto;font-weight:700;font-size:14px}
 .carte .corps{padding:8px 14px 12px}
 .pos{color:var(--vert)} .neg{color:var(--rouge)} .neutre{color:var(--encre2)}
 
 /* ===== Héro : reste du jour ===== */
-.hero{background:var(--encre);color:#F6F5F0;border-radius:14px;padding:18px 16px 16px;margin-bottom:14px;position:relative;overflow:hidden}
+.hero{background:var(--entete);color:var(--entete-texte);border-radius:14px;padding:18px 16px 16px;margin-bottom:14px;position:relative;overflow:hidden}
 .hero::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;
   border:2px solid rgba(230,200,130,.25);pointer-events:none}
 .hero::before{content:"";position:absolute;right:-25px;top:-25px;width:130px;height:130px;border-radius:50%;
@@ -130,7 +130,7 @@ main{max-width:760px;margin:0 auto;padding:14px 12px 24px}
 .selmois button{padding:9px 13px;border:1px solid var(--trait);border-radius:10px;background:var(--carte);font-weight:700}
 
 /* ===== Bilan mensuel bandeau ===== */
-.bilan5{display:grid;grid-template-columns:repeat(5,1fr);background:var(--encre);color:#F6F5F0;border-radius:12px;
+.bilan5{display:grid;grid-template-columns:repeat(5,1fr);background:var(--entete);color:var(--entete-texte);border-radius:12px;
   padding:10px 6px;margin-bottom:12px;text-align:center;gap:2px}
 .bilan5 .eti{font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#9AA1B4;display:block}
 .bilan5 .val{font-size:13px;font-weight:700;display:block;margin-top:2px}
@@ -169,7 +169,7 @@ td.px-fige input{color:#4A5570;font-style:italic}
 .p-actions{background:#C6EFCE}.p-etfs{background:#BDD7EE}.p-pe{background:#E2D5F1}
 .p-cryptos{background:#FFE699}.p-metaux{background:#F8CBAD}.p-obligations{background:#DCDCE4}
 
-.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;background:var(--encre);color:#F6F5F0;
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;background:var(--entete);color:var(--entete-texte);
   font-weight:700;font-size:13px;letter-spacing:.04em}
 .btn.or{background:var(--laiton);color:#fff}
 .btn.ligne2{width:100%;justify-content:center;margin-top:8px}
@@ -193,7 +193,7 @@ td.px-fige input{color:#4A5570;font-style:italic}
 
 /* Toast */
 #toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
-  background:var(--encre);color:#F6F5F0;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;
+  background:var(--entete);color:var(--entete-texte);padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;
   transition:.25s;z-index:50;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 #toast.vu{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -231,7 +231,7 @@ details.aide summary{cursor:pointer;font-weight:600;color:var(--laiton)}
 .rp .rp-tete{display:flex;align-items:baseline;gap:10px;border-bottom:3px solid var(--encre);padding-bottom:6px;margin-bottom:8px}
 .rp .rp-tete h1{font-size:22px;letter-spacing:.04em}
 .rp .rp-tete .badge{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
-  padding:3px 10px;border-radius:99px;background:var(--encre);color:#F6F5F0}
+  padding:3px 10px;border-radius:99px;background:var(--entete);color:var(--entete-texte)}
 .rp .rp-tete .badge.prev{background:#fff;color:var(--laiton);border:1.5px solid var(--laiton)}
 .rp .rp-tete .app{margin-left:auto;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--encre2)}
 .rp .kpi5{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:9px}
@@ -310,7 +310,7 @@ nav button{min-height:48px}
 @keyframes monter{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
 #panneau-info h4{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--laiton);margin-bottom:8px}
 #panneau-info p{font-size:14px;line-height:1.6;color:var(--encre)}
-#panneau-info .fermer{width:100%;margin-top:14px;padding:11px;border-radius:10px;background:var(--encre);color:#F6F5F0;font-weight:700}
+#panneau-info .fermer{width:100%;margin-top:14px;padding:11px;border-radius:10px;background:var(--entete);color:var(--entete-texte);font-weight:700}
 
 /* ===== Étaler (option repliable dans les cartes) ===== */
 details.etaler{margin-top:8px;border:1px dashed var(--laiton);border-radius:9px;background:#FDFAF2}
@@ -460,6 +460,7 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
           <input class="mnt" id="cfg-fixe" inputmode="decimal" placeholder="—"></div>
         <div class="ligne"><input class="lab" value="Reste initial (avant 1er mois)" readonly>
           <input class="mnt" id="cfg-reste" inputmode="decimal"></div>
+        <button class="ajout" id="btn-chips-reset">♻️ Réafficher les puces de suggestion masquées</button>
         <p class="note">Un changement d'enveloppe ne prend effet qu'<b>à partir du mois suivant</b> : le mois en cours et les mois écoulés conservent leurs valeurs, ce qui permet d'anticiper sans fausser le mois entamé.</p>
       </div>
     </div>
@@ -552,6 +553,12 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
 <div id="rapport"></div>
 <script>
 "use strict";
+window.addEventListener('error', e => {
+  try{
+    const s = document.getElementById('statut-sync');
+    if (s){ s.textContent = '⚠️ Erreur : ' + (e.message || 'inconnue'); s.style.color = '#E07862'; }
+  }catch(_){}
+});
 
 /* ================= THÈME (clair / sombre / forêt / minuit) ================= */
 const THEMES_SOMBRES = ['sombre', 'minuit'];
@@ -705,8 +712,12 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '5.2.0';
+const APP_VERSION = '5.2.1';
 const CHANGELOG = [
+  {v: '5.2.1', d: '22/07/2026', pts: [
+    "Correctif critique : un bouton manquant dans Réglages stoppait le script au démarrage (app figée, thème et Face ID inertes, écrans vides). Le bouton est rétabli et un test d'intégrité empêche définitivement ce type de panne.",
+    "Thème sombre cohérent : la barre de navigation, les bandeaux de cartes, le héro et les boutons suivent désormais correctement le thème choisi.",
+    "Filet de sécurité : toute erreur de script s'affiche maintenant en haut de l'écran (⚠️) au lieu de laisser une app muette."]},
   {v: '5.2.0', d: '22/07/2026', pts: [
     "Verrouillage à l'ouverture : Face ID / Touch ID via le trousseau du téléphone (WebAuthn, iOS 16+), avec code de secours à 4-6 chiffres. Reverrouillage après 2 minutes en arrière-plan. Réglages → 🔐.",
     "Rappel de sauvegarde chaque lundi : une fenêtre propose l'export JSON en un bouton — elle ne réapparaît pas si l'export du jour est déjà fait.",
@@ -2245,9 +2256,6 @@ document.querySelector('main').addEventListener('change', e => {
     sauver(); rafraichirPage();
   } else if (el.dataset.tri){               // tri d'un portefeuille
     etat.config.triPositions = etat.config.triPositions || {};
-  etat.config.chipsMasquees = etat.config.chipsMasquees || [];
-  if (typeof enrichirHistorique === 'function') enrichirHistorique();
-  if (typeof enrichirHistorique === 'function' && etat.historique.length) enrichirHistorique();
     etat.config.triPositions[el.dataset.tri] = el.value;
     sauver(); rendreInvest();
   } else if (el.dataset.pch){               // positions invest
