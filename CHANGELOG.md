@@ -9,6 +9,10 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v5.2.2 — 22/07/2026
+- **Croix ✕ des puces réparée** : la croix est un élément *à l'intérieur* du bouton de puce, or le gestionnaire de clic remontait d'abord au bouton puis cherchait la croix parmi ses ancêtres — jamais trouvée, le tap remplissait donc la saisie au lieu de masquer. Le gestionnaire part maintenant de la cible réelle du clic.
+- **Case « aujourd'hui » lisible en thème sombre** : le fond crème codé en dur rendait les chiffres invisibles la nuit ; en clair les chiffres passent en doré foncé, en sombre la case devient dorée translucide avec chiffres dorés.
+
 ## v5.2.1 — 22/07/2026
 - **Correctif critique de la v5.2.0** : le gestionnaire du bouton « ♻️ Réafficher les puces » référençait un bouton jamais inséré dans la page — l'erreur stoppait le script en plein vol : navigation active mais thème, Face ID, export et tout le rendu initial inertes (écrans vides). Le bouton est rétabli, les lignes de code égarées dans le gestionnaire de tri sont nettoyées, et **un test d'intégrité permanent** vérifie désormais que chaque élément référencé par le script existe dans la page.
 - **Thème sombre cohérent** : la barre de navigation, les bandeaux de cartes, le héro, les boutons et le toast restaient clairs en thème sombre (ils reposaient sur la couleur d'encre, qui devient claire la nuit). Tous utilisent maintenant les variables d'en-tête du thème.

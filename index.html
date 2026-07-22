@@ -188,6 +188,10 @@ td.px-fige input{color:#4A5570;font-style:italic}
 .jour{border:1px solid var(--trait);border-radius:8px;padding:5px 4px;text-align:center;background:var(--carte)}
 .jour.passe{opacity:.38}
 .jour.auj{border-color:var(--laiton);background:#FDF8EC;box-shadow:0 0 0 1px var(--laiton)}
+.jour.auj .n, .jour.auj .v{color:#8A6D1F}
+[data-theme="sombre"] .jour.auj, [data-theme="minuit"] .jour.auj{background:rgba(201,165,92,.16)}
+[data-theme="sombre"] .jour.auj .n, [data-theme="minuit"] .jour.auj .n,
+[data-theme="sombre"] .jour.auj .v, [data-theme="minuit"] .jour.auj .v{color:var(--laiton)}
 .jour .n{font-size:9px;color:var(--encre2);letter-spacing:.06em}
 .jour .v{font-size:12px;font-weight:700}
 
@@ -712,8 +716,11 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '5.2.1';
+const APP_VERSION = '5.2.2';
 const CHANGELOG = [
+  {v: '5.2.2', d: '22/07/2026', pts: [
+    "La croix ✕ des puces de saisie rapide fonctionne : le clic visait le bouton parent au lieu de la croix elle-même, et remplissait la saisie au lieu de masquer la puce.",
+    "Thèmes sombres : la case « aujourd'hui » du calendrier d'estimation est à nouveau lisible (fond doré translucide, chiffres dorés)."]},
   {v: '5.2.1', d: '22/07/2026', pts: [
     "Correctif critique : un bouton manquant dans Réglages stoppait le script au démarrage (app figée, thème et Face ID inertes, écrans vides). Le bouton est rétabli et un test d'intégrité empêche définitivement ce type de panne.",
     "Thème sombre cohérent : la barre de navigation, les bandeaux de cartes, le héro et les boutons suivent désormais correctement le thème choisi.",
@@ -2296,9 +2303,10 @@ document.querySelector('main').addEventListener('click', e => {
     sauver(); rafraichirPage();
   } else if (el.hasAttribute('data-cgo')){
     ajouterViaComposeur(el.closest('[data-comp]'));
-  } else if (el.dataset.chipdel != null || (el.closest && el.closest('[data-chipdel]'))){
-    const cible = el.dataset.chipdel != null ? el : el.closest('[data-chipdel]');
-    const lab = cible.dataset.chipdel;
+  } else if (e.target.closest && e.target.closest('[data-chipdel]')){
+    // la croix est un <span> DANS le bouton : il faut partir de la cible du clic,
+    // closest() ne remontant que vers les ancêtres
+    const lab = e.target.closest('[data-chipdel]').dataset.chipdel;
     if (!confirm(`Masquer la suggestion « ${lab} » ?\n(Elle restera dans l'auto-complétion à la saisie ; réaffichable dans Réglages.)`)) return;
     etat.config.chipsMasquees.push(lab);
     sauver(); majSuggestions(); rafraichirPage();
