@@ -213,6 +213,8 @@ details.aide summary{cursor:pointer;font-weight:600;color:var(--laiton)}
 .saisie-rapide .sl{flex:1;min-width:0}
 .saisie-rapide .sm{width:86px;text-align:right;font-weight:600}
 .saisie-rapide button{flex:none;padding:9px 14px}
+.sel-rapide{width:100%;margin-top:6px;border:1px solid var(--trait);border-radius:9px;padding:9px 10px;
+  background:var(--carte);color:var(--encre);font-weight:600;font-size:13px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
 .chip{font-size:12px;padding:5px 11px;border:1px solid var(--trait);border-radius:99px;background:#FBFAF6;color:var(--encre2);font-weight:600}
 .chip:active{background:#FDF8EC;border-color:var(--laiton);color:var(--laiton)}
@@ -363,6 +365,8 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
           <input class="sm" id="dl-acc-mnt" inputmode="text" placeholder="€" autocomplete="off">
           <button class="btn or" id="dl-acc-btn">＋</button>
         </div>
+        <select id="dl-acc-cat" class="sel-rapide" aria-label="Destination"></select>
+        <select id="dl-acc-vac" class="sel-rapide" aria-label="Poste vacances" style="display:none"></select>
         <div class="chips" id="dl-acc-chips"></div>
         <p class="note">Ajoutée aux dépenses libres du mois en cours. Tape juste « 12 » : le signe − est mis tout seul.
         Entrée ⏎ pour valider, expressions acceptées (« 7+3.5 »). Une puce pré-remplit l'intitulé et le dernier montant utilisé.</p>
@@ -473,6 +477,11 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
       <div class="corps">
         <div id="poches-liste"></div>
         <button class="ajout" id="poche-ajouter">＋ Ajouter une poche</button>
+        <div class="chips" id="poches-presets" style="margin-top:8px">
+          <button class="chip" data-pochepreset="pea">＋ 📈 PEA</button>
+          <button class="chip" data-pochepreset="per">＋ 🛡️ PER</button>
+          <button class="chip" data-pochepreset="projet">＋ 🎯 Projet</button>
+        </div>
         <p class="note">Le non attribué de chaque mois est ventilé dans ces poches, dans l'ordre :
         <b>1/3 ↑</b> (tiers arrondi au centime supérieur), <b>% du NA</b>, <b>€ fixe</b>, puis <b>reste</b> pour le reliquat.
         Destination : Livret A, LDDS, disponible d'investissement (Achat-Vente) ou simple suivi.
@@ -715,8 +724,14 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '5.3.0';
+const APP_VERSION = '5.5.0';
 const CHANGELOG = [
+  {v: '5.5.0', d: '22/07/2026', pts: [
+    "Saisie rapide : « Vacances… » ouvre un second menu avec les 6 postes (hôtel, transport, alimentation, loisirs, autres, remboursement reçu) — le menu principal reste court.",
+    "Nouveau poste « Vacances · Remboursements reçus » (montants positifs) : la part d'un ami remboursée vient en déduction du total vacances, partout (mois, bilan, flux, compte rendu). Ajouté automatiquement aux mois existants à l'import."]},
+  {v: '5.4.0', d: '22/07/2026', pts: [
+    "Dépense rapide : menu déroulant de destination — dépenses libres, transport, vacances, charges fixes, abonnements, échelonnés, entrée d'argent ou remboursement. Le signe s'adapte (une entrée devient positive) et les catégories récurrentes se propagent aux mois suivants.",
+    "Poches de répartition : raccourcis ＋ 📈 PEA, ＋ 🛡️ PER et ＋ 🎯 Projet — un tap ajoute la poche en part égale (les fractions se réajustent : 1/3 → 1/4), insérée avant la poche « reste », avec cumul suivi sur la page Livrets. Historique figé comme toujours, effet au mois prochain."]},
   {v: '5.3.0', d: '22/07/2026', pts: [
     "Revue de code : fonctions mortes et constantes orphelines supprimées, double enrichissement de l'historique au démarrage ramené à un seul passage.",
     "Performance : la simulation de projection (600 trajectoires) est mise en cache — la page Investissements ne la recalcule plus à chaque modification d'une position.",
@@ -846,6 +861,7 @@ function migrer(){
   if (etat.config.enveloppeFixe == null || etat.config.enveloppeFixe === '' || isNaN(Number(etat.config.enveloppeFixe))) etat.config.enveloppeFixe = null;
   etat.config.triPositions = etat.config.triPositions || {};
   etat.config.chipsMasquees = etat.config.chipsMasquees || [];
+  for (const m of Object.values(etat.months)) if (!Array.isArray(m.vacRemb)) m.vacRemb = [];
   enrichirHistorique();
   for (const p of (etat.config.poches || [])) if (p.mode === 'tiers') p.mode = 'part';
   if (!Array.isArray(etat.config.poches) || !etat.config.poches.length)
@@ -857,7 +873,7 @@ function migrer(){
   }
   for (const m of Object.values(etat.months)){
     for (const k of ['entrees','chargesFixes','aboObligatoires','aboLoisirs','echelonnes','transport','depensesLibres',
-                     'remboursements','vacHotel','vacTransport','vacAlim','vacLoisirs','vacAutres',
+                     'remboursements','vacHotel','vacTransport','vacAlim','vacLoisirs','vacAutres','vacRemb',
                      'trActions','trETF','trMetaux','trCrypto','trPE'])
       m[k] = m[k] || [];
     m.invPEA = m.invPEA || 0; m.invPER = m.invPER || 0;
@@ -940,7 +956,7 @@ function echap(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&l
 function moisVide(){
   return {entrees: [], chargesFixes: [], aboObligatoires: [], invPEA: 0, invPER: 0,
           aboLoisirs: [], echelonnes: [], transport: [], depensesLibres: [], remboursements: [],
-          vacHotel: [], vacTransport: [], vacAlim: [], vacLoisirs: [], vacAutres: [],
+          vacHotel: [], vacTransport: [], vacAlim: [], vacLoisirs: [], vacAutres: [], vacRemb: [],
           trActions: [], trETF: [], trMetaux: [], trCrypto: [], trPE: []};
 }
 function cleSuivante(cle){
@@ -1067,7 +1083,8 @@ function calculerMois(cle){
   const tLoisirs = somme(m.aboLoisirs), tEch = somme(m.echelonnes);
   const tTrans = somme(m.transport), tLibres = somme(m.depensesLibres);
   const tRemb = somme(m.remboursements);
-  const tVac = somme(m.vacHotel) + somme(m.vacTransport) + somme(m.vacAlim) + somme(m.vacLoisirs) + somme(m.vacAutres);
+  const tVac = somme(m.vacHotel) + somme(m.vacTransport) + somme(m.vacAlim) + somme(m.vacLoisirs)
+             + somme(m.vacAutres) + somme(m.vacRemb || []);   // remboursements en positif → total net
   const sommeMois = m.sommeMoisOverride != null ? m.sommeMoisOverride
                   : (etat.config.enveloppeFixe != null ? Number(etat.config.enveloppeFixe)
                      : joursDansMois(cle) * (etat.config.eurParJour || 0));
@@ -1913,6 +1930,7 @@ function rendreMois(){
     ${carteListe('🍽️ Vacances · Alimentation', P + 'vacAlim', m.vacAlim)}
     ${carteListe('🎢 Vacances · Loisirs', P + 'vacLoisirs', m.vacLoisirs)}
     ${carteListe('📦 Vacances · Autres', P + 'vacAutres', m.vacAutres)}
+    ${carteListe('💶 Vacances · Remboursements reçus', P + 'vacRemb', m.vacRemb, {signe: '+', exemple: 'Part de Léa (hôtel)'})}
     <div class="sep"></div>
     <div class="carte"><div class="tete"><h3>📈 Détail Trade Republic</h3>${infoBtn('recurrents')}<div class="tot neg">${fmt(detTR)}</div></div>
       <div class="corps"><p class="note">Plans d'épargne du mois — astuce : tape « -8*4 » pour 4 semaines à 8 €.</p></div></div>
@@ -2320,7 +2338,11 @@ document.querySelector('main').addEventListener('click', e => {
       const z = document.querySelector(`[data-comp$="depensesLibres"]`);
       if (z){ cl = z.querySelector('[data-cl]'); cm = z.querySelector('[data-cm]'); }
     }
-    if (cl && cm){ cl.value = el.dataset.chip; cm.value = el.dataset.mnt; cm.focus(); }
+    if (cl && cm){
+      cl.value = el.dataset.chip; cm.value = el.dataset.mnt; cm.focus();
+      const catSel = document.getElementById('dl-acc-cat');   // les puces sont des dépenses libres
+      if (catSel && el.dataset.cible === 'acc') catSel.value = 'depensesLibres';
+    }
   } else if (el.id === 'dl-acc-btn'){
     ajouterDepenseLibre(cleAujourdhui(), 'dl-acc-label', 'dl-acc-mnt');
   } else if (el.classList && el.classList.contains('eta-go')){
@@ -2368,20 +2390,62 @@ function majSuggestions(){
   const chips = document.getElementById('dl-acc-chips');
   if (chips) chips.innerHTML = chipsHTML('acc');
 }
+/* Destinations de la saisie rapide : [catégorie, libellé, signe par défaut] */
+const CATS_RAPIDES = [
+  ['depensesLibres', '🛒 Dépenses libres', '-'],
+  ['transport', '🚗 Transport', '-'],
+  ['vac', '🏖️ Vacances…', '-'],
+  ['chargesFixes', '🏠 Charge fixe (récurrente)', '-'],
+  ['aboObligatoires', '📱 Abo obligatoire (récurrent)', '-'],
+  ['aboLoisirs', '🎮 Abo loisir (récurrent)', '-'],
+  ['echelonnes', '💳 Paiement échelonné', '-'],
+  ['entrees', '💵 Entrée d\u2019argent', '+'],
+  ['remboursements', '🔁 Remboursement reçu', '+'],
+];
+const SOUS_CATS_VAC = [
+  ['vacHotel', '🏨 Hôtel / Airbnb', '-'],
+  ['vacTransport', '✈️ Transport', '-'],
+  ['vacAlim', '🍽️ Alimentation', '-'],
+  ['vacLoisirs', '🎢 Loisirs', '-'],
+  ['vacAutres', '📦 Autres', '-'],
+  ['vacRemb', '💶 Remboursement reçu', '+'],
+];
+const signeCategorie = cat =>
+  (CATS_RAPIDES.find(c => c[0] === cat) || SOUS_CATS_VAC.find(c => c[0] === cat) || [, , '-'])[2];
 function ajouterDepenseLibre(cible, idLabel, idMnt){
   const labEl = document.getElementById(idLabel), mntEl = document.getElementById(idMnt);
+  const catSel = document.getElementById('dl-acc-cat');
+  let cat = (catSel && catSel.value) || 'depensesLibres';
+  if (cat === 'vac'){
+    const sv = document.getElementById('dl-acc-vac');
+    cat = (sv && sv.value) || 'vacAutres';
+  }
   const label = labEl.value.trim();
   if (!label) { toast('Indique un intitulé'); labEl.focus(); return; }
-  const v = montantDepense(mntEl.value);
-  if (isNaN(v) || v === 0) { toast('Montant invalide'); mntEl.focus(); return; }
+  const brut = evalMontant(mntEl.value);
+  if (isNaN(brut) || Math.abs(brut) < 0.005) { toast('Montant invalide'); mntEl.focus(); return; }
+  const signe = signeCategorie(cat);
+  const v = +((signe === '-' ? (brut > 0 ? -brut : brut) : (brut < 0 ? -brut : brut))).toFixed(2);
   while (!etat.months[cible]) creerMoisSuivant();      // crée le mois si besoin (retour de longue absence)
-  etat.months[cible].depensesLibres.push({label, montant: v});
+  const ligne = {label, montant: v};
+  etat.months[cible][cat].push(ligne);
+  let sup = '';
+  const n = propagerRecurrent(cible, cat, null, ligne);
+  if (n > 0) sup = ` ↪ ${n} mois suivant${n > 1 ? 's' : ''}`;
   sauver();
-  const tot = somme(etat.months[cible].depensesLibres);
-  toast(`${label} ${fmt(v)} — libres de ${libelleMois(cible)} : ${fmt(tot)}`);
+  const nomCat = (CATS_RAPIDES.find(c => c[0] === cat) || SOUS_CATS_VAC.map(([v, l]) => [v, '🏖️ Vacances · ' + l]).find(c => c[0] === cat) || ['', cat])[1];
+  toast(`${label} ${fmt(v)} → ${nomCat}${sup}`);
   rafraichirPage();
   const el = document.getElementById(idLabel);
   if (el){ el.value = ''; el.focus(); }
+}
+function peuplerCatRapide(){
+  const sel = document.getElementById('dl-acc-cat');
+  if (!sel || sel.options.length) return;
+  sel.innerHTML = CATS_RAPIDES.map(([v, l]) => `<option value="${v}">→ ${l}</option>`).join('');
+  const sv = document.getElementById('dl-acc-vac');
+  sv.innerHTML = SOUS_CATS_VAC.map(([v, l]) => `<option value="${v}">🏖️ → ${l}</option>`).join('');
+  sel.addEventListener('change', () => { sv.style.display = sel.value === 'vac' ? '' : 'none'; });
 }
 document.querySelector('main').addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
@@ -2432,7 +2496,7 @@ function creerMoisSuivant(){
     invPEA: src.invPEA, invPER: src.invPER,
     aboLoisirs: incr(src.aboLoisirs), echelonnes: incr(src.echelonnes),
     transport: [], depensesLibres: [], remboursements: [],
-    vacHotel: [], vacTransport: [], vacAlim: [], vacLoisirs: [], vacAutres: [],
+    vacHotel: [], vacTransport: [], vacAlim: [], vacLoisirs: [], vacAutres: [], vacRemb: [],
     trActions: copie(src.trActions), trETF: copie(src.trETF), trMetaux: copie(src.trMetaux),
     trCrypto: copie(src.trCrypto), trPE: copie(src.trPE),
   };
@@ -2552,6 +2616,23 @@ document.getElementById('poches-liste').addEventListener('change', e => {
   } else p[el.dataset.pf] = el.value;
   sauver(); rendreReglages();
   toast('Poches mises à jour — effet à partir du mois prochain');
+});
+const POCHES_PRESETS = {
+  pea: {nom: '📈 PEA', cible: 'suivi'},
+  per: {nom: '🛡️ PER', cible: 'suivi'},
+  projet: {nom: '🎯 Projet', cible: 'suivi'},
+};
+document.getElementById('poches-presets').addEventListener('click', e => {
+  const b = e.target.closest('[data-pochepreset]');
+  if (!b) return;
+  const preset = POCHES_PRESETS[b.dataset.pochepreset];
+  if (etat.config.poches.some(p => p.nom === preset.nom))
+    return toast(`La poche « ${preset.nom} » existe déjà`);
+  figerRepartitionHistorique();
+  etat.config.poches.splice(etat.config.poches.length - 1, 0,   // avant la poche « reste »
+    {id: 'p' + Date.now().toString(36), nom: preset.nom, mode: 'part', valeur: 0, cible: preset.cible});
+  sauver(); rendreReglages();
+  toast(`${preset.nom} ajoutée — parts égales : ${libellePart(etat.config.poches)} dès le mois prochain`);
 });
 document.getElementById('poche-ajouter').onclick = () => {
   figerRepartitionHistorique();
@@ -2922,7 +3003,7 @@ function importerClasseur(wb){
     ['aboObligatoires', 'ABO. OBLIGATOIRES'], ['aboLoisirs', 'ABO. LOISIRS'],
     ['echelonnes', 'PAIEMENTS ÉCHELONNÉS'], ['transport', '🚗 TRANSPORT'],
     ['depensesLibres', 'DÉPENSES LIBRES'], ['remboursements', 'REMBOURSEMENT / ENTRÉE'],
-    ['vacHotel', 'HOTEL / AIRBNB'], ['vacTransport', '✈️ TRANSPORT'],
+    ['vacHotel', 'HOTEL / AIRBNB'], ['vacTransport', '✈️ TRANSPORT'], ['vacRemb', '💶 REMBOURSEMENTS'],
     ['vacAlim', 'ALIMENTATION'], ['vacLoisirs', '🎢 LOISIRS'],
     ['vacAutres', '📦 AUTRES'], ['trActions', '📊 ACTIONS'],
     ['trETF', '📈 ETF'], ['trMetaux', 'MÉTAUX'], ['trCrypto', 'CRYPTO'],
@@ -3103,6 +3184,7 @@ if (estIOS){
 
 /* ================= DÉMARRAGE ================= */
 (async function init(){
+  peuplerCatRapide();
   verrouiller();                          // affiché avant tout si le verrou est actif
   demanderDeverrouillage(true);           // tente Face ID immédiatement
   document.getElementById('ver').textContent = 'v' + APP_VERSION + ' · Hors-ligne';

@@ -9,6 +9,14 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v5.5.0 — 22/07/2026
+- **Sous-catégories vacances dans la saisie rapide** : choisir « 🏖️ Vacances… » fait apparaître un second menu — 🏨 Hôtel / Airbnb, ✈️ Transport, 🍽️ Alimentation, 🎢 Loisirs, 📦 Autres, 💶 Remboursement reçu. Le menu principal garde une seule ligne vacances au lieu de six.
+- **Nouveau poste « Vacances · Remboursements reçus »** (montants positifs, ex. la part d'un ami sur l'Airbnb) : il vient en déduction du total vacances partout — page Mois (carte dédiée), bilan, diagramme des flux, compte rendu PDF. Les sauvegardes existantes reçoivent le poste automatiquement à l'import, sans changement d'aucun chiffre (vérifié sur tes données réelles : reste fin de mois 642,07 € inchangé).
+
+## v5.4.0 — 22/07/2026
+- **Dépense rapide avec destination** : un menu déroulant sous la barre de saisie choisit où va la ligne — 🛒 Dépenses libres (défaut), 🚗 Transport, 🏖️ Vacances, 🏠 Charge fixe, 📱 Abo obligatoire, 🎮 Abo loisir, 💳 Échelonné, 💵 Entrée d'argent ou 🔁 Remboursement. Le signe suit la nature de la destination (« 12 » devient −12 € en dépense, +12 € en entrée), les catégories récurrentes se propagent aux mois suivants avec le toast « ↪ n mois », et taper une puce ramène la destination sur Dépenses libres.
+- **Poches préconfigurées** : dans Réglages → 🪙, les raccourcis **＋ 📈 PEA**, **＋ 🛡️ PER** et **＋ 🎯 Projet** ajoutent une poche d'un tap — en mode part égale (1/3 → 1/4 automatiquement), insérée avant la poche « reste », en destination « suivi » dont le cumul apparaît sur la page Livrets. Doublons refusés, historique figé, effet à partir du mois prochain ; mode et destination restent modifiables ensuite.
+
 ## v5.3.0 — 22/07/2026
 - **Revue de code** : suppression des fonctions et constantes mortes accumulées au fil des versions (`normaliserCotation`, `finDuMois`, `periodeDepuisCle`, `THEMES_SOMBRES`), et l'enrichissement de l'historique n'est plus exécuté deux fois à chaque démarrage.
 - **Performance** : la simulation de projection (600 trajectoires Monte-Carlo) est désormais mise en cache et invalidée avec les autres calculs — la page Investissements ne la recalculait pas moins de… à chaque frappe dans une position.
