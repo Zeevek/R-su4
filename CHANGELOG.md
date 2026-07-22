@@ -9,6 +9,14 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v5.2.0 — 22/07/2026
+- **Verrouillage à l'ouverture** (Réglages → 🔐) : l'app demande **Face ID / Touch ID** via le trousseau du téléphone (API WebAuthn — c'est la voie offerte aux applications web, l'option « Exiger Face ID » du menu iOS étant réservée aux apps de l'App Store). Un **code de secours** à 4-6 chiffres prend le relais si la biométrie échoue ou n'est pas disponible. Reverrouillage automatique après 2 minutes en arrière-plan. Honnêteté oblige : c'est un verrou d'écran qui décourage l'accès de passage — les données restent stockées en clair dans le navigateur.
+- **Rappel de sauvegarde hebdomadaire** : chaque lundi, une fenêtre rappelle d'exporter la sauvegarde JSON, avec le bouton d'export intégré. Elle ne s'affiche qu'une fois par lundi, et pas du tout si l'export du jour est déjà fait.
+- **Thèmes** (Réglages → 🎨) : *Automatique* (suit le mode clair/sombre du téléphone, et bascule en direct), *Clair*, *Sombre*, *Forêt* (clair, accents verts) et *Minuit* (bleu nuit et or). Les diagrammes (flux, camemberts, projections) suivent le thème ; le compte rendu PDF reste toujours clair pour l'impression.
+
+## v5.1.0 — 22/07/2026
+- **Puces de saisie rapide masquables** : chaque puce « libellé · dernier montant » porte une petite croix ✕ — un tap la retire des suggestions (avec confirmation). Le libellé reste disponible dans l'auto-complétion à la saisie. Un bouton ♻️ dans Réglages → Paramètres réaffiche toutes les puces masquées d'un coup.
+
 ## v5.0.0 — 19/07/2026
 - **Socle d'analyse** : le bouton « Enregistrer » mémorise désormais, en plus de la performance, la **valeur du portefeuille** et les **apports du mois** par compte — tout est déduit du budget (plans mensuels, achats directs) et des positions, sans une seule saisie de plus. Les périodes déjà enregistrées sont complétées rétroactivement au premier lancement.
 - **Performance réelle (TRI / TWR)** : le TRI donne le taux annuel réellement obtenu compte tenu du calendrier des versements ; le TWR neutralise cet effet et se compare à un indice. Un écart entre les deux indique si les versements sont tombés à des moments favorables.

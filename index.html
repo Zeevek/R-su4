@@ -17,7 +17,47 @@
   --laiton:#B08D3E; --laiton-clair:#E6C882;
   --vert:#2E7D5B; --vert-fond:#EAF4EF; --rouge:#C0392B; --rouge-fond:#FAEDEB;
   --trait:#E4E1D8; --ombre:0 1px 3px rgba(30,36,48,.08);
+  --entete:#1E2430; --entete-texte:#F6F5F0;
 }
+/* 🌙 Sombre */
+[data-theme="sombre"]{
+  --papier:#13161D; --carte:#1C212C; --encre:#E9E5D9; --encre2:#9BA1AF;
+  --laiton:#C9A55C; --laiton-clair:#8A6D1F;
+  --vert:#63BE93; --vert-fond:#1C2B24; --rouge:#E07862; --rouge-fond:#33201C;
+  --trait:#2E3542; --ombre:0 1px 3px rgba(0,0,0,.4);
+  --entete:#0D1016; --entete-texte:#E9E5D9;
+}
+/* 🌲 Forêt (clair, accents verts) */
+[data-theme="foret"]{
+  --papier:#F1F5EE; --carte:#FBFDF9; --encre:#1F2E22; --encre2:#5C6E5F;
+  --laiton:#3E7D5B; --laiton-clair:#A7CDB8;
+  --vert:#2E7D5B; --vert-fond:#E6F2EA; --rouge:#B5543B; --rouge-fond:#F8ECE7;
+  --trait:#DCE4D8; --ombre:0 1px 3px rgba(31,46,34,.08);
+  --entete:#1F3527; --entete-texte:#EFF5EE;
+}
+/* 🌌 Minuit (sombre, bleu nuit et or) */
+[data-theme="minuit"]{
+  --papier:#0E1424; --carte:#171F33; --encre:#E8E9F2; --encre2:#98A0BC;
+  --laiton:#D8B45E; --laiton-clair:#8A701F;
+  --vert:#5EC6A0; --vert-fond:#15302A; --rouge:#E8826B; --rouge-fond:#39221D;
+  --trait:#26304A; --ombre:0 1px 3px rgba(0,0,0,.5);
+  --entete:#080D1A; --entete-texte:#E8E9F2;
+}
+/* Ajustements des fonds clairs codés en dur sur les thèmes sombres */
+[data-theme="sombre"] .chip, [data-theme="minuit"] .chip{background:rgba(255,255,255,.06);color:var(--encre2);border-color:var(--trait)}
+[data-theme="sombre"] .chip .chip-x, [data-theme="minuit"] .chip .chip-x{background:rgba(255,255,255,.12);color:var(--encre2)}
+[data-theme="sombre"] details.etaler, [data-theme="minuit"] details.etaler,
+[data-theme="sombre"] .rep, [data-theme="minuit"] .rep{background:rgba(201,165,92,.08)}
+[data-theme="sombre"] .saisie-rapide input, [data-theme="minuit"] .saisie-rapide input{background:rgba(255,255,255,.05) !important;color:var(--encre)}
+[data-theme="sombre"] td.px-ancien, [data-theme="minuit"] td.px-ancien{background:rgba(201,165,92,.14)}
+[data-theme="sombre"] td.px-ancien input, [data-theme="minuit"] td.px-ancien input{color:var(--laiton)}
+[data-theme="sombre"] td.px-manuel, [data-theme="minuit"] td.px-manuel{background:rgba(99,190,147,.10)}
+[data-theme="sombre"] td.px-fige, [data-theme="minuit"] td.px-fige{background:rgba(255,255,255,.04)}
+[data-theme="sombre"] .legende-prix .lp, [data-theme="minuit"] .legende-prix .lp{background:rgba(255,255,255,.07)}
+[data-theme="sombre"] .chlog b, [data-theme="minuit"] .chlog b{color:var(--encre)}
+/* Le compte rendu A4 reste toujours clair, quel que soit le thème */
+.rp{--papier:#fff; --carte:#fff; --encre:#1E2430; --encre2:#5A6072; --trait:#E4E1D8;
+    --laiton:#B08D3E; --vert:#2E7D5B; --rouge:#C0392B}
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--papier);color:var(--encre);
@@ -27,7 +67,7 @@ input,select{font:inherit;color:inherit}
 h1,h2,h3{font-weight:700}
 
 /* ===== En-tête ===== */
-header{background:var(--encre);color:#F6F5F0;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+header{background:var(--entete);color:var(--entete-texte);padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
   position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px}
 header .titre{font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
 header .titre small{display:block;font-size:10px;letter-spacing:.18em;color:var(--laiton-clair);font-weight:600}
@@ -172,6 +212,9 @@ details.aide summary{cursor:pointer;font-weight:600;color:var(--laiton)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
 .chip{font-size:12px;padding:5px 11px;border:1px solid var(--trait);border-radius:99px;background:#FBFAF6;color:var(--encre2);font-weight:600}
 .chip:active{background:#FDF8EC;border-color:var(--laiton);color:var(--laiton)}
+.chip .chip-x{display:inline-flex;align-items:center;justify-content:center;margin-left:7px;
+  width:17px;height:17px;border-radius:50%;background:#EAE7DE;color:var(--encre2);font-size:10px;font-weight:800}
+.chip .chip-x:active{background:var(--rouge);color:#fff}
 
 /* ===== Changelog ===== */
 .chlog{font-size:12.5px;color:var(--encre2);line-height:1.55}
@@ -226,6 +269,35 @@ nav button{min-height:48px}
   .ligne{padding:7px 0}
   .ligne .sup, .chip{min-height:34px}
 }
+
+/* ===== Écran de verrouillage ===== */
+#verrou{position:fixed;inset:0;background:var(--entete);z-index:200;display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:18px;color:var(--entete-texte);
+  padding:24px;text-align:center}
+#verrou.vu{display:flex}
+#verrou .logo{font-size:52px}
+#verrou h2{font-size:17px;letter-spacing:.12em;text-transform:uppercase}
+#verrou .btn-face{background:var(--laiton);color:#fff;font-weight:800;font-size:16px;
+  padding:14px 26px;border-radius:14px;min-width:230px}
+#verrou .pin-zone{display:none;flex-direction:column;gap:10px;align-items:center}
+#verrou .pin-zone.vu{display:flex}
+#verrou input{font-size:24px;letter-spacing:14px;text-align:center;width:190px;padding:10px;
+  border-radius:12px;border:none;background:rgba(255,255,255,.12);color:var(--entete-texte)}
+#verrou .lien{color:var(--laiton-clair);font-size:13px;text-decoration:underline;background:none}
+#verrou .err{color:#E07862;font-size:13px;min-height:18px}
+
+/* ===== Popup de rappel de sauvegarde ===== */
+#voile-rappel{position:fixed;inset:0;background:rgba(30,36,48,.45);z-index:80;display:none;
+  align-items:center;justify-content:center;padding:22px}
+#voile-rappel.vu{display:flex}
+#panneau-rappel{background:var(--carte);border-radius:16px;max-width:420px;width:100%;padding:20px;
+  box-shadow:0 10px 40px rgba(0,0,0,.3);text-align:center}
+#panneau-rappel .ico{font-size:40px}
+#panneau-rappel h4{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--laiton);margin:8px 0}
+#panneau-rappel p{font-size:13.5px;line-height:1.55;color:var(--encre2)}
+#panneau-rappel .btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+#panneau-rappel .btns .or{padding:12px;border-radius:10px;font-weight:800}
+#panneau-rappel .btns .plus-tard{padding:10px;color:var(--encre2);background:none;font-weight:600}
 
 /* ===== Bulle d'information ⓘ ===== */
 .info-btn{flex:none;width:22px;height:22px;min-height:22px;border-radius:50%;border:1.5px solid var(--laiton);
@@ -357,6 +429,29 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
   <!-- ============ RÉGLAGES ============ -->
   <section class="page" id="page-reglages">
     <div class="carte">
+      <div class="tete"><h3>🎨 Apparence</h3></div>
+      <div class="corps">
+        <div class="ligne"><input class="lab" value="Thème" readonly>
+          <select id="cfg-theme" style="border:1px solid var(--trait);border-radius:8px;padding:8px;background:var(--carte);font-weight:600">
+            <option value="auto">🌗 Automatique (réglage du téléphone)</option>
+            <option value="clair">☀️ Clair</option>
+            <option value="sombre">🌙 Sombre</option>
+            <option value="foret">🌲 Forêt</option>
+            <option value="minuit">🌌 Minuit</option>
+          </select></div>
+        <p class="note">« Automatique » suit le mode clair/sombre du téléphone. Le compte rendu PDF reste toujours clair.</p>
+      </div>
+    </div>
+    <div class="carte">
+      <div class="tete"><h3>🔐 Verrouillage</h3></div>
+      <div class="corps">
+        <button class="btn ligne2 or" id="btn-verrou-activer" style="margin-top:0">Activer Face ID / code</button>
+        <button class="btn ligne2 discret" id="btn-verrou-desactiver" style="display:none">Désactiver le verrouillage</button>
+        <p class="note">À l'ouverture, l'app demande Face ID (ou Touch ID) via le trousseau du téléphone, avec un code de secours à 4-6 chiffres.
+        C'est un verrou d'écran : il décourage un accès de passage, mais les données restent stockées en clair sur l'appareil.</p>
+      </div>
+    </div>
+    <div class="carte">
       <div class="tete"><h3>⚙️ Paramètres</h3></div>
       <div class="corps">
         <div class="ligne"><input class="lab" value="Enveloppe quotidienne (€/jour)" readonly>
@@ -431,12 +526,152 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
   <button data-page="av"><span class="ico">🔁</span>Achat-Vente</button>
   <button data-page="reglages"><span class="ico">⚙️</span>Réglages</button>
 </nav>
+<div id="verrou">
+  <div class="logo">📒</div>
+  <h2>Budget Personnel</h2>
+  <button class="btn-face" id="btn-deverrouiller">🔓 Déverrouiller</button>
+  <div class="pin-zone" id="pin-zone">
+    <input id="pin-saisie" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
+    <div class="err" id="pin-err"></div>
+  </div>
+  <button class="lien" id="lien-pin">Utiliser le code à la place</button>
+</div>
+<div id="voile-rappel"><div id="panneau-rappel">
+  <div class="ico">💾</div>
+  <h4>Sauvegarde hebdomadaire</h4>
+  <p>C'est lundi : exporte ta sauvegarde JSON et range-la en lieu sûr (Fichiers, iCloud, clé USB…).
+  Tes données ne vivent que sur cet appareil — un nettoyage de Safari peut les effacer.</p>
+  <div class="btns">
+    <button class="or" id="btn-rappel-export" style="background:var(--laiton);color:#fff">⬇️ Exporter maintenant</button>
+    <button class="plus-tard" id="btn-rappel-plus-tard">Plus tard</button>
+  </div>
+</div></div>
 <div id="voile-info"><div id="panneau-info"><h4 id="info-titre"></h4><p id="info-texte"></p><button class="fermer" id="info-fermer">Compris</button></div></div>
 <div id="toast"></div>
 <datalist id="dl-suggestions"></datalist>
 <div id="rapport"></div>
 <script>
 "use strict";
+
+/* ================= THÈME (clair / sombre / forêt / minuit) ================= */
+const THEMES_SOMBRES = ['sombre', 'minuit'];
+function resoudreTheme(choix, systemeSombre){
+  if (!choix || choix === 'auto') return systemeSombre ? 'sombre' : 'clair';
+  return ['clair', 'sombre', 'foret', 'minuit'].includes(choix) ? choix : 'clair';
+}
+function appliquerTheme(choix){
+  const sombreSys = matchMedia('(prefers-color-scheme: dark)').matches;
+  const t = resoudreTheme(choix, sombreSys);
+  if (t === 'clair') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content',
+    getComputedStyle(document.documentElement).getPropertyValue('--entete').trim() || '#1E2430');
+  try{ localStorage.setItem('bv4-theme', choix || 'auto'); }catch(e){}
+}
+appliquerTheme((() => { try{ return localStorage.getItem('bv4-theme'); }catch(e){ return 'auto'; } })());
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  appliquerTheme((etat && etat.config && etat.config.theme) || localStorage.getItem('bv4-theme') || 'auto');
+});
+
+/* ================= VERROUILLAGE (Face ID via WebAuthn + code de secours) ================= */
+const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64urlDec = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+async function hachagePIN(pin, sel){
+  const d = new TextEncoder().encode(sel + ':' + pin);
+  return b64url(await crypto.subtle.digest('SHA-256', d));
+}
+function verrouConfigLocale(){
+  try{ return JSON.parse(localStorage.getItem('bv4-verrou') || 'null'); }catch(e){ return null; }
+}
+async function activerVerrou(){
+  const pin = prompt('Choisis un code de secours (4 à 6 chiffres) — il servira si Face ID échoue :');
+  if (!pin || !/^\d{4,6}$/.test(pin)) return toast('Code invalide (4 à 6 chiffres)');
+  const conf = {actif: true, sel: b64url(crypto.getRandomValues(new Uint8Array(8)))};
+  conf.pin = await hachagePIN(pin, conf.sel);
+  // enrôlement biométrique : facultatif, le code suffit si l'appareil refuse
+  if (navigator.credentials && navigator.credentials.create && window.PublicKeyCredential){
+    try{
+      const cred = await navigator.credentials.create({publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rp: {name: 'Budget Personnel', id: location.hostname},
+        user: {id: crypto.getRandomValues(new Uint8Array(16)), name: 'budget', displayName: 'Budget Personnel'},
+        pubKeyCredParams: [{type: 'public-key', alg: -7}, {type: 'public-key', alg: -257}],
+        authenticatorSelection: {authenticatorAttachment: 'platform', userVerification: 'required'},
+        timeout: 60000,
+      }});
+      conf.credId = b64url(cred.rawId);
+    }catch(e){ toast('Face ID indisponible — le code de secours fera office de verrou'); }
+  }
+  try{ localStorage.setItem('bv4-verrou', JSON.stringify(conf)); }catch(e){ return toast('Stockage local refusé'); }
+  etat.config.verrou = {actif: true};
+  sauver(); majBoutonsVerrou();
+  toast(conf.credId ? '🔐 Verrouillage activé (Face ID + code)' : '🔐 Verrouillage activé (code)');
+}
+async function tenterBiometrie(conf){
+  if (!conf.credId || !navigator.credentials || !navigator.credentials.get) return false;
+  try{
+    await navigator.credentials.get({publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      allowCredentials: [{type: 'public-key', id: b64urlDec(conf.credId), transports: ['internal']}],
+      userVerification: 'required', timeout: 60000,
+    }});
+    return true;
+  }catch(e){ return false; }
+}
+function ouvrirVerrou(){
+  document.getElementById('verrou').classList.remove('vu');
+  document.getElementById('pin-zone').classList.remove('vu');
+  document.getElementById('pin-saisie').value = '';
+  document.getElementById('pin-err').textContent = '';
+}
+async function demanderDeverrouillage(auto){
+  const conf = verrouConfigLocale();
+  if (!conf || !conf.actif) return ouvrirVerrou();
+  if (auto && await tenterBiometrie(conf)) return ouvrirVerrou();
+  if (!conf.credId){                       // pas de biométrie enrôlée : direct au code
+    const z = document.getElementById('pin-zone');
+    z.classList.add('vu');
+    document.getElementById('pin-saisie').focus();
+  }
+}
+function verrouiller(){
+  const conf = verrouConfigLocale();
+  if (conf && conf.actif) document.getElementById('verrou').classList.add('vu');
+}
+function majBoutonsVerrou(){
+  const conf = verrouConfigLocale();
+  const actif = !!(conf && conf.actif);
+  const on = document.getElementById('btn-verrou-activer'), off = document.getElementById('btn-verrou-desactiver');
+  if (on) on.style.display = actif ? 'none' : '';
+  if (off) off.style.display = actif ? '' : 'none';
+}
+let _cacheDepuis = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden){ _cacheDepuis = Date.now(); return; }
+  if (_cacheDepuis && Date.now() - _cacheDepuis > 2 * 60 * 1000){   // > 2 min en arrière-plan
+    verrouiller(); demanderDeverrouillage(true);
+  }
+  _cacheDepuis = 0;
+});
+
+/* ================= RAPPEL DE SAUVEGARDE (le lundi) ================= */
+function jourISO(d = new Date()){ return d.toISOString().slice(0, 10); }
+function doitRappelerSauvegarde(config, date = new Date()){
+  if (date.getDay() !== 1) return false;                                  // lundi uniquement
+  if ((config.dernierRappelSauvegarde || '') === jourISO(date)) return false;   // déjà vu aujourd'hui
+  if ((config.derniereSauvegarde || '') === jourISO(date)) return false;        // déjà exporté aujourd'hui
+  return true;
+}
+function exporterJSON(){
+  const blob = new Blob([JSON.stringify(etat, null, 1)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'budget-v4-' + jourISO() + '.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  etat.config.derniereSauvegarde = jourISO();
+  sauver(); toast('Sauvegarde exportée 💾');
+}
 /* ===== Bulles d'information ⓘ ===== */
 const INFOS = {
   hero: ['Reste du jour', "Montant que tu peux dépenser chaque jour d'ici la fin du mois pour finir à zéro. Calculé sur le reste d'enveloppe du mois (modifiable dans « Estimation dépense par jour »)."],
@@ -470,8 +705,14 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '5.0.0';
+const APP_VERSION = '5.2.0';
 const CHANGELOG = [
+  {v: '5.2.0', d: '22/07/2026', pts: [
+    "Verrouillage à l'ouverture : Face ID / Touch ID via le trousseau du téléphone (WebAuthn, iOS 16+), avec code de secours à 4-6 chiffres. Reverrouillage après 2 minutes en arrière-plan. Réglages → 🔐.",
+    "Rappel de sauvegarde chaque lundi : une fenêtre propose l'export JSON en un bouton — elle ne réapparaît pas si l'export du jour est déjà fait.",
+    "Thèmes : Automatique (suit le réglage clair/sombre du téléphone), Clair, Sombre, Forêt et Minuit — Réglages → 🎨. Les graphiques suivent le thème, le compte rendu PDF reste toujours clair."]},
+  {v: '5.1.0', d: '22/07/2026', pts: [
+    "Puces de saisie rapide masquables : la croix ✕ sur chaque puce la retire des suggestions (elle reste dans l'auto-complétion) ; bouton ♻️ dans Réglages pour tout réafficher."]},
   {v: '5.0.0', d: '19/07/2026', pts: [
     "Socle d'analyse : à chaque enregistrement mensuel, l'app mémorise désormais aussi la valeur du portefeuille et les apports du mois — déduits du budget et des positions, sans aucune saisie supplémentaire. Les périodes déjà enregistrées sont complétées rétroactivement.",
     "Performance réelle : TRI (le rendement annuel réellement obtenu compte tenu du calendrier des versements) et TWR (le rendement du portefeuille hors effet des versements, comparable à un indice).",
@@ -582,6 +823,7 @@ function migrer(){
   etat.historique = etat.historique || [];
   if (etat.config.enveloppeFixe == null || etat.config.enveloppeFixe === '' || isNaN(Number(etat.config.enveloppeFixe))) etat.config.enveloppeFixe = null;
   etat.config.triPositions = etat.config.triPositions || {};
+  etat.config.chipsMasquees = etat.config.chipsMasquees || [];
   if (typeof enrichirHistorique === 'function') enrichirHistorique();
   if (typeof enrichirHistorique === 'function' && etat.historique.length) enrichirHistorique();
   for (const p of (etat.config.poches || [])) if (p.mode === 'tiers') p.mode = 'part';
@@ -650,13 +892,14 @@ function frequentesAvecMontant(max = 8){
       freq.set(l, (freq.get(l) || 0) + 1);
       dernier.set(l, Number(d.montant) || 0);
     }
-  return [...freq.entries()].filter(([, n]) => n >= 2)
+  const masquees = new Set(etat.config.chipsMasquees || []);
+  return [...freq.entries()].filter(([l, n]) => n >= 2 && !masquees.has(l))
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, max).map(([l]) => ({label: l, montant: dernier.get(l)}));
 }
 function chipsHTML(cible){
   return frequentesAvecMontant().map(f =>
-    `<button class="chip" data-chip="${echap(f.label)}" data-mnt="${Math.abs(f.montant)}" data-cible="${cible}">${echap(f.label)} · ${Math.abs(f.montant).toLocaleString('fr-FR', {maximumFractionDigits: 2})} €</button>`).join('');
+    `<button class="chip" data-chip="${echap(f.label)}" data-mnt="${Math.abs(f.montant)}" data-cible="${cible}">${echap(f.label)} · ${Math.abs(f.montant).toLocaleString('fr-FR', {maximumFractionDigits: 2})} €<span class="chip-x" data-chipdel="${echap(f.label)}" role="button" aria-label="Masquer cette suggestion">✕</span></button>`).join('');
 }
 const clesMois = () => Object.keys(etat.months).sort();
 const NOMS_MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
@@ -1048,20 +1291,20 @@ function fluxSVG(cle){
       const h = Math.max(2.5, d.v * ech);
       out += ruban(X.cat + NW, yD, h, X.det, yDet, h, cat.coul, 0.38);
       out += `<rect x="${X.det}" y="${yDet}" width="${NW}" height="${h}" rx="3" fill="${cat.coul}"/>
-        <text x="${X.det + NW + 6}" y="${yDet + h / 2 + 4}" font-size="12" fill="#1E2430">${echap(d.nom)} · ${fmt(d.v)}</text>`;
+        <text x="${X.det + NW + 6}" y="${yDet + h / 2 + 4}" font-size="12" fill="var(--encre)">${echap(d.nom)} · ${fmt(d.v)}</text>`;
       yD += h; yDet += h + ECART;
     }
   }
   // nœuds + étiquettes
   for (const s of S){
     out += `<rect x="${X.src}" y="${s.y}" width="${NW}" height="${s.h}" rx="3" fill="${s.deficit ? '#C0392B' : '#5A6072'}"/>
-      <text x="${X.src - 6}" y="${s.y + s.h / 2 + 4}" font-size="12" fill="#1E2430" text-anchor="end">${echap(s.nom)} · ${fmt(s.v)}</text>`;
+      <text x="${X.src - 6}" y="${s.y + s.h / 2 + 4}" font-size="12" fill="var(--encre)" text-anchor="end">${echap(s.nom)} · ${fmt(s.v)}</text>`;
   }
   out += `<rect x="${X.bud}" y="${budY}" width="${NW}" height="${Math.max(3, budH)}" rx="3" fill="#B08D3E"/>
-    <text x="${X.bud + NW / 2}" y="${budY - 8}" font-size="12.5" font-weight="700" fill="#1E2430" text-anchor="middle">Budget · ${fmt(F.totalIn)}</text>`;
+    <text x="${X.bud + NW / 2}" y="${budY - 8}" font-size="12.5" font-weight="700" fill="var(--encre)" text-anchor="middle">Budget · ${fmt(F.totalIn)}</text>`;
   for (const cat of C){
     out += `<rect x="${X.cat}" y="${cat.y}" width="${NW}" height="${cat.h}" rx="3" fill="${cat.coul}"/>
-      <text x="${X.cat + NW + 6}" y="${cat.y + cat.h / 2 + 4}" font-size="12" fill="#1E2430">${echap(cat.nom)} · ${fmt(cat.v)}</text>`;
+      <text x="${X.cat + NW + 6}" y="${cat.y + cat.h / 2 + 4}" font-size="12" fill="var(--encre)">${echap(cat.nom)} · ${fmt(cat.v)}</text>`;
   }
   return `<svg viewBox="0 0 ${L} ${Math.ceil(Math.max(H, HAUT * 2 + 60))}" role="img" aria-label="Flux du mois">${out}</svg>`;
 }
@@ -1397,8 +1640,8 @@ function projectionSVG(series, mc, annees){
   let out = '';
   for (let g = 0; g <= 4; g++){
     const v = min + (max - min) * g / 4, y = Y(v);
-    out += `<line x1="${ml}" y1="${y}" x2="${L - mr}" y2="${y}" stroke="#E4E1D8"/>
-      <text x="${ml - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#5A6072">${Math.round(v / 1000)} k€</text>`;
+    out += `<line x1="${ml}" y1="${y}" x2="${L - mr}" y2="${y}" stroke="var(--trait)"/>
+      <text x="${ml - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="var(--encre2)">${Math.round(v / 1000)} k€</text>`;
   }
   // faisceau P10–P90
   const hautP = mc.map(x => `${X(x.annee)},${Y(x.p90)}`).join(' ');
@@ -1413,7 +1656,7 @@ function projectionSVG(series, mc, annees){
   out += ligne([`${X(0)},${Y(series.neutre[0])}`, ...mc.map(x => `${X(x.annee)},${Y(x.p50)}`)].join(' '), '#B08D3E', 1.4, '2 3');
   out += ligne(parAn(series.neutre), '#1E2430', 2.6);
   for (let an = 0; an <= annees; an += Math.max(1, Math.round(annees / 5)))
-    out += `<text x="${X(an)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#5A6072">${an ? an + ' an' + (an > 1 ? 's' : '') : 'auj.'}</text>`;
+    out += `<text x="${X(an)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--encre2)">${an ? an + ' an' + (an > 1 ? 's' : '') : 'auj.'}</text>`;
   return `<svg viewBox="0 0 ${L} ${H}" role="img" aria-label="Projection du patrimoine">${out}</svg>`;
 }
 function carteProjection(){
@@ -1859,7 +2102,7 @@ function rendreInvest(){
 }
 function rendreGraph(){
   const svg = document.getElementById('inv-graph'), H = etat.historique;
-  if (H.length < 1){ svg.innerHTML = '<text x="360" y="150" text-anchor="middle" fill="#5A6072" font-size="14">Aucune donnée — enregistre un premier mois.</text>'; return; }
+  if (H.length < 1){ svg.innerHTML = '<text x="360" y="150" text-anchor="middle" fill="var(--encre2)" font-size="14">Aucune donnée — enregistre un premier mois.</text>'; return; }
   const series = [['tr', '#B08D3E'], ['pea', '#2E7D5B'], ['per', '#5A6072'], ['total', '#1E2430']];
   const tous = H.flatMap(h => series.map(([k]) => +h[k] || 0));
   const mx = Math.max(...tous, 1), mn = Math.min(...tous, 0);
@@ -1869,15 +2112,15 @@ function rendreGraph(){
   let out = '';
   for (let g = 0; g <= 4; g++){
     const v = mn + (mx - mn) * g / 4, y = Y(v);
-    out += `<line x1="${L}" y1="${y}" x2="${R}" y2="${y}" stroke="#E4E1D8"/>
-      <text x="${L-6}" y="${y+4}" text-anchor="end" font-size="10" fill="#5A6072">${Math.round(v).toLocaleString('fr-FR')}</text>`;
+    out += `<line x1="${L}" y1="${y}" x2="${R}" y2="${y}" stroke="var(--trait)"/>
+      <text x="${L-6}" y="${y+4}" text-anchor="end" font-size="10" fill="var(--encre2)">${Math.round(v).toLocaleString('fr-FR')}</text>`;
   }
   for (const [k, coul] of series){
     const pts = H.map((h, i) => `${X(i)},${Y(+h[k] || 0)}`).join(' ');
     out += `<polyline points="${pts}" fill="none" stroke="${coul}" stroke-width="${k === 'total' ? 3 : 2}" stroke-linejoin="round"/>`;
     out += H.map((h, i) => `<circle cx="${X(i)}" cy="${Y(+h[k] || 0)}" r="3.5" fill="${coul}"/>`).join('');
   }
-  out += H.map((h, i) => `<text x="${X(i)}" y="${B + 18}" text-anchor="middle" font-size="10" fill="#5A6072">${h.periode}</text>`).join('');
+  out += H.map((h, i) => `<text x="${X(i)}" y="${B + 18}" text-anchor="middle" font-size="10" fill="var(--encre2)">${h.periode}</text>`).join('');
   svg.innerHTML = out;
 }
 function rendreHistTable(){
@@ -2002,6 +2245,7 @@ document.querySelector('main').addEventListener('change', e => {
     sauver(); rafraichirPage();
   } else if (el.dataset.tri){               // tri d'un portefeuille
     etat.config.triPositions = etat.config.triPositions || {};
+  etat.config.chipsMasquees = etat.config.chipsMasquees || [];
   if (typeof enrichirHistorique === 'function') enrichirHistorique();
   if (typeof enrichirHistorique === 'function' && etat.historique.length) enrichirHistorique();
     etat.config.triPositions[el.dataset.tri] = el.value;
@@ -2044,6 +2288,13 @@ document.querySelector('main').addEventListener('click', e => {
     sauver(); rafraichirPage();
   } else if (el.hasAttribute('data-cgo')){
     ajouterViaComposeur(el.closest('[data-comp]'));
+  } else if (el.dataset.chipdel != null || (el.closest && el.closest('[data-chipdel]'))){
+    const cible = el.dataset.chipdel != null ? el : el.closest('[data-chipdel]');
+    const lab = cible.dataset.chipdel;
+    if (!confirm(`Masquer la suggestion « ${lab} » ?\n(Elle restera dans l'auto-complétion à la saisie ; réaffichable dans Réglages.)`)) return;
+    etat.config.chipsMasquees.push(lab);
+    sauver(); majSuggestions(); rafraichirPage();
+    toast(`Puce « ${lab} » masquée`);
   } else if (el.dataset.chip != null){       // puce → pré-remplit la saisie rapide
     let cl, cm;
     if (el.dataset.cible === 'acc'){
@@ -2299,6 +2550,13 @@ document.getElementById('poches-liste').addEventListener('click', e => {
   etat.config.poches.splice(+b.dataset.pochesup, 1);
   sauver(); rendreReglages();
 });
+document.getElementById('btn-chips-reset').onclick = () => {
+  const n = (etat.config.chipsMasquees || []).length;
+  if (!n) return toast('Aucune puce masquée');
+  etat.config.chipsMasquees = [];
+  sauver(); majSuggestions(); rafraichirPage();
+  toast(`${n} puce${n > 1 ? 's' : ''} réaffichée${n > 1 ? 's' : ''}`);
+};
 document.getElementById('cfg-fixe').addEventListener('change', e => {
   const txt = e.target.value.trim();
   figerEnveloppeHistorique();
@@ -2331,7 +2589,7 @@ const CAT_COULEURS = [
 function donutSVG(parts, total){
   // parts: [{label, valeur, couleur}] — valeurs positives
   const cx = 80, cy = 80, r = 70, ri = 42;
-  if (total <= 0.004) return `<svg viewBox="0 0 160 160" width="100%"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#E4E1D8" stroke-width="26"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="11" fill="#5A6072">Aucune dépense</text></svg>`;
+  if (total <= 0.004) return `<svg viewBox="0 0 160 160" width="100%"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--trait)" stroke-width="26"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="11" fill="var(--encre2)">Aucune dépense</text></svg>`;
   const pol = (rr, a) => [cx + rr * Math.cos(a), cy + rr * Math.sin(a)];
   let a0 = -Math.PI / 2, out = '';
   for (const p of parts){
@@ -2345,8 +2603,8 @@ function donutSVG(parts, total){
     out += `<path d="M ${x0e} ${y0e} A ${r} ${r} 0 ${grand} 1 ${x1e} ${y1e} L ${x0i} ${y0i} A ${ri} ${ri} 0 ${grand} 0 ${x1i} ${y1i} Z" fill="${p.couleur}" stroke="#fff" stroke-width="1"/>`;
     a0 = a1;
   }
-  out += `<text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="15" font-weight="800" fill="#1E2430">${Math.round(total).toLocaleString('fr-FR')} €</text>
-          <text x="${cx}" y="${cy+13}" text-anchor="middle" font-size="8" fill="#5A6072" letter-spacing="1">DÉPENSES</text>`;
+  out += `<text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="15" font-weight="800" fill="var(--encre)">${Math.round(total).toLocaleString('fr-FR')} €</text>
+          <text x="${cx}" y="${cy+13}" text-anchor="middle" font-size="8" fill="var(--encre2)" letter-spacing="1">DÉPENSES</text>`;
   return `<svg viewBox="0 0 160 160" width="100%">${out}</svg>`;
 }
 function pageRapport(cle){
@@ -2497,14 +2755,43 @@ function genererRapport(){
 document.getElementById('btn-rapport').onclick = genererRapport;
 
 /* ================= SAUVEGARDE / IMPORTS ================= */
-document.getElementById('btn-export-json').onclick = () => {
-  const blob = new Blob([JSON.stringify(etat, null, 1)], {type: 'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'budget-v4-' + new Date().toISOString().slice(0,10) + '.json';
-  a.click(); URL.revokeObjectURL(a.href);
-  toast('Sauvegarde exportée 💾');
+document.getElementById('btn-export-json').onclick = exporterJSON;
+document.getElementById('btn-rappel-export').onclick = () => {
+  exporterJSON();
+  etat.config.dernierRappelSauvegarde = jourISO();
+  sauver();
+  document.getElementById('voile-rappel').classList.remove('vu');
 };
+document.getElementById('btn-rappel-plus-tard').onclick = () => {
+  etat.config.dernierRappelSauvegarde = jourISO();
+  sauver();
+  document.getElementById('voile-rappel').classList.remove('vu');
+};
+document.getElementById('cfg-theme').addEventListener('change', e => {
+  etat.config.theme = e.target.value;
+  appliquerTheme(e.target.value);
+  sauver(); toast('Thème appliqué 🎨');
+});
+document.getElementById('btn-verrou-activer').onclick = activerVerrou;
+document.getElementById('btn-verrou-desactiver').onclick = () => {
+  if (!confirm('Désactiver le verrouillage de l\u2019application ?')) return;
+  try{ localStorage.removeItem('bv4-verrou'); }catch(e){}
+  etat.config.verrou = {actif: false};
+  sauver(); majBoutonsVerrou(); toast('Verrouillage désactivé');
+};
+document.getElementById('btn-deverrouiller').onclick = () => demanderDeverrouillage(true);
+document.getElementById('lien-pin').onclick = () => {
+  document.getElementById('pin-zone').classList.add('vu');
+  document.getElementById('pin-saisie').focus();
+};
+document.getElementById('pin-saisie').addEventListener('input', async e => {
+  const v = e.target.value.trim();
+  if (v.length < 4) return;
+  const conf = verrouConfigLocale();
+  if (!conf) return ouvrirVerrou();
+  if (await hachagePIN(v, conf.sel) === conf.pin) ouvrirVerrou();
+  else if (v.length >= 6){ document.getElementById('pin-err').textContent = 'Code incorrect'; e.target.value = ''; }
+});
 document.getElementById('btn-import-json').onclick = () => document.getElementById('fic-json').click();
 document.getElementById('fic-json').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
@@ -2799,13 +3086,21 @@ if (estIOS){
 
 /* ================= DÉMARRAGE ================= */
 (async function init(){
+  verrouiller();                          // affiché avant tout si le verrou est actif
+  demanderDeverrouillage(true);           // tente Face ID immédiatement
   document.getElementById('ver').textContent = 'v' + APP_VERSION + ' · Hors-ligne';
   document.getElementById('changelog-corps').innerHTML = CHANGELOG.map(c => `
     <details class="aide"><summary>v${c.v} — ${c.d}</summary>
       ${c.pts.map(p => `<p class="note">• ${p}</p>`).join('')}
     </details>`).join('');
   await chargerEtat();
+  if (etat.config.theme) appliquerTheme(etat.config.theme);   // la config fait foi sur le miroir local
+  majBoutonsVerrou();
+  const selTheme = document.getElementById('cfg-theme');
+  if (selTheme) selTheme.value = etat.config.theme || 'auto';
   rendreTout();
+  if (doitRappelerSauvegarde(etat.config))
+    document.getElementById('voile-rappel').classList.add('vu');
   // filet : si aucune page n'est active (état inattendu), afficher l'Accueil
   if (!document.querySelector('.page.actif'))
     document.getElementById('page-accueil').classList.add('actif');
