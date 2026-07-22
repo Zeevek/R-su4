@@ -9,6 +9,9 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v5.5.1 — 22/07/2026
+- **Page Investissements lisible en thème sombre** : les pastilles de catégorie gardaient un texte clair sur leur fond pastel clair (illisible la nuit) — chaque pastille a désormais son encre foncée assortie (Actions vert sapin, ETFs bleu marine, Cryptos ocre, Métaux terre cuite, Private Equity violet, Obligations ardoise), identique sur tous les thèmes. La ligne TOTAL des tableaux suit le thème (bandeau + liseré doré) au lieu d'un crème codé en dur, les prix « manuel » 🔒 et le sélecteur de tri sont adoucis.
+
 ## v5.5.0 — 22/07/2026
 - **Sous-catégories vacances dans la saisie rapide** : choisir « 🏖️ Vacances… » fait apparaître un second menu — 🏨 Hôtel / Airbnb, ✈️ Transport, 🍽️ Alimentation, 🎢 Loisirs, 📦 Autres, 💶 Remboursement reçu. Le menu principal garde une seule ligne vacances au lieu de six.
 - **Nouveau poste « Vacances · Remboursements reçus »** (montants positifs, ex. la part d'un ami sur l'Airbnb) : il vient en déduction du total vacances partout — page Mois (carte dédiée), bilan, diagramme des flux, compte rendu PDF. Les sauvegardes existantes reçoivent le poste automatiquement à l'import, sans changement d'aucun chiffre (vérifié sur tes données réelles : reste fin de mois 642,07 € inchangé).

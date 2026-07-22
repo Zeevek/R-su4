@@ -53,6 +53,8 @@
 [data-theme="sombre"] td.px-ancien input, [data-theme="minuit"] td.px-ancien input{color:var(--laiton)}
 [data-theme="sombre"] td.px-manuel, [data-theme="minuit"] td.px-manuel{background:rgba(99,190,147,.10)}
 [data-theme="sombre"] td.px-fige, [data-theme="minuit"] td.px-fige{background:rgba(255,255,255,.04)}
+[data-theme="sombre"] td.px-fige input, [data-theme="minuit"] td.px-fige input{color:var(--encre2)}
+[data-theme="sombre"] .barre-tri select, [data-theme="minuit"] .barre-tri select{background:rgba(255,255,255,.05)}
 [data-theme="sombre"] .legende-prix .lp, [data-theme="minuit"] .legende-prix .lp{background:rgba(255,255,255,.07)}
 [data-theme="sombre"] .chlog b, [data-theme="minuit"] .chlog b{color:var(--encre)}
 /* Le compte rendu A4 reste toujours clair, quel que soit le thème */
@@ -144,7 +146,7 @@ td{padding:6px 4px;border-bottom:1px dashed var(--trait);text-align:right;white-
 td:first-child{white-space:normal;max-width:120px;overflow-wrap:break-word}
 td input{width:100%;min-width:52px;border:none;background:transparent;text-align:right;font-size:12.5px;padding:2px}
 td input:focus{outline:none;background:#FBF7EC;border-radius:4px}
-tr.total td{font-weight:700;border-top:2px solid var(--encre);border-bottom:none;background:#FBFAF6}
+tr.total td{font-weight:700;border-top:2px solid var(--laiton);border-bottom:none;background:var(--tete);color:var(--encre)}
 
 .pastille{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;letter-spacing:.04em}
 /* Fraîcheur des cours : la colonne Prix change de teinte */
@@ -166,8 +168,9 @@ td.px-fige input{color:#4A5570;font-style:italic}
 .barre-tri .cpt{margin-left:auto;white-space:nowrap}
 .sel-cat{border:none;border-radius:99px;padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:.04em;
   width:auto;max-width:100%;-webkit-appearance:none;appearance:none;text-align:left}
-.p-actions{background:#C6EFCE}.p-etfs{background:#BDD7EE}.p-pe{background:#E2D5F1}
-.p-cryptos{background:#FFE699}.p-metaux{background:#F8CBAD}.p-obligations{background:#DCDCE4}
+/* fonds pastel clairs → encre foncée assortie, identique sur tous les thèmes */
+.p-actions{background:#C6EFCE;color:#14532D}.p-etfs{background:#BDD7EE;color:#1E3A5F}.p-pe{background:#E2D5F1;color:#4C2A6E}
+.p-cryptos{background:#FFE699;color:#6B4E00}.p-metaux{background:#F8CBAD;color:#7A3E12}.p-obligations{background:#DCDCE4;color:#3A3F52}
 
 .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;background:var(--entete);color:var(--entete-texte);
   font-weight:700;font-size:13px;letter-spacing:.04em}
@@ -724,8 +727,10 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '5.5.0';
+const APP_VERSION = '5.5.1';
 const CHANGELOG = [
+  {v: '5.5.1', d: '22/07/2026', pts: [
+    "Lisibilité de la page Investissements en thème sombre : pastilles de catégorie à encre foncée assortie (Actions vert sapin, Cryptos ocre, Private Equity violet…), ligne TOTAL des tableaux sur bandeau du thème avec liseré doré, prix « manuel » et sélecteur de tri adoucis."]},
   {v: '5.5.0', d: '22/07/2026', pts: [
     "Saisie rapide : « Vacances… » ouvre un second menu avec les 6 postes (hôtel, transport, alimentation, loisirs, autres, remboursement reçu) — le menu principal reste court.",
     "Nouveau poste « Vacances · Remboursements reçus » (montants positifs) : la part d'un ami remboursée vient en déduction du total vacances, partout (mois, bilan, flux, compte rendu). Ajouté automatiquement aux mois existants à l'import."]},
