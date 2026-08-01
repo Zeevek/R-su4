@@ -710,6 +710,7 @@ const INFOS = {
   projection: ['Projection', "L'app lit ton allocation par catégorie, applique à chacune trois hypothèses de rendement annuel (pessimiste, neutre, optimiste), en fait une moyenne pondérée, puis projette ton capital actuel et tes versements mensuels. La zone dorée représente 8 trajectoires sur 10 simulées en tenant compte de la volatilité. À mesure que ton historique s'allonge, ton rendement réellement observé remplace progressivement l'hypothèse théorique. Ce sont des conventions de calcul, pas des prévisions."],
   perfreelle: ['Performance réelle (TRI / TWR)', "Deux façons de mesurer, calculées sans aucune saisie : le TRI est le taux annuel que ton argent a réellement rapporté compte tenu du calendrier de tes versements — c'est ta performance à toi. Le TWR neutralise l'effet des versements : c'est celui qu'on compare à un indice. Si le TRI dépasse le TWR, tes versements sont tombés à de bons moments. Il faut au moins deux mois enregistrés, et une dizaine pour que ce soit parlant."],
   projection: ['Projection', "Trois scénarios construits à partir de ton allocation réelle par catégorie, à laquelle sont appliqués des taux annuels conventionnels (actions 2/6/9 %, obligations 1/3/4 %, crypto −50/+10/+40 %…). Le faisceau montre la zone probable plutôt qu'un trait illusoire : 10 % des trajectoires finissent sous la borne basse, 10 % au-dessus de la haute. À mesure que ton historique s'allonge, ton rendement réellement observé remplace progressivement la théorie. Ce sont des conventions de place, pas des prévisions."],
+  cashcomptes: ['Cash dédié PEA / PER', "Une poche « → Cash PEA » ou « → Cash PER » met de l'argent de côté pour ces comptes, en plus de tes versements mensuels programmés (qui restent prélevés sur le budget du mois). Le cash PEA est consommé par tes achats directs PEA ; le cash PER par les versements exceptionnels que tu saisis ici. Si un achat PEA dépasse le cash dédié, le complément est pris sur le disponible général."],
   invest: ['Positions', "Nb × prix actuel − Nb × PRU = performance latente. « Enregistrer » fige la performance du moment dans l'historique pour suivre l'évolution mois par mois."],
   cours: ['Mise à jour des cours', "Si un ISIN n'est pas trouvé, saisis le ticker de la place de cotation (ex. TSM pour l'ADR TSMC, SGLN.L pour l'or iShares en pence, SOL-EUR pour Solana). Pour un fonds non coté, inscris « manuel ». Toutes les devises sont gérées : le taux de change est récupéré en direct au moment de l'appui (une requête par devise) et les taux appliqués s'affichent sous le bouton. Saisis une fois l'ISIN (ex. FR0000120271) ou le ticker Yahoo (ex. TTE.PA, 8001.T, BTC-EUR) de chaque position, puis appuie sur le bouton — à la demande, par exemple une fois par mois. Toutes les devises sont converties en euros (USD, JPY, CHF, HKD, GBP, pence…) avec les taux de change récupérés en direct au moment de l'appui. Les produits non cotés (private equity, fonds fermés) n'ont pas de cotation publique : mets leur prix à jour à la main. Internet n'est requis qu'à ce moment-là ; seuls les symboles sont interrogés, rien de ton portefeuille ne sort de l'appareil."],
   rapport: ['Compte rendu PDF', "Génère une page A4 par mois et ouvre la boîte d'impression : choisis « Enregistrer en PDF ». Sur iPhone : Partager → Imprimer, puis pince l'aperçu pour l'enregistrer dans Fichiers."],
@@ -727,8 +728,13 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '5.5.1';
+const APP_VERSION = '5.6.0';
 const CHANGELOG = [
+  {v: '5.6.0', d: '01/08/2026', pts: [
+    "Les poches PEA et PER deviennent du cash dédié à ces comptes, et non plus des tirelires de suivi indépendantes : nouvelles destinations « → Cash PEA » et « → Cash PER » dans la répartition. Les poches existantes sont basculées automatiquement.",
+    "Page Achat-Vente : un disponible par compte (TR général, cash PEA, cash PER) et une carte de suivi. Les achats directs PEA puisent dans le cash PEA ; au-delà, le complément est pris sur le disponible général.",
+    "Nouvelle liste « PER — versements exceptionnels » pour consommer le cash PER lors d'un versement réel.",
+    "Le patrimoine total de l'Accueil inclut désormais ce cash dédié."]},
   {v: '5.5.1', d: '22/07/2026', pts: [
     "Lisibilité de la page Investissements en thème sombre : pastilles de catégorie à encre foncée assortie (Actions vert sapin, Cryptos ocre, Private Equity violet…), ligne TOTAL des tableaux sur bandeau du thème avec liseré doré, prix « manuel » et sélecteur de tri adoucis."]},
   {v: '5.5.0', d: '22/07/2026', pts: [
@@ -867,6 +873,19 @@ function migrer(){
   etat.config.triPositions = etat.config.triPositions || {};
   etat.config.chipsMasquees = etat.config.chipsMasquees || [];
   for (const m of Object.values(etat.months)) if (!Array.isArray(m.vacRemb)) m.vacRemb = [];
+  if (etat.achatVente && !Array.isArray(etat.achatVente.versPER)) etat.achatVente.versPER = [];
+  // Poches PEA / PER créées avant les cibles dédiées : elles étaient en « suivi »
+  // alors qu'il s'agit de cash destiné à ces comptes → bascule automatique.
+  const versCible = {};
+  for (const p of (etat.config.poches || [])){
+    if (p.cible !== 'suivi') continue;
+    if (/\bPEA\b/i.test(p.nom)) { p.cible = 'pea'; versCible[p.id] = 'pea'; }
+    else if (/\bPER\b/i.test(p.nom)) { p.cible = 'per'; versCible[p.id] = 'per'; }
+  }
+  if (Object.keys(versCible).length)
+    for (const m of Object.values(etat.months))
+      for (const p of (m.repartitionFigee || []))
+        if (versCible[p.id]) p.cible = versCible[p.id];
   enrichirHistorique();
   for (const p of (etat.config.poches || [])) if (p.mode === 'tiers') p.mode = 'part';
   if (!Array.isArray(etat.config.poches) || !etat.config.poches.length)
@@ -1114,16 +1133,21 @@ function cumulsRepartition(){
      à la feuille "MàJ". Ici la borne est le mois calendaire courant — les
      modèles pré-remplis des mois futurs n'entrent pas dans les cumuls. */
   let LA = 0, LDDS = 0, inv = 0, invTR = 0, invPEA = 0, invPER = 0;
+  let cashPEA = 0, cashPER = 0;   // cash mis de côté pour ces comptes via les poches
   const parPoche = {};
   const borne = cleAujourdhui();
   for (const cle of clesMois()){
     if (cle > borne) continue;
     const c = calculerMois(cle);
     LA += c.LA; LDDS += c.LDDS; inv += c.invReste;
-    for (const p of c.repartition) parPoche[p.id] = (parPoche[p.id] || 0) + p.montant;
+    for (const p of c.repartition){
+      parPoche[p.id] = (parPoche[p.id] || 0) + p.montant;
+      if (p.cible === 'pea') cashPEA += p.montant;
+      else if (p.cible === 'per') cashPER += p.montant;
+    }
     invTR += -c.totTR; invPEA += -(Number(etat.months[cle].invPEA) || 0); invPER += -(Number(etat.months[cle].invPER) || 0);
   }
-  return {LA, LDDS, inv, invTR, invPEA, invPER, parPoche};
+  return {LA, LDDS, inv, invTR, invPEA, invPER, cashPEA, cashPER, parPoche};
 }
 function calculerAchatVente(){
   const av = etat.achatVente, cr = cumulsRepartition();
@@ -1131,8 +1155,19 @@ function calculerAchatVente(){
   const ventesTR = av.txTR.filter(t => t.sens === 'Vente').reduce((a,t) => a + (+t.montant || 0), 0);
   const achatsPEA = av.txPEA.filter(t => t.sens === 'Achat').reduce((a,t) => a + (+t.montant || 0), 0);
   const ventesPEA = av.txPEA.filter(t => t.sens === 'Vente').reduce((a,t) => a + (+t.montant || 0), 0);
-  const dispo = (Number(av.initial) || 0) + cr.inv - somme(av.sorties) - achatsTR + ventesTR - achatsPEA + ventesPEA;
-  return {dispo, netTR: achatsTR - ventesTR, netPEA: achatsPEA - ventesPEA, cumulEpargne: cr.inv};
+  const netTR = achatsTR - ventesTR, netPEA = achatsPEA - ventesPEA;
+  // Cash dédié au PEA : les achats PEA y puisent d'abord ; le déficit éventuel
+  // retombe sur le disponible général (comportement d'avant les poches dédiées).
+  const soldePEA = cr.cashPEA - netPEA;
+  const dispoPEA = Math.max(0, soldePEA), deficitPEA = Math.min(0, soldePEA);
+  // Cash dédié au PER : consommé par les versements exceptionnels saisis (négatifs)
+  const versPER = somme(av.versPER || []);
+  const soldePER = cr.cashPER + versPER;
+  const dispoPER = Math.max(0, soldePER), deficitPER = Math.min(0, soldePER);
+  const dispo = (Number(av.initial) || 0) + cr.inv - somme(av.sorties) - netTR + deficitPEA + deficitPER;
+  return {dispo, dispoPEA, dispoPER, cashPEA: cr.cashPEA, cashPER: cr.cashPER,
+          netTR, netPEA, versPER, cumulEpargne: cr.inv,
+          totalDispo: dispo + dispoPEA + dispoPER};
 }
 function calculerLivrets(){
   const cr = cumulsRepartition();
@@ -1867,11 +1902,13 @@ function rendreAccueil(){
   }
   document.getElementById('est-grille').innerHTML = g;
 
-  document.getElementById('patri-total').textContent = fmt(liv.total + inv.total + avc.dispo);
+  document.getElementById('patri-total').textContent = fmt(liv.total + inv.total + avc.totalDispo);
   document.getElementById('patri-detail').innerHTML = `
     <div class="ligne"><input class="lab" value="💰 Livrets (A + LDDS)" readonly><span class="mnt" style="width:auto">${fmt(liv.total)}</span></div>
     <div class="ligne"><input class="lab" value="📈 Investissements (TR + PEA + PERin)" readonly><span class="mnt" style="width:auto">${fmt(inv.total)}</span></div>
-    <div class="ligne"><input class="lab" value="💵 Disponible à l'investissement" readonly><span class="mnt ${cls(avc.dispo)}" style="width:auto">${fmt(avc.dispo)}</span></div>
+    <div class="ligne"><input class="lab" value="💵 Disponible à l'investissement (TR)" readonly><span class="mnt ${cls(avc.dispo)}" style="width:auto">${fmt(avc.dispo)}</span></div>
+    ${avc.dispoPEA > 0.004 ? `<div class="ligne"><input class="lab" value="📈 Cash dédié PEA" readonly><span class="mnt pos" style="width:auto">${fmt(avc.dispoPEA)}</span></div>` : ''}
+    ${avc.dispoPER > 0.004 ? `<div class="ligne"><input class="lab" value="🛡️ Cash dédié PER" readonly><span class="mnt pos" style="width:auto">${fmt(avc.dispoPER)}</span></div>` : ''}
     <div class="ligne"><input class="lab" value="📊 Perf. latente globale" readonly><span class="mnt ${cls(inv.perfTotale)}" style="width:auto">${fmtS(inv.perfTotale)}</span></div>`;
 }
 
@@ -2177,8 +2214,8 @@ function rendreHistTable(){
 function rendreAV(){
   const a = calculerAchatVente(), av = etat.achatVente;
   document.getElementById('av-kpis').innerHTML = [
-    ['💵 Disponible à investir', fmt(a.dispo)], ['Cumul épargne « reste »', fmt(a.cumulEpargne)],
-    ['🏦 Net investi TR (direct)', fmt(a.netTR)], ['📈 Net investi PEA (direct)', fmt(a.netPEA)],
+    ['💵 Dispo TR (général)', fmt(a.dispo)], ['📈 Cash PEA', fmt(a.dispoPEA)],
+    ['🛡️ Cash PER', fmt(a.dispoPER)], ['🧮 Total disponible', fmt(a.totalDispo)],
   ].map(([e, v]) => `<div class="kpi"><span class="eti">${e}</span><div class="val">${v}</div></div>`).join('');
   const txTable = (titre, cle, liste) => `
     <div class="carte"><div class="tete"><h3>${titre}</h3><div class="tot">${fmt(liste.filter(t=>t.sens==='Achat').reduce((s,t)=>s+(+t.montant||0),0) - liste.filter(t=>t.sens==='Vente').reduce((s,t)=>s+(+t.montant||0),0))}</div></div>
@@ -2208,6 +2245,19 @@ function rendreAV(){
     ${carteListe('➖ Sorties (renflouement dépenses)', 'achatVente.sorties', av.sorties)}
     ${txTable('🏦 Trade Republic — achats / ventes directs', 'txTR', av.txTR)}
     ${txTable('📈 PEA Bourse Direct — achats / ventes directs', 'txPEA', av.txPEA)}
+    <div class="carte"><div class="tete"><h3>💰 Cash dédié PEA / PER</h3>${infoBtn('cashcomptes')}</div>
+      <div class="corps">
+        <div class="ligne"><input class="lab" value="📈 Mis de côté pour le PEA (poches)" readonly><span class="mnt pos">${fmt(a.cashPEA)}</span></div>
+        <div class="ligne"><input class="lab" value="📈 − achats directs PEA" readonly><span class="mnt ${cls(-a.netPEA)}">${fmt(-a.netPEA)}</span></div>
+        <div class="ligne"><input class="lab" value="📈 Cash PEA restant" readonly><span class="mnt ${cls(a.dispoPEA)}"><b>${fmt(a.dispoPEA)}</b></span></div>
+        <div class="ligne"><input class="lab" value="🛡️ Mis de côté pour le PER (poches)" readonly><span class="mnt pos">${fmt(a.cashPER)}</span></div>
+        <div class="ligne"><input class="lab" value="🛡️ − versements exceptionnels" readonly><span class="mnt ${cls(a.versPER)}">${fmt(a.versPER)}</span></div>
+        <div class="ligne"><input class="lab" value="🛡️ Cash PER restant" readonly><span class="mnt ${cls(a.dispoPER)}"><b>${fmt(a.dispoPER)}</b></span></div>
+        <p class="note">Ce cash vient des poches « → Cash PEA / PER » de la répartition : il s'ajoute à tes versements mensuels programmés
+        (${fmt(-(Number(etat.months[moisCourantCle()] && etat.months[moisCourantCle()].invPEA) || 0))} PEA et
+        ${fmt(-(Number(etat.months[moisCourantCle()] && etat.months[moisCourantCle()].invPER) || 0))} PER ce mois-ci), qui restent, eux, prélevés sur le budget du mois.</p>
+      </div></div>
+    ${carteListe('🛡️ PER — versements exceptionnels (depuis le cash PER)', 'achatVente.versPER', av.versPER || [])}
     <div class="carte"><div class="tete"><h3>📈 Bilan par intitulé (TR)</h3></div>
       <div class="corps">${Object.entries(bilan).map(([l, v]) =>
         `<div class="ligne"><input class="lab" value="${echap(l)}" readonly><span class="mnt ${cls(v)}">${fmt(v)}</span></div>`).join('') || '<p class="note">Aucune opération.</p>'}
@@ -2218,7 +2268,8 @@ function rendreReglages(){
   document.getElementById('cfg-jour').value = etat.config.eurParJour;
   document.getElementById('cfg-fixe').value = etat.config.enveloppeFixe != null ? etat.config.enveloppeFixe : '';
   document.getElementById('cfg-reste').value = etat.config.resteInitial;
-  const CIBLES = [['livretA', '→ Livret A'], ['ldds', '→ LDDS'], ['av', '→ Dispo invest.'], ['suivi', '→ Suivi']];
+  const CIBLES = [['livretA', '→ Livret A'], ['ldds', '→ LDDS'], ['av', '→ Dispo invest. (TR)'],
+                  ['pea', '→ Cash PEA'], ['per', '→ Cash PER'], ['suivi', '→ Suivi']];
   const MODES = [['part', libellePart(etat.config.poches)], ['pct', '% du NA'], ['fixe', '€ fixe'], ['reste', 'Reste']];
   document.getElementById('poches-liste').innerHTML = etat.config.poches.map((p, i) => `
     <div class="poche">
@@ -2623,8 +2674,8 @@ document.getElementById('poches-liste').addEventListener('change', e => {
   toast('Poches mises à jour — effet à partir du mois prochain');
 });
 const POCHES_PRESETS = {
-  pea: {nom: '📈 PEA', cible: 'suivi'},
-  per: {nom: '🛡️ PER', cible: 'suivi'},
+  pea: {nom: '📈 PEA', cible: 'pea'},
+  per: {nom: '🛡️ PER', cible: 'per'},
   projet: {nom: '🎯 Projet', cible: 'suivi'},
 };
 document.getElementById('poches-presets').addEventListener('click', e => {
@@ -3110,7 +3161,7 @@ function importerClasseur(wb){
   const wa = wb.Sheets['Achat-Vente'];
   if (wa){
     const ga = grille(wa);
-    res.achatVente = {initial: compteBilan(ga, '➕ Entrées').initial, sorties: [], txTR: [], txPEA: []};
+    res.achatVente = {initial: compteBilan(ga, '➕ Entrées').initial, sorties: [], txTR: [], txPEA: [], versPER: []};
     const pS = trouver(ga, '➖ Sorties');
     if (pS){
       let vides = 0;

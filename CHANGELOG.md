@@ -9,6 +9,12 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
 
+## v5.6.0 — 01/08/2026
+- **Le cash PEA / PER rejoint ses comptes** : les poches « 📈 PEA » et « 🛡️ PER » étaient traitées comme des tirelires de suivi indépendantes, alors qu'il s'agit de cash destiné à ces comptes — en supplément des versements mensuels programmés, eux prélevés sur le budget du mois. Deux nouvelles destinations apparaissent dans la répartition : **« → Cash PEA »** et **« → Cash PER »**. Les poches déjà créées (ainsi que leur répartition figée dans l'historique) sont basculées automatiquement à l'ouverture.
+- **Un disponible par compte** (page Achat-Vente) : 💵 Dispo TR général, 📈 Cash PEA, 🛡️ Cash PER, et le total. Une carte détaille chaque compte : mis de côté par les poches, moins ce qui a été consommé, égale le cash restant. Les **achats directs PEA** puisent d'abord dans le cash PEA ; si l'achat le dépasse, le complément est pris sur le disponible général — exactement le comportement d'avant lorsqu'aucune poche dédiée n'existe (vérifié : 16 agrégats identiques à la version précédente sur les données réelles).
+- **PER — versements exceptionnels** : une nouvelle liste permet d'enregistrer un versement réel, qui consomme le cash PER mis de côté.
+- **Patrimoine total** : l'Accueil additionne désormais les trois disponibles, et détaille le cash PEA et PER quand il y en a.
+
 ## v5.5.1 — 22/07/2026
 - **Page Investissements lisible en thème sombre** : les pastilles de catégorie gardaient un texte clair sur leur fond pastel clair (illisible la nuit) — chaque pastille a désormais son encre foncée assortie (Actions vert sapin, ETFs bleu marine, Cryptos ocre, Métaux terre cuite, Private Equity violet, Obligations ardoise), identique sur tous les thèmes. La ligne TOTAL des tableaux suit le thème (bandeau + liseré doré) au lieu d'un crème codé en dur, les prix « manuel » 🔒 et le sélecteur de tri sont adoucis.
 
