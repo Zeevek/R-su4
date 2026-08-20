@@ -2,12 +2,261 @@
 
 Toutes les évolutions notables de l'application. Le journal est aussi consultable dans l'app : Réglages → 📜 Journal des versions.
 
+> Ce journal est public : il décrit les évolutions de l'application sans citer de
+> montants réels, de noms de comptes ni d'établissements. Les exemples chiffrés y
+> sont fictifs ou génériques.
+
+## v9.9.1 — 20/08/2026
+- **Journal des versions expurgé.** Ce fichier est publié sur le dépôt : il contenait des montants réels (soldes, revenus, patrimoine), des noms d'établissements et un prénom. Tous les exemples chiffrés sont devenus génériques, sans que le raisonnement décrit y perde quoi que ce soit. Les 55 versions sont conservées.
+- **Interface rendue générique.** Les noms d'établissements étaient codés en dur dans l'application (nom du courtier, de l'assureur, du compte-titres) et un prénom servait d'exemple dans la saisie des remboursements de vacances. Ils laissent place à des libellés neutres — **compte-titres**, **PEA**, **PER**, « part d'un proche ». Les identifiants internes sont inchangés : aucune sauvegarde n'est affectée.
+- **README nettoyé** des mêmes mentions.
+
 ## v4.6.2 — 19/07/2026
 - **Écran blanc au lancement corrigé** : la page Accueil avait perdu sa classe active — elle est rétablie, avec un filet de sécurité au démarrage.
 - **Toutes les devises converties en euros** : JPY, CHF, HKD, GBP (et pence GBp ÷ 100), USD… Les taux de change sont récupérés **en direct à chaque appui** sur « Mettre à jour les cours » — jamais stockés, donc toujours du jour.
-- **Import .xlsx — décalage de colonnes corrigé** : SheetJS indexe les colonnes depuis la plage *utilisée* de la feuille ; quand la colonne A est vide, tout se décalait d'un cran et les intitulés de positions devenaient des quantités. La lecture est désormais ancrée en A1 et les colonnes des positions sont relatives aux en-têtes. **Ré-importe ton classeur (ou ta sauvegarde JSON) pour réparer les positions corrompues.**
+- **Import .xlsx — décalage de colonnes corrigé** : SheetJS indexe les colonnes depuis la plage *utilisée* de la feuille ; quand la colonne A est vide, tout se décalait d'un cran et les intitulés de positions devenaient des quantités. La lecture est désormais ancrée en A1 et les colonnes des positions sont relatives aux en-têtes. **Ré-importe le classeur (ou une sauvegarde JSON) pour réparer les positions corrompues.**
 - **Symboles 🔗 conservés au ré-import** d'un classeur (appariement par intitulé) + date de dernière mise à jour des cours préservée.
 - Produits non cotés (private equity, fonds fermés) : message explicite — leur prix se met à jour à la main.
+
+## v9.9.0 — 20/08/2026
+- **Saisie rapide recentrée.** Le bouton ＋ ne propose plus que la dépense ou l'entrée : un dividende demande une date de perception, un choix net ou brut et un taux, ce qui alourdissait une feuille conçue pour saisir en trois secondes. Il se saisit dans sa carte, où ces éléments ont leur contexte.
+- **Diagramme « Rythme des dividendes ».** Les encaissements mois par mois, positionnés à leur **date réelle de perception** et non au mois de rattachement comptable. Quand une année précédente existe, ses montants apparaissent en barre claire derrière, et la note compare les cumuls **à la même date** — comparer un mois d'août partiel à une année complète n'aurait aucun sens. Les dividendes étant très saisonniers, cette lecture est plus parlante qu'un total annuel. Un sélecteur permet de revenir sur les années précédentes.
+- **Correctif : boucle sans fin.** Enregistrer un dividende daté d'avant le premier mois suivi déclenchait `while (!etat.months[cle]) creerMoisSuivant()` — or les mois ne se créent que vers l'avant : la condition ne pouvait jamais devenir vraie et **l'application se figeait**. Quatre boucles de ce type existaient (dividendes, saisie rapide, raccourci URL, étalement). Toutes passent par une fonction unique qui borne les créations et retourne un échec propre, avec un message indiquant le premier mois disponible.
+
+## v9.8.1 — 20/08/2026
+### Taux d'épargne faux
+Il valait `(reste de fin de mois + investi) / entrées`, ce qui pose deux problèmes : le reste de fin de mois contient déjà une part de l'enveloppe non dépensée, donc l'addition **compte deux fois** une partie de la somme ; et les entrées incluent le **report du mois précédent**, qui n'est pas un revenu du mois. Sur août, cela donnait 69 % au lieu de 62 %.
+
+La formule devient celle qui fait consensus : la part des revenus qui n'est pas consommée.
+- Revenus du mois = entrées − report du mois précédent
+- Consommation = charges + abonnements + échelonnés + transport + dépenses libres + vacances
+- Épargne = revenus − consommation, et le taux en est le rapport
+
+Selon les cas, l'écart avec l'ancienne formule atteint plusieurs points. La tuile affiche désormais le détail (« X non consommés sur Y de revenus ») pour que le chiffre soit vérifiable d'un coup d'œil.
+
+### Carte des dividendes
+Les styles de la carte avaient été emportés par un nettoyage de feuille de style : le résumé, la frise et le journal s'affichaient en texte brut empilé. Ils sont rétablis. La **frise des douze mois est supprimée** : sur une année à cinq versements, douze barres presque vides n'apprenaient rien. Et le journal se limite aux **trois derniers versements**, avec un rappel du total annuel et un renvoi vers la recherche pour retrouver les autres — au-delà, la carte devenait un mur.
+
+## v9.8.0 — 20/08/2026 — *pertinence des indicateurs*
+
+### Une incohérence de chiffres
+La tuile « Investissements » affichait la **valeur de marché** tandis que la carte Patrimoine, quelques centimètres plus bas, affichait le **prix de revient** — deux chiffres pour la même chose sur le même écran. Tout est désormais compté à la **valeur de marché**, c'est-à-dire ce qu'on obtiendrait en vendant aujourd'hui, avec le prix de revient et la plus-value en sous-ligne.
+
+### Tuiles de l'Accueil
+« Solde du mois » et « Reste fin de mois » mesuraient deux choses voisines sans qu'on puisse les distinguer, et « Épargne » + « Investissements » redisaient ce que la carte Patrimoine détaille déjà. Les quatre tuiles deviennent :
+- **Reste fin de mois** — ce qui restera une fois tout passé ;
+- **Taux d'épargne** — la part des entrées mise de côté ce mois-ci, l'indicateur le plus prédictif du patrimoine à long terme ;
+- **Patrimoine net** — un chiffre unique, identique à celui de la carte détaillée ;
+- **Performance** — la plus-value latente en pourcentage et en euros, seule tuile où le vert signale un vrai gain.
+
+### Bilan du mois
+Six tuiles dont deux faisaient doublon avec la barre de mois collante, qui affiche déjà « solde … · reste … ». Il en reste quatre, chacune avec un sous-titre explicatif : entrées, sorties, **reste à dépenser** (rapporté à l'enveloppe) et investi.
+
+### Dividendes depuis le bouton ＋
+La feuille de saisie rapide propose maintenant deux natures : **dépense ou entrée**, et **dividende perçu**. Le second mode affiche la date de perception, le choix net ou brut avec son taux de prélèvements, et annonce le mois de rattachement avant validation. La feuille revient toujours sur « dépense » à l'ouverture, cas de loin le plus fréquent.
+
+## v9.7.1 — 20/08/2026
+- **Listes déroulantes nommées.** Le correctif précédent n'avait couvert que les champs de texte : les 48 recommandations restantes venaient des `<select>` générés (catégorie d'une position, règle de calcul et destination d'une poche, tri, comptes de transfert). Ils portent désormais un nom. Mon propre contrôle avait le même angle mort — il ne vérifiait que les `<input>` — et couvre maintenant listes et zones de texte.
+
+**Bilan de la console du navigateur** : de 6 erreurs et 111 recommandations à **zéro de chaque**.
+
+## v9.7.0 — 20/08/2026 — *corrections issues de la console du navigateur*
+
+### Le mode hors ligne ne fonctionnait pas
+Le service worker mettait ses fichiers en cache avec `addAll`, qui **échoue en bloc dès qu'un seul fichier est absent**. Sur le dépôt de test, le manifeste et les icônes n'étant pas publiés, l'installation échouait entièrement : **rien n'était mis en cache**, alors que l'en-tête affichait « hors-ligne prêt ». La mise en cache distingue maintenant l'indispensable (la page elle-même) de l'accessoire (manifeste, icônes), tenté fichier par fichier sans bloquer le reste. L'application vérifie ensuite que le cache existe réellement et affiche « cache incomplet » le cas échéant, plutôt qu'une promesse fausse. Une navigation hors ligne vers une adresse inconnue retombe sur la page principale.
+
+### Faux champs de saisie
+Les intitulés des listes (« Enveloppe quotidienne », « Total cumulé »…) étaient des `<input readonly>` — un détournement qui expliquait à lui seul **110 avertissements** du navigateur et alourdissait la page de 63 éléments de formulaire inutiles. Ce sont désormais de simples textes.
+
+### Divers signalements
+- Un bouton d'aide se trouvait **à l'intérieur d'un titre dépliant**, ce qui perturbe la navigation au clavier et les lecteurs d'écran : il devient un indicateur non interactif.
+- Une étiquette « Horizon » ne désignait aucun champ : c'était un intitulé de groupe, elle est traitée comme telle.
+- Tous les champs de saisie portent un **nom**, ce que recommandent les audits (remplissage automatique, restauration de session).
+
+## v9.6.2 — 19/08/2026
+- **Étiquettes intégrées au diagramme de flux.** Elles s'affichaient dans un bandeau sous le diagramme, alors que leur place était *dans* le diagramme. Chaque catégorie se prolonge maintenant vers les sujets qu'elle finance — Charges fixes → `#loyer` et `#energie`, Transport → `#voiture` — en réutilisant le mécanisme qui décompose déjà les investissements par compte. Une étiquette portée par plusieurs catégories apparaît sous chacune, avec la part qui en vient : `#voiture` peut ainsi recevoir une part du transport et une autre des dépenses libres, ce qui montre d'où sort réellement l'argent. Quatre étiquettes au maximum par catégorie, pour rester lisible.
+
+## v9.6.1 — 19/08/2026
+- **Champs de hauteur inégale.** Dans une grille, le champ de date gardait la hauteur imposée par le système et dépassait ses voisins. Tous les champs d'une grille partagent maintenant une hauteur fixe de 44 px, et le champ de date perd son habillage natif pour s'aligner sur les autres.
+- **Boutons flottants superposés.** La règle du bouton « retour en haut » était déclarée **deux fois** : la seconde, plus loin dans la feuille, annulait le repositionnement fait lors du lot 2. Une seule règle subsiste, avec 12 px d'écart garanti entre les deux boutons.
+- **Espace vide au-dessus de la barre de mois.** Elle se collait à une distance estimée du haut de l'écran, qui ne correspondait pas à la hauteur réelle de l'en-tête — variable selon l'appareil et l'état compact. Cette hauteur est désormais **mesurée** et exposée à la feuille de style, et le fond de la barre déborde latéralement pour masquer le contenu qui défile dessous.
+- **Étiquettes dans le diagramme de flux.** Sous le diagramme, un bandeau liste ce que chaque étiquette (`#voiture`, `#chat`…) a coûté sur le mois, toutes catégories confondues, avec des barres proportionnelles. Il n'apparaît que si des étiquettes sont utilisées.
+
+## v9.6.0 — lot 8 : finitions et accessibilité — 17/08/2026
+
+### Écrans annexes
+Le verrouillage, l'assistant de démarrage, le rappel de sauvegarde, la recherche et les bulles d'aide n'avaient pas encore été touchés : voiles d'arrière-plan **floutés** et assombris, panneaux à grand rayon avec ombre portée et **apparition animée**, écran de verrouillage doté d'un halo violet.
+
+### Dernières couleurs héritées
+Une douzaine de règles conservaient des teintes claires de l'ancienne identité (fonds crème, gris chauds, dorés) — invisibles ou illisibles sur fond sombre : puces de jour, jauges pleines ou dépassées, légende de fraîcheur des cours, boutons d'ajout, croix de suppression. Toutes passent aux jetons du thème.
+
+### Accessibilité
+- **Contour de focus visible** au clavier sur tous les éléments interactifs, avec un décalage suffisant pour rester lisible.
+- **Cibles tactiles d'au moins 40 px** pour les boutons et les listes déroulantes, 34 px pour les éléments secondaires.
+- **Lien d'évitement** « Aller au contenu », visible uniquement à la tabulation.
+- **Repères ARIA** sur la navigation et le contenu principal.
+- **Mode contraste élevé** : quand le système le demande, les filets et le texte secondaire s'éclaircissent et les bordures s'épaississent.
+- **Un libellé pour chaque bouton et chaque champ** : les sept derniers champs sans intitulé accessible (référence d'estimation, enveloppe quotidienne, sélecteurs de fichier…) en reçoivent un.
+
+**149 tests** couvrent désormais l'application, calculs et interface confondus.
+
+## v9.5.0 — lots 6 et 7 : Achat-Vente et Réglages — 17/08/2026
+
+### Achat-Vente : un formulaire qui pose des questions
+Le formulaire alignait ses champs sans hiérarchie. Il se déroule maintenant en **trois étapes numérotées**, chacune introduite par une question : « Quel sens ? » (deux gros boutons *J'achète* / *Je vends*), « Sur quel compte, et quelle ligne ? », « Combien, et quand ? ». Les champs sont étiquetés et portent leur unité.
+
+Le **journal devient un flux temporel** : les opérations sont regroupées par mois, chaque groupe affichant son solde net, et reliées par un fil vertical ponctué de pastilles directionnelles — corail avec flèche descendante pour un achat, menthe avec flèche montante pour une vente. On lit son activité par période plutôt que ligne à ligne.
+
+### Réglages : cinq sections au lieu de quatorze cartes
+L'ordre était historique : Apparence et Verrouillage arrivaient avant les paramètres du budget, la Zone sensible se perdait au milieu. Les cartes sont regroupées sous cinq intertitres — **Mon budget** (paramètres, poches, budgets par poste), **Mon patrimoine** (comptes, projets et emprunts), **Confort et sécurité** (apparence, verrouillage, profils), **Mes données** (sauvegarde, compte rendu, analyse IA, raccourci), **À propos** (journal des versions, zone sensible).
+
+### Le redesign est complet
+Les sept écrans du plan sont traités : fondations, Accueil, navigation et en-tête, Mois, Épargne, Investissements, Achat-Vente et Réglages. **140 tests** couvrent l'ensemble, sans régression sur les calculs.
+
+## v9.4.0 — lot 5 : page Investissements — 17/08/2026
+
+### Positions en cartes
+Un tableau à huit colonnes sur un écran de téléphone impose un défilement horizontal et rend la lecture pénible. Chaque position devient une **carte** : catégorie et intitulé en tête, **valeur et performance mises en avant** juste dessous, puis quantité, prix de revient, cours et identifiant en champs étiquetés. Le code couleur de fraîcheur des cours (ambre à revoir, menthe saisi à la main, gris pour les prix manuels) s'applique désormais au champ entier. Sur grand écran, les champs se répartissent sur quatre colonnes. Un pied de carte récapitule le nombre de lignes, la valeur totale et la performance.
+
+### Palette des graphiques
+Les catégories reprennent les couleurs de la charte — **violet** pour les actions, **bleu** pour les ETF, **ambre** pour les métaux, **violet clair** pour le private equity, **ardoise** pour les obligations, **orange** pour les cryptos — avec des pastilles à fond sourd, lisibles sur les deux thèmes. Courbes d'évolution, diagramme de flux, camemberts et faisceau de projection suivent la même palette.
+
+### Nettoyage
+Les dernières couleurs de l'ancienne identité (laiton `#B08D3E`, encre `#1E2430`, vert `#2E7D5B`…) ont été remplacées partout, y compris dans la couleur de barre d'état du navigateur.
+
+## v9.3.0 — lot 4 : page Épargne — 17/08/2026
+
+### Comptes en anneaux
+Chaque compte s'ouvre sur un **anneau de progression** vers son plafond, avec le pourcentage en son centre — plus lisible qu'une barre, et il laisse la place au solde en gros à côté. L'anneau passe au vert quand le plafond est atteint, et le message explique alors que les versements partent vers le compte de repli. En dessous : la place restante avant le plafond et les **intérêts annuels estimés** au taux saisi. Un compte sans plafond affiche un symbole d'infini plutôt qu'un anneau vide.
+
+### Transfert
+Les blocs source et destination portent un **liseré coloré** (corail pour ce qui part, menthe pour ce qui arrive) au lieu d'une bordure épaisse, la flèche centrale respire doucement pour marquer le sens, et le bouton d'inversion **pivote** quand on l'active. L'aperçu des soldes avant/après reprend les fonds sourds de la charte.
+
+### Harmonisation
+Les indicateurs des pages Épargne, Investissements et Achat-Vente adoptent le composant **tuile** introduit sur l'Accueil : même rayon, même ombre, même soulèvement au survol. Les cartes de ces pages reçoivent aussi leur famille de couleur.
+
+## v9.2.0 — lot 3 : page Mois — 17/08/2026
+
+### Accueil allégé
+La carte « Dépense rapide » disparaît : le bouton flottant du lot 2 fait le même travail depuis n'importe quelle page, sans occuper d'espace permanent. L'Accueil se concentre sur ce qu'il doit montrer — le montant du jour, les quatre chiffres clés, les dividendes, les tendances, le patrimoine.
+
+### Page Mois
+- **Barre de mois collante** : elle reste visible pendant le défilement et rappelle en permanence le solde et le reste de fin de mois. Les flèches deviennent des boutons carrés à retour tactile, l'ajout de mois se réduit à un « ＋ ».
+- **Bilan en six tuiles** (entrées, sorties, solde, reste d'enveloppe, reste de fin de mois, investi), colorées **selon le signe** plutôt qu'uniformément.
+- **Code couleur par famille** : chaque carte de catégorie porte un liseré et un titre colorés selon sa nature — menthe pour les entrées, violet pour les charges fixes, bleu pour les abonnements, ambre pour la vie courante, cyan pour le transport, rose pour les vacances, menthe pour les investissements. Huit familles, appliquées à seize cartes : on repère une rubrique sans lire son titre.
+
+## v9.1.0 — lot 2 : navigation et en-tête — 17/08/2026
+
+### Saisie rapide accessible partout
+Noter une dépense est le geste le plus fréquent : il ne devait plus imposer de revenir à l'Accueil. Un **bouton flottant** ouvre désormais, depuis n'importe quelle page, une **feuille qui monte depuis le bas** — intitulé, montant, destination (avec sous-menu pour les vacances), puces de suggestion des libellés fréquents. Validation à la touche Entrée, fermeture par Échap, en dehors de la feuille ou par le bouton Annuler. Le raccourci clavier **n** l'ouvre également.
+
+### En-tête
+Marque compacte sur deux lignes (nom + version discrète), **recherche transformée en bouton libellé** plutôt qu'en simple loupe — et réduite à une icône sur les petits écrans. L'indicateur d'enregistrement, qui occupait un tiers de la barre, se résume à **un point coloré et deux mots** : vert quand la sauvegarde vient d'aboutir, corail en cas d'erreur, neutre au repos.
+
+### Navigation
+**Indicateur lumineux** sous l'onglet actif, icône qui se soulève légèrement, barre translucide avec flou d'arrière-plan. Le bouton de retour en haut se décale pour ne pas gêner le bouton de saisie.
+
+## v9.0.1 — correctifs du lot 1 — 17/08/2026
+- **Feuille de style réparée.** En adaptant le compte rendu à la nouvelle palette, l'accolade fermante de sa règle avait disparu : le navigateur avalait alors **toutes les règles suivantes**. D'où les panneaux (bienvenue, verrou, rappel de sauvegarde) affichés en clair au milieu de la page, les grilles éclatées et les champs sans style. Un **contrôle de validité du CSS** — accolades équilibrées, règles bien formées, propriétés orphelines — rejoint la procédure de vérification : cette classe d'erreur ne peut plus passer.
+- **Champs de saisie intégrés à l'interface.** Ils gardaient l'apparence par défaut du navigateur : angles droits, fond blanc, bordure grise. Un traitement unique s'applique désormais partout — coins arrondis, fond légèrement en retrait de la carte, **anneau violet au focus**, flèche dessinée sur les listes déroulantes. Les cellules des listes restent discrètes (transparentes au repos, mises en évidence à la saisie) : ce sont des cellules de tableau, pas des formulaires.
+- **Assistant de bienvenue** : il s'ouvrait dès que la configuration n'avait pas été validée, même avec des données présentes. Il ne s'affiche plus si un mois, un compte ou une position contient quoi que ce soit.
+
+## v9.0.0 — lot 1 : fondations, Accueil, compte rendu — 16/08/2026
+
+Première étape du redesign complet, orientation **« Néo »** (sombre, contrasté, énergique) avec les micro-interactions du registre tableau de bord.
+
+### Fondations
+- **Système de jetons** : couleurs, espacements (4 → 32 px), rayons (10 → 26 px), ombres, durées et courbes d'animation sont définis une seule fois et pilotent toute la feuille de style.
+- **Palette** : fond `#0F1117`, surfaces `#191C25`, **violet `#7C5CFF`** pour les actions, **corail `#FF6B5A`** pour les sorties, **menthe `#2FD9A0`** pour les entrées, **ambre** pour les alertes. Les anciens noms de variables restent des alias, ce qui évite de tout réécrire d'un coup.
+- **Ménage des thèmes** : les quatre thèmes (clair, sombre, forêt, minuit) laissent place à **deux variantes du même thème** — sombre par défaut, clair en option, « automatique » suivant le réglage du téléphone. Quatorze blocs de règles devenus inutiles ont été supprimés.
+
+### Composants
+Cartes à grand rayon et ombre douce qui se soulèvent au survol, en-têtes cliquables, boutons principaux en dégradé violet avec halo, champs à focus violet, puces réactives, **navigation translucide** avec indicateur lumineux sous l'onglet actif, et un nouveau composant **tuile** pour les chiffres clés.
+
+### Micro-interactions
+Apparition en cascade des cartes à l'ouverture d'une page, glissement latéral entre onglets, **compteurs qui montent** au lieu d'apparaître brutalement, jauges qui se remplissent, impulsion lumineuse sur un élément qui vient de changer, squelettes pendant les calculs, en-tête qui se compacte au défilement. Tout est neutralisé si le système demande de réduire les animations.
+
+### Accueil
+Héro en dégradé violet avec le montant du jour **animé** et sa barre de progression, puis quatre tuiles porteuses de sens : solde du mois et reste de fin de mois en menthe ou corail selon le signe, épargne, investissements avec la plus-value en sous-titre.
+
+### Compte rendu PDF
+Palette alignée sur la direction artistique (titres violets, filets colorés, tuiles arrondies) tout en **conservant un fond blanc** : c'est un document destiné à l'impression.
+
+## v8.3.0 — 16/08/2026
+- **Tendances du mois enfin lisibles.** La courbe ne disait pas à quoi elle correspondait, et la suite de nombres qui la suivait était une énigme. Chaque **barre porte désormais le nom de son mois**, la barre dorée est le mois en cours (forcément incomplet) et une barre en pointillés montre la projection de fin de mois. Le détail mois par mois s'ouvre à la demande plutôt que d'encombrer la vue. Un **sélecteur 3 / 6 / 12 mois** permet de choisir la période de référence : 3 mois réagit vite, 12 mois lisse les variations saisonnières.
+- **Dividendes déplacés sur l'Accueil**, juste sous la dépense rapide — là où on les saisit naturellement, plutôt qu'au milieu de la page Investissements. La carte est repensée : **résumé annuel** (encaissé, nombre de versements et de sources, moyenne mensuelle, écart avec l'année précédente), **frise des douze mois** montrant la saisonnalité des encaissements, formulaire de saisie regroupé sur fond distinct, et **journal des derniers versements** indiquant pour chacun la date réelle et le mois de rattachement.
+
+## v8.2.1 — 13/08/2026 — *revue de sécurité, correction et optimisation*
+
+### Faille corrigée : injection de code par une sauvegarde
+Les noms de comptes, de positions, de projets et leurs identifiants étaient insérés dans la page **sans échappement**. Saisis par soi-même, le risque est nul ; mais l'application permet d'**importer une sauvegarde**, et un fichier reçu d'un tiers pouvait contenir un nom de compte porteur de code, exécuté à l'ouverture. Toutes ces valeurs passent désormais par l'échappement HTML, y compris dans les listes déroulantes et les attributs. Vérifié avec une sauvegarde piégée : le code n'est plus exécuté.
+
+### Bug corrigé : relevé de l'indice dupliqué sept fois
+Le bloc qui relève la valeur de l'indice de référence avait été inséré **sept fois**, et — plus gênant — dans le gestionnaire de **suppression** d'une période au lieu de celui d'enregistrement, avec une variable qui n'y existait pas. Conséquence : sept requêtes réseau identiques et un relevé qui ne se faisait jamais au bon moment. Une seule copie subsiste, au bon endroit.
+
+### Rendu six fois plus rapide
+`rendreTout()` reconstruisait les **six pages** à chaque saisie, alors qu'une seule est visible — un demi-mégaoctet de HTML régénéré pour afficher une ligne de dépense. Seule la page active est désormais reconstruite ; les autres sont marquées obsolètes et régénérées à leur affichage. Mesure sur une vraie sauvegarde : **519 ms → 90 ms**, 3 279 → 834 éléments dans la page, et 178 → 68 calculs mensuels.
+
+### Robustesse
+Des garde-fous centralisés garantissent qu'une sauvegarde ancienne ou tronquée ne fait plus échouer le rendu. Huit cas limites vérifiés : absence d'historique, d'investissements, d'achats-ventes, de poches, collections nulles, mois vide, libellés piégés.
+
+### Divers
+- Trois bulles d'aide rédigées mais rattachées à aucun bouton (indice de référence, sauvegarde chiffrée, disponible à investir) sont désormais accessibles.
+- Audit statique final : aucune fonction dupliquée ni morte, aucun identifiant orphelin, aucun conteneur laissé vide, aucun sélecteur CSS en double, aucun JavaScript égaré dans la feuille de style.
+
+## v8.2.0 — 13/08/2026
+- **Projets et emprunts : un seul bloc.** Deux cartes séparées demandaient de savoir à l'avance dans laquelle aller. Elles n'en font plus qu'une : on choisit la **nature** (achat immobilier à préparer, objectif d'épargne, prêt immobilier, auto/conso, étudiant, renouvelable, autre dette) et **les champs s'adaptent**. Un projet affiche prix, frais, taux et durée envisagés puis calcule l'emprunt nécessaire ; un emprunt en cours affiche capital, mensualité et date de départ puis calcule le capital restant. Chaque ligne porte un badge de couleur (vert pour ce qu'on prépare, rouge pour ce qu'on rembourse) et une jauge de progression.
+- **Tendances du mois enrichies.** Le simple pourcentage laissait deviner l'ampleur réelle. Chaque poste affiche maintenant **deux barres comparatives** (consommé / attendu au même stade du mois), une **mini-courbe** des trois derniers mois pour voir si la hausse est ponctuelle ou installée, et la **projection de fin de mois** au rythme actuel. Le nombre de postes suivis passe de 4 à 12.
+- **Modules retirés** : « Allocation cible » et « Secteurs et zones ». Le remplissage automatique du secteur et de la zone ne pouvait pas tenir compte de la **composition réelle des ETF** — un « MSCI World » est réparti sur des milliers de lignes dans tous les secteurs et tous les pays, information que les sources publiques gratuites n'exposent pas. Classer un tel produit sous une seule étiquette donnait une image fausse de la diversification. Mieux vaut pas d'information qu'une information trompeuse.
+- **Alignement des formulaires** : les étiquettes ont désormais une hauteur uniforme (les libellés longs ne décalent plus les champs voisins), la grille passe à deux colonnes nettes sur mobile, et plusieurs intitulés ont été raccourcis.
+
+## v8.1.0 — 13/08/2026
+Corrections issues d'un retour d'usage sur la v8.0.
+
+- **Secteurs et zones désormais automatiques.** Un bouton « 🔎 Compléter automatiquement » récupère le secteur d'activité et le pays de chaque valeur auprès des données publiques, et les traduit (Utilities → Services publics, United States → Amérique du Nord). Les **ETF et matières premières ne publient pas ces champs** — ils sont diversifiés par nature : ils sont alors classés d'après leur intitulé (« MSCI World » → Monde, « Or physique » → Matériaux). Tout reste modifiable à la main.
+- **Dividendes : net ou brut enfin explicite.** La case à cocher ne disait pas ce qu'elle cochait. Deux boutons la remplacent : **« 💶 J'ai reçu ce montant »** ou **« 🧾 Montant avant prélèvements »**. Le champ de prélèvements n'apparaît que dans le second cas, et l'aperçu précise « X crédités sur ton compte » ou « X annoncés par l'émetteur − 30 % = Y réellement crédités ».
+- **Indice de référence : comparaison immédiate.** Il fallait attendre plusieurs enregistrements mensuels pour voir quoi que ce soit. Un bouton **« 📥 Récupérer l'historique de l'indice »** rapatrie les cours mensuels sur cinq ans et complète d'un coup tous les relevés déjà enregistrés. Le texte indique désormais explicitement de quelle carte proviennent les relevés (« 📝 Enregistrer le mois dans l'historique »).
+- **Correctif : carte « Emprunts et dettes » en double** dans les Réglages, avec des identifiants dupliqués — le second exemplaire est supprimé.
+- **Allocation cible : un vrai diagnostic.** Le tableau de pourcentages laissait l'interprétation au lecteur. Un encadré en français la fait : « Tu es surexposé à une catégorie de N € (X % au lieu de Y %). Il te manque M € sur telle et telle ligne. À ton rythme d'épargne, quelques mois de versements dirigés vers elles suffisent — sans rien vendre. » S'y ajoutent des remarques de bon sens : concentration excessive sur une ligne, part de cryptos élevée.
+
+## v8.0.0 — 13/08/2026 — *patrimoine net, pilotage du portefeuille et sécurité*
+
+Fonctionnalités inspirées d'une étude des applications de référence (Firefly III, Actual Budget, Ghostfolio, Wealthfolio, Portfolio Performance, YNAB), adaptées au fonctionnement hors-ligne et sans serveur de l'application.
+
+### Emprunts et patrimoine net
+Le patrimoine affiché était **brut** : un prêt immobilier n'y figurait pas. On enregistre désormais ses emprunts (capital, taux, mensualité, date de départ) et le **capital restant dû est recalculé chaque mois par amortissement**, avec le nombre de mensualités restantes et la date de fin estimée. Un capital relevé sur un extrait bancaire peut prendre le pas sur le calcul. L'Accueil affiche le **patrimoine net**, le brut et le détail des dettes.
+
+### Allocation cible et rééquilibrage
+Une part souhaitée par catégorie, et l'application mesure la **dérive** puis propose une **répartition du prochain versement** pour s'en rapprocher. Le rééquilibrage se fait **par les apports**, jamais par des ventes — vendre déclencherait l'imposition des plus-values. Les cibles sont normalisées à 100 % si leur somme diffère, et **rien n'est appliqué automatiquement** : ce sont des suggestions.
+
+### Répartition sectorielle et géographique
+Deux colonnes (secteur, zone) sur chaque position, avec listes de suggestions, et une carte qui affiche les deux répartitions en barres. Un **indicateur de concentration** signale le poids de la plus grosse ligne et des cinq premières.
+
+### Comparaison à un indice
+Choix d'un indice de référence (MSCI World, S&P 500, CAC 40, Euro Stoxx 50…) dont la valeur est **relevée automatiquement à chaque enregistrement mensuel**. La carte Performance compare alors ton TWR à celui de l'indice sur la même période, écart annualisé à l'appui.
+
+### Indépendance financière
+Capital nécessaire = dépenses annuelles ÷ taux de retrait (4 % par défaut, modifiable), dépenses pré-remplies depuis les six derniers mois. L'application estime la **durée pour l'atteindre** au rythme d'épargne actuel, puis **combien de temps le capital tiendrait** avec des retraits indexés sur l'inflation.
+
+### Sauvegarde chiffrée
+Nouveau bouton d'export protégé par mot de passe : **AES-GCM 256 bits**, clé dérivée par **PBKDF2 (210 000 itérations, recommandation OWASP)**, via les fonctions cryptographiques du navigateur — aucune bibliothèque externe. Le format est détecté à l'import, qui demande alors le mot de passe. Celui-ci n'est stocké nulle part : perdu, le fichier est définitivement illisible.
+
+### Correctif important
+Quatre cartes des Réglages — **emprunts, budgets par poste, profils, apparence (densité, devise, dossier IA, raccourci)** — étaient présentes dans la page mais **jamais remplies par le code** : elles s'affichaient vides. Les vérifications portaient sur les éléments appelés par le script, pas sur les conteneurs déclarés dans la page et laissés à l'abandon. Un contrôle **« tout conteneur vide doit être peuplé »** est ajouté à la procédure, en plus du parcours interactif complet dans un navigateur simulé.
+
+## v7.6.0 — 13/08/2026
+### Dividendes perçus
+Nouvelle carte sur la page Investissements, avec quatre champs étiquetés :
+- **Source** — société ou ETF, avec suggestion automatique des positions du portefeuille et des sources déjà utilisées ;
+- **Date de perception** — le jour même par défaut, modifiable ;
+- **Montant perçu** ;
+- **Brut ou net** — une case à cocher ; si le montant est brut, un champ de prélèvements apparaît (30 % par défaut : 12,8 % d'impôt et 17,2 % de prélèvements sociaux, taux modifiable).
+
+**Décalage automatique d'un mois** : un dividende perçu en juillet est comptabilisé dans les entrées d'**août**, comme sur un relevé bancaire — la convention que tu appliquais déjà à la main. Le libellé reprend le format habituel (« Dividende une société (05/08/2026) »), et un aperçu annonce le mois de rattachement avant validation.
+
+Quand le montant est saisi en brut, c'est le **net réellement encaissé** qui entre au budget (le brut fausserait le solde), le montant brut et le taux appliqué restant enregistrés sur la ligne. Le journal des derniers versements et le **cumul annuel, net et brut**, s'affichent sous le formulaire — utile au moment de la déclaration de revenus.
+
+Le journal est reconstruit à partir des mois plutôt que stocké séparément : il ne peut donc jamais se désynchroniser des entrées, et supprimer un dividende retire bien la ligne du budget.
 
 ## v7.5.0 — 13/08/2026
 ### Formulaires enfin lisibles
@@ -75,14 +324,14 @@ La carte de transfert affichait deux menus identiques séparés d'une flèche : 
 
 ### Interne
 - Les contrôles de transfert sont factorisés dans une fonction unique utilisée à la fois par l'aperçu et par la validation : impossible que l'un accepte ce que l'autre refuse.
-- Parcours complet rejoué sur la sauvegarde du 10/08 : migration d'une sauvegarde antérieure à la v6, soldes, cash PEA/PER, transferts, recherche, dossier IA et projection 30 ans — 24 vérifications, dont le solde exact du Livret A (1 438,51 €).
+- Parcours complet rejoué sur une sauvegarde réelle : migration d'une sauvegarde antérieure à la v6, soldes, cash PEA/PER, transferts, recherche, dossier IA et projection 30 ans — 24 vérifications, dont le solde exact d'un livret.
 
 ## v7.1.0 — 01/08/2026
 ### Corrections
 - **Le bouton « Transférer » ne faisait rien** : le gestionnaire avait été placé dans la délégation des *modifications de champ* au lieu de celle des *clics* — un bouton n'émet pas d'événement de modification. Le transfert et ses raccourcis fonctionnent désormais.
 - **Transfert vers le compte courant** : l'opération alimente maintenant les **remboursements du mois en cours** (montant positif, l'argent entre dans le budget) ; dans l'autre sens, du courant vers l'épargne, la ligne est négative.
 - **Projection sur 30 ans** : le tableau s'arrêtait à 20 ans faute de jalons au-delà. Les échéances 25 et 30 ans sont ajoutées.
-- **Plans Trade Republic** : les cinq listes (actions, ETF, métaux, crypto, private equity) sont désormais imbriquées dans la carte « Détail Trade Republic », qui portait son total sans rien contenir — l'ensemble se replie d'un seul geste.
+- **Plans compte-titres** : les cinq listes (actions, ETF, métaux, crypto, private equity) sont désormais imbriquées dans la carte « Détail du compte-titres », qui portait son total sans rien contenir — l'ensemble se replie d'un seul geste.
 - **Dépense rapide** : le menu déroulant de suggestions natif est retiré. Il masquait l'écran, proposait pêle-mêle des libellés à usage unique, et faisait double emploi avec les puces.
 
 ### Raccourci iOS / Android
@@ -91,7 +340,7 @@ Ouvrir l'application avec une adresse du type `?ajout=Boulangerie&montant=6` enr
 ## v7.0.0 — 01/08/2026 — *performance, transferts et recherche*
 
 ### Cours de bourse : 7 à 8 fois plus rapides
-Trois causes de lenteur cumulées, toutes corrigées : les positions étaient traitées **une par une** (désormais par lots de 6 en parallèle), l'appel direct à Yahoo — systématiquement bloqué par CORS depuis GitHub Pages — était **retenté pour chaque ligne** (le relais qui fonctionne est maintenant mémorisé pour la session), et une pause de 120 ms séparait chaque position (supprimée, la limitation du parallélisme suffit). Le taux de change n'est demandé qu'une fois par devise même en parallèle. Mesure sur un cas de 37 positions : **13,7 s → 1,8 s**, et 68 requêtes inutiles économisées. Le temps écoulé s'affiche dans le message final.
+Trois causes de lenteur cumulées, toutes corrigées : les positions étaient traitées **une par une** (désormais par lots de 6 en parallèle), l'appel direct à Yahoo — systématiquement bloqué par CORS depuis GitHub Pages — était **retenté pour chaque ligne** (le relais qui fonctionne est maintenant mémorisé pour la session), et une pause de 120 ms séparait chaque position (supprimée, la limitation du parallélisme suffit). Le taux de change n'est demandé qu'une fois par devise même en parallèle. Mesure sur un cas de plusieurs dizaines de positions : **13,7 s → 1,8 s**, et 68 requêtes inutiles économisées. Le temps écoulé s'affiche dans le message final.
 
 ### Transferts entre comptes
 Nouvelle carte en tête de la page Épargne : choisir une source, une destination, un montant et un motif facultatif. L'opération est **écrite des deux côtés en une seule fois**, avec un libellé miroir daté. Destinations possibles : n'importe quel compte d'épargne, le disponible à investir, le cash PEA, le cash PER, ou une sortie vers l'extérieur. **Contrôles automatiques** : impossible de retirer plus que le solde disponible, ni de dépasser le plafond du compte destinataire. Des raccourcis proposent les mouvements pertinents (par exemple d'un livret plein vers un livret qui a encore de la place).
@@ -144,7 +393,7 @@ Un bouton 🔍 dans l'en-tête ouvre une recherche qui parcourt **tous les mois*
 
 ## v5.5.0 — 22/07/2026
 - **Sous-catégories vacances dans la saisie rapide** : choisir « 🏖️ Vacances… » fait apparaître un second menu — 🏨 Hôtel / Airbnb, ✈️ Transport, 🍽️ Alimentation, 🎢 Loisirs, 📦 Autres, 💶 Remboursement reçu. Le menu principal garde une seule ligne vacances au lieu de six.
-- **Nouveau poste « Vacances · Remboursements reçus »** (montants positifs, ex. la part d'un ami sur l'Airbnb) : il vient en déduction du total vacances partout — page Mois (carte dédiée), bilan, diagramme des flux, compte rendu PDF. Les sauvegardes existantes reçoivent le poste automatiquement à l'import, sans changement d'aucun chiffre (vérifié sur tes données réelles : reste fin de mois 642,07 € inchangé).
+- **Nouveau poste « Vacances · Remboursements reçus »** (montants positifs, ex. la part d'un tiers sur un hébergement) : il vient en déduction du total vacances partout — page Mois (carte dédiée), bilan, diagramme des flux, compte rendu PDF. Les sauvegardes existantes reçoivent le poste automatiquement à l'import, sans changement d'aucun chiffre (vérifié sur tes données réelles : reste fin de mois le montant de référence inchangé).
 
 ## v5.4.0 — 22/07/2026
 - **Dépense rapide avec destination** : un menu déroulant sous la barre de saisie choisit où va la ligne — 🛒 Dépenses libres (défaut), 🚗 Transport, 🏖️ Vacances, 🏠 Charge fixe, 📱 Abo obligatoire, 🎮 Abo loisir, 💳 Échelonné, 💵 Entrée d'argent ou 🔁 Remboursement. Le signe suit la nature de la destination (« 12 » devient −12 € en dépense, +12 € en entrée), les catégories récurrentes se propagent aux mois suivants avec le toast « ↪ n mois », et taper une puce ramène la destination sur Dépenses libres.
@@ -154,7 +403,7 @@ Un bouton 🔍 dans l'en-tête ouvre une recherche qui parcourt **tous les mois*
 - **Revue de code** : suppression des fonctions et constantes mortes accumulées au fil des versions (`normaliserCotation`, `finDuMois`, `periodeDepuisCle`, `THEMES_SOMBRES`), et l'enrichissement de l'historique n'est plus exécuté deux fois à chaque démarrage.
 - **Performance** : la simulation de projection (600 trajectoires Monte-Carlo) est désormais mise en cache et invalidée avec les autres calculs — la page Investissements ne la recalculait pas moins de… à chaque frappe dans une position.
 - **Protection des données** : une ligne dont le libellé contient une date (« Dividende TotalEnergie (02/07/2026) ») n'est plus propagée aux mois suivants par le mécanisme des récurrents — un dividende daté est ponctuel par nature. Les lignes normales (« Loyer ») se propagent comme avant.
-- **Validé sur données réelles** : la suite de tests (313) rejoue désormais la sauvegarde du 22/07 et vérifie que le moteur reproduit exactement les chiffres affichés sur le téléphone (reste fin de mois 642,07 €).
+- **Validé sur données réelles** : la suite de tests (313) rejoue une sauvegarde réelle et vérifie que le moteur reproduit exactement les chiffres affichés sur le téléphone (reste de fin de mois le montant de référence).
 
 ## v5.2.2 — 22/07/2026
 - **Croix ✕ des puces réparée** : la croix est un élément *à l'intérieur* du bouton de puce, or le gestionnaire de clic remontait d'abord au bouton puis cherchait la croix parmi ses ancêtres — jamais trouvée, le tap remplissait donc la saisie au lieu de masquer. Le gestionnaire part maintenant de la cible réelle du clic.
@@ -194,7 +443,7 @@ Un bouton 🔍 dans l'en-tête ouvre une recherche qui parcourt **tous les mois*
 - **Tri des portefeuilles** : chaque compte (TR, PEA, PERin) dispose d'un sélecteur — ordre de saisie, intitulé A→Z (insensible aux accents et à la casse), catégorie, valeur, performance en € ou en %, quantité. Le choix est mémorisé par compte, et l'édition reste liée à la bonne position quel que soit le tri affiché.
 
 ## v4.8.0 — 19/07/2026
-- **Saisie uniformisée partout** : chaque carte de liste (charges fixes, abonnements, transport, dépenses libres, vacances, plans Trade Republic, mouvements de livret…) dispose de la même barre rapide « intitulé + montant + ＋ ». Signe automatique selon la nature de la carte, touche Entrée pour passer au montant puis valider, focus rendu à l'intitulé pour enchaîner, et propagation aux mois suivants pour les catégories récurrentes.
+- **Saisie uniformisée partout** : chaque carte de liste (charges fixes, abonnements, transport, dépenses libres, vacances, plans du compte-titres, mouvements de livret…) dispose de la même barre rapide « intitulé + montant + ＋ ». Signe automatique selon la nature de la carte, touche Entrée pour passer au montant puis valider, focus rendu à l'intitulé pour enchaîner, et propagation aux mois suivants pour les catégories récurrentes.
 - **Répartition adaptative** : le mode « part égale » calcule sa fraction selon le nombre de poches — 2 poches + reste → 1/3 chacune, 3 poches + reste → 1/4, 1 poche + reste → 1/2. Ajouter un portefeuille à la répartition suffit, les fractions se réajustent seules et le libellé affiché suit (« 1/4 ↑ »).
 - **Paramètres appliqués vers l'avenir** : modifier le montant journalier, l'enveloppe fixe ou les poches n'affecte que le mois en cours et les suivants ; les mois écoulés sont figés automatiquement avec les valeurs réellement vécues.
 - **Positions personnalisables** : intitulé modifiable et catégorie au choix parmi Actions, ETFs, Métaux / ETC, Private Equity, Obligations et Cryptos, chacune avec sa couleur — reprise dans les tableaux et le compte rendu.
@@ -209,7 +458,7 @@ Un bouton 🔍 dans l'en-tête ouvre une recherche qui parcourt **tous les mois*
 - **Correctif iOS — zoom automatique à la saisie** : la règle 16 px s'applique désormais à *tous* les champs sur mobile (`!important` : elle écrase aussi les tailles définies en style inline, comme la colonne ISIN qui restait à 11 px et déclenchait le zoom). Le verrou `maximum-scale` n'est posé que sur iOS (où le pincement manuel reste possible) pour ne pas priver Android du zoom au geste. Et si un zoom résiduel survenait malgré tout, l'app dézoome automatiquement à la fin de la saisie.
 
 ## v4.6.0 — 19/07/2026
-- **Mise à jour des cours à la demande** : chaque position (Trade Republic, PEA, PERin) a une colonne 🔗 où saisir une fois son **ISIN** (ex. FR0000120271) ou son **ticker Yahoo** (ex. TTE.PA, BTC-EUR). Le bouton « 🔄 Mettre à jour les cours » (page Investissements) résout les ISIN vers le bon symbole (priorité aux places européennes en euros), récupère les derniers prix, convertit les cotations USD en euros, affiche la progression, mémorise le symbole résolu et signale les échecs. Connexion internet requise **uniquement à l'appui du bouton** — pensé pour un usage mensuel ; aucune donnée du portefeuille n'est transmise, seuls les symboles sont interrogés (cotations publiques Yahoo Finance, avec relais de secours).
+- **Mise à jour des cours à la demande** : chaque position (compte-titres, PEA, PER) a une colonne 🔗 où saisir une fois son **ISIN** (ex. FR0000120271) ou son **ticker Yahoo** (ex. TTE.PA, BTC-EUR). Le bouton « 🔄 Mettre à jour les cours » (page Investissements) résout les ISIN vers le bon symbole (priorité aux places européennes en euros), récupère les derniers prix, convertit les cotations USD en euros, affiche la progression, mémorise le symbole résolu et signale les échecs. Connexion internet requise **uniquement à l'appui du bouton** — pensé pour un usage mensuel ; aucune donnée du portefeuille n'est transmise, seuls les symboles sont interrogés (cotations publiques Yahoo Finance, avec relais de secours).
 
 ## v4.5.0 — 18/07/2026
 - **Optimisation Android / iOS** : champs de saisie à 16 px (fini le zoom automatique d'iOS), cibles tactiles agrandies, et bulles d'information **ⓘ** sur toutes les fonctions clés (reste du jour, répartition, étalement, récurrents, flux, livrets, positions…).
@@ -226,7 +475,7 @@ Un bouton 🔍 dans l'en-tête ouvre une recherche qui parcourt **tous les mois*
 - **Journal des versions** dans Réglages + ce fichier CHANGELOG.md.
 
 ## v4.3.0 — 18/07/2026
-- **Propagation automatique des dépenses récurrentes** (charges fixes, abonnements obligatoires et loisirs, plans Trade Republic, montants PEA/PER) : un ajout apparaît dans tous les mois suivants, une modification ou suppression n'est répercutée que sur les mois à venir — l'historique réel n'est jamais réécrit.
+- **Propagation automatique des dépenses récurrentes** (charges fixes, abonnements obligatoires et loisirs, plans du compte-titres, montants PEA/PER) : un ajout apparaît dans tous les mois suivants, une modification ou suppression n'est répercutée que sur les mois à venir — l'historique réel n'est jamais réécrit.
 - **Aucune donnée personnelle dans le dépôt** : l'application démarre vierge ; les données se chargent une fois par appareil via une sauvegarde JSON conservée hors de GitHub.
 - **Étalement des paiements échelonnés** : total ÷ nombre de mois arrondi au centime, la dernière mensualité récupère le reste des arrondis (ex. 10 € / 3 mois → 3,33 · 3,33 · 3,34), mois manquants créés automatiquement.
 
@@ -237,5 +486,5 @@ Un bouton 🔍 dans l'en-tête ouvre une recherche qui parcourt **tous les mois*
 - **Nouvelle icône** : logo personnalisé (bouclier, courbe de croissance, pièces et maison), zone sûre « maskable » respectée.
 
 ## v4.0.0 — 18/07/2026
-- **Version initiale** : reprise fidèle du classeur Excel « Mon Budget Personnel » — budget mensuel (enveloppe 41,43 €/jour, report Reste Mois-1, répartition du Non Attribué en tiers arrondis au supérieur), livrets A/LDDS avec cumuls, investissements (positions TR/PEA/PERin, performance, historique et graphique), achat-vente, estimation de dépense par jour.
+- **Version initiale** : reprise fidèle du classeur Excel « Mon Budget Personnel » — budget mensuel (enveloppe quotidienne paramétrable, report Reste Mois-1, répartition du Non Attribué en tiers arrondis au supérieur), livrets A/LDDS avec cumuls, investissements (positions TR/PEA/PERin, performance, historique et graphique), achat-vente, estimation de dépense par jour.
 - **PWA 100 % hors-ligne** (IndexedDB), installable sur mobile, import de classeur .xlsx, sauvegarde et restauration JSON, montants acceptant les expressions (« -8*4 »).
