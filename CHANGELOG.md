@@ -6,6 +6,10 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 > montants réels, de noms de comptes ni d'établissements. Les exemples chiffrés y
 > sont fictifs ou génériques.
 
+## v10.1.0 — 20/08/2026
+- **Barre de mois masquée par l'en-tête.** Elle se cale sur une variable contenant la hauteur de l'en-tête, mesurée une seule fois au chargement. Or cette hauteur **varie** : barre d'état iOS, passage en mode compact au défilement, rotation de l'écran. Une mesure prise pendant que l'en-tête était compact donnait une valeur trop faible, et l'en-tête déplié recouvrait alors le nom du mois et ses boutons. La hauteur est maintenant relevée à chaque changement — défilement, fin de transition, redimensionnement, rotation, chargement des polices — et une valeur de repli s'applique si la mesure échoue.
+- **Bloc « Raccourci iOS / Android » retiré.** Le procédé (ouvrir l'application avec des paramètres d'adresse pour enregistrer une dépense) ne fonctionnait pas de façon fiable selon les navigateurs et les versions. Le code associé et son aide ont été supprimés avec lui. La saisie rapide par le bouton ＋ reste le moyen le plus direct.
+
 ## v10.0.1 — 20/08/2026
 - **Nouvelle icône.** Déclinée dans toutes les tailles utiles : 192, 256, 512 et 1024 px pour les systèmes de bureau, une vignette de 180 px pour l'écran d'accueil iOS, et deux versions **« maskable »** pour Android. Ces dernières placent le motif dans les 78 % centraux, sur un fond assorti au thème : les masques circulaires ou en goutte appliqués par le système rognent jusqu'à un cinquième de chaque bord sans amputer le dessin. Le fin liseré clair qui entourait l'image d'origine a été détouré, faute de quoi il serait apparu comme une bordure grise.
 - Les captures d'écran de l'invite d'installation reprennent la nouvelle icône.

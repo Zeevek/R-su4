@@ -65,7 +65,7 @@ input,select{font:inherit;color:inherit}
 h1,h2,h3{font-weight:700}
 
 /* ===== En-tête ===== */
-header{background:rgba(18,20,28,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+header{z-index:26;background:rgba(18,20,28,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   color:var(--entete-texte);padding:calc(env(safe-area-inset-top) + 10px) var(--esp-4) 10px;
   display:flex;align-items:center;gap:var(--esp-3);position:sticky;top:0;z-index:25;
   border-bottom:1px solid var(--trait);transition:padding var(--duree) var(--courbe)}
@@ -443,7 +443,7 @@ header.compact .marque .ver{display:none}
 
 
 /* ===== Page Mois : barre de mois collante ===== */
-.selmois{position:sticky;top:var(--h-entete,56px);z-index:20;
+.selmois{position:sticky;top:var(--h-entete,58px);z-index:20;
   display:flex;align-items:center;gap:var(--esp-2);margin:0 0 var(--esp-3);
   background:var(--papier);padding:var(--esp-2) 0 var(--esp-2);
   /* le fond déborde latéralement pour masquer le contenu qui défile dessous */
@@ -1167,20 +1167,6 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
         Pense à ce que tu partages : l'option « anonymiser » retire les libellés et ne garde que des totaux.</p>
       </div>
     </div>
-    <div class="carte">
-      <div class="tete"><h3>📱 Raccourci iOS / Android</h3><button class="info-btn" data-infocle="raccourci" aria-label="Informations">i</button></div>
-      <div class="corps">
-        <p class="note">Crée un raccourci « Ajouter une dépense » qui enregistre une dépense sans ouvrir l'app ni naviguer.
-        Sur iPhone : app <b>Raccourcis</b> → ＋ → <i>Demander une entrée</i> (texte : l'intitulé), puis une seconde
-        <i>Demander une entrée</i> (nombre : le montant), puis <i>Ouvrir l'URL</i> avec l'adresse ci-dessous où tu insères
-        les deux réponses. Ajoute-le à l'écran d'accueil ou demande-le à Siri.</p>
-        <div class="ligne"><input class="lab" name="adresse-raccourci" id="raccourci-url" readonly
-          aria-label="Adresse du raccourci" style="font-size:12px;color:var(--encre2)"></div>
-        <button class="btn ligne2 discret" id="btn-raccourci-copier">📋 Copier le modèle d'adresse</button>
-        <p class="note">Catégories acceptées via <code>&cat=</code> : depensesLibres (par défaut), transport, chargesFixes,
-        aboLoisirs, entrees, remboursements, vacAlim…</p>
-      </div>
-    </div>
     <h2 class="sect">À propos</h2>
     <div class="carte">
       <div class="tete"><h3>📜 Journal des versions</h3></div>
@@ -1472,7 +1458,6 @@ const INFOS = {
   dividendes: ['Dividendes perçus', "Saisis la source, la date réelle de perception (le jour même par défaut) et le montant. Le dividende est ajouté aux entrées du <b>mois suivant</b> : perçu en juillet, il compte en août — la convention des relevés bancaires, et celle que tu utilisais déjà à la main. La case « brut » applique les prélèvements (30 % par défaut en France : 12,8 % d'impôt et 17,2 % de prélèvements sociaux, taux modifiable) et enregistre le net réellement encaissé, en gardant le brut en mémoire. Le cumul annuel affiché en haut sert de repère pour la déclaration ; les sources connues du portefeuille sont proposées à la saisie."],
   operation: ['Enregistrer une opération', "Choisis le sens (achat ou vente), le compte, puis une position de ton portefeuille. Le montant est prélevé sur le disponible du compte, et la position est mise à jour : le nombre de parts évolue et le prix de revient moyen est recalculé au prorata — un achat de 100 € à 25 € l'unité ajoute 4 parts et ajuste le PRU. Le prix unitaire est facultatif : sans lui, le dernier cours connu est utilisé. Un intitulé libre reste possible pour une opération sans position associée."],
   cashcomptes: ['Cash dédié PEA / PER', "Une poche « → Cash PEA » ou « → Cash PER » met de l'argent de côté pour ces comptes, en plus de tes versements mensuels programmés (qui restent prélevés sur le budget du mois). Le cash PEA est consommé par tes achats directs PEA ; le cash PER par les versements exceptionnels que tu saisis ici. Si un achat PEA dépasse le cash dédié, le complément est pris sur le disponible général."],
-  raccourci: ['Raccourci iOS / Android', "L'application peut enregistrer une dépense directement depuis une adresse : ?ajout=Boulangerie&montant=6 ajoute 6 € en dépenses libres du mois en cours, avec une confirmation à l'écran. Sur iPhone, l'app Raccourcis permet d'en faire un bouton d'écran d'accueil ou une commande Siri (« Dis Siri, ajoute une dépense »). Ajoute &cat=transport (ou une autre catégorie) pour changer la destination. L'adresse est nettoyée après enregistrement : recharger la page ne crée pas de doublon."],
   clavier: ['Raccourcis clavier', "Sur ordinateur : les touches 1 à 6 ouvrent les onglets dans l'ordre de la barre du bas, « n » place le curseur dans la dépense rapide, « / » ou Ctrl+K (⌘K sur Mac) ouvre la recherche, Ctrl+Z (⌘Z) annule la dernière action, « ? » affiche cette aide. Les raccourcis sont ignorés pendant la saisie dans un champ."],
   installer: ['Installer l\u2019application', "Installée, l'application s'ouvre dans sa propre fenêtre — sans barre d'adresse ni onglets — depuis le menu Démarrer, le Dock ou l'écran d'accueil, et fonctionne sans connexion. Les données restent celles du navigateur qui a servi à l'installer : elles ne sont ni copiées ni synchronisées ailleurs. Sur Chrome et Edge, un bouton lance l'installation directement ; Safari ne l'expose pas, d'où les instructions manuelles. Firefox pour ordinateur ne prend pas en charge cette fonction."],
   profils: ['Profils', "Plusieurs budgets indépendants sur le même appareil : chacun a ses mois, ses comptes, son portefeuille et ses réglages, sans aucun mélange. Pensé pour un couple qui gère séparément, ou pour distinguer un budget personnel d'une activité annexe. Le profil actif est mémorisé, et l'application se recharge au changement. Chaque profil s'exporte séparément, et le verrouillage reste commun à l'appareil."],
@@ -1508,8 +1493,11 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '10.0.1';
+const APP_VERSION = '10.1.0';
 const CHANGELOG = [
+  {v: '10.1.0', d: '20/08/2026', pts: [
+    "Correctif : la barre de mois passait sous l'en-tête. Sa hauteur, qui varie avec le mode compact et la barre d'état, est désormais mesurée en continu.",
+    "Le bloc « Raccourci iOS / Android » est retiré : le procédé ne fonctionnait pas de façon fiable."]},
   {v: '10.0.1', d: '20/08/2026', pts: [
     "Nouvelle icône appliquée à toutes les tailles : 192, 256, 512 et 1024 px, plus une vignette Apple de 180 px et deux versions « maskable » pour Android.",
     "Les captures d'écran de l'invite d'installation reprennent la nouvelle icône."]},
@@ -4846,8 +4834,6 @@ function rendreReglages(){
   const selIA = document.getElementById('ia-etude');
   if (selIA && !selIA.options.length)
     selIA.innerHTML = Object.entries(ETUDES_IA).map(([k, v]) => `<option value="${k}">${v.nom}</option>`).join('');
-  const champURL = document.getElementById('raccourci-url');
-  if (champURL) champURL.value = location.origin + location.pathname + '?ajout=INTITULÉ&montant=MONTANT';
 
   const selMod = document.getElementById('cpt-modele');
   if (selMod && !selMod.options.length)
@@ -5961,11 +5947,6 @@ function optionsIA(){
           anonyme: document.getElementById('ia-anonyme').checked,
           mois: Math.max(1, Math.min(60, parseInt(document.getElementById('ia-mois').value, 10) || 6))};
 }
-document.getElementById('btn-raccourci-copier').onclick = async () => {
-  const url = document.getElementById('raccourci-url').value;
-  try{ await navigator.clipboard.writeText(url); toast('📋 Adresse copiée'); }
-  catch(e){ toast('Copie refusée — sélectionne le texte à la main'); }
-};
 document.getElementById('btn-ia-fichier').onclick = () => {
   const txt = dossierIA(optionsIA());
   const blob = new Blob([txt], {type: 'text/markdown;charset=utf-8'});
@@ -6512,15 +6493,39 @@ addEventListener('keydown', e => {
    que les barres collantes se placent exactement dessous, sans espace vide. */
 (function(){
   const h = document.querySelector('header');
-  const mesurer = () => document.documentElement.style.setProperty('--h-entete', h.offsetHeight + 'px');
+  /* La hauteur de l'en-tête varie : barre d'état iOS, mode compact au
+     défilement, rotation. Une mesure ponctuelle prise pendant qu'il est
+     compact est trop petite, et l'en-tête déplié recouvre alors la barre de
+     mois. On mesure donc à chaque changement, y compris pendant l'animation. */
+  let dernierH = 0;
+  const mesurer = () => {
+    const v = Math.round(h.getBoundingClientRect().height);
+    if (v && v !== dernierH){
+      dernierH = v;
+      document.documentElement.style.setProperty('--h-entete', v + 'px');
+    }
+  };
   mesurer();
-  addEventListener('resize', mesurer);
-  addEventListener('orientationchange', () => setTimeout(mesurer, 250));
+  addEventListener('load', mesurer);
+  addEventListener('resize', mesurer, {passive: true});
+  addEventListener('orientationchange', () => setTimeout(mesurer, 300));
+  h.addEventListener('transitionend', mesurer);          // fin du passage en compact
   if (window.ResizeObserver) new ResizeObserver(mesurer).observe(h);
-  let dernier = false;
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(mesurer);
+
+  let compactActuel = false, enAttente = false;
   addEventListener('scroll', () => {
-    const compact = window.scrollY > 40;
-    if (compact !== dernier){ h.classList.toggle('compact', compact); dernier = compact; }
+    if (enAttente) return;
+    enAttente = true;
+    requestAnimationFrame(() => {
+      enAttente = false;
+      const compact = window.scrollY > 40;
+      if (compact !== compactActuel){
+        h.classList.toggle('compact', compact);
+        compactActuel = compact;
+      }
+      mesurer();   // suit la hauteur pendant toute la transition
+    });
   }, {passive: true});
 })();
 
@@ -6807,29 +6812,6 @@ function appliquerBienvenue(revenus, enveloppe, comptesChoisis, strategie){
   return {poches: p.length, comptes: c.length};
 }
 
-/* ===== Ajout par URL : socle des raccourcis iOS et des widgets =====
-   Format : ...index.html?ajout=Boulangerie&montant=6[&cat=depensesLibres]
-   Un raccourci Siri ouvre cette adresse : la dépense est enregistrée et
-   confirmée à l'écran, sans navigation ni saisie. */
-function traiterAjoutURL(){
-  const p = new URLSearchParams(location.search);
-  const label = (p.get('ajout') || '').trim();
-  if (!label) return false;
-  const brut = evalMontant(p.get('montant') || '');
-  if (isNaN(brut) || Math.abs(brut) < 0.005){ toast('⚠️ Raccourci : montant manquant'); return false; }
-  let cat = p.get('cat') || 'depensesLibres';
-  const connues = [...CATS_RAPIDES.map(c => c[0]), ...SOUS_CATS_VAC.map(c => c[0])];
-  if (!connues.includes(cat) || cat === 'vac') cat = 'depensesLibres';
-  const signe = signeCategorie(cat);
-  const montant = +((signe === '-' ? (brut > 0 ? -brut : brut) : (brut < 0 ? -brut : brut))).toFixed(2);
-  const cle = cleAujourdhui();
-  if (!assurerMois(cle)) return toast('Impossible de créer le mois en cours');
-  etat.months[cle][cat].push({label, montant});
-  sauver();
-  history.replaceState(null, '', location.pathname);   // évite un doublon si la page est rechargée
-  toast(`✅ ${label} ${fmt(montant)} enregistré`);
-  return true;
-}
 
 /* ================= DÉMARRAGE ================= */
 (async function init(){
@@ -6846,7 +6828,6 @@ function traiterAjoutURL(){
   const selTheme = document.getElementById('cfg-theme');
   if (selTheme) selTheme.value = etat.config.theme || 'auto';
   rendreTout();
-  if (traiterAjoutURL()) rendreTout();
   // raccourcis du manifeste : ?page=mois, ?saisie=1
   const _p = new URLSearchParams(location.search);
   const _page = _p.get('page');
