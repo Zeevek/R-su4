@@ -1,8 +1,11 @@
 // Service Worker — Budget v4 (cache d'abord, fonctionnement hors ligne)
-const CACHE = 'budget-v4-r57';
+const CACHE = 'budget-v4-r59';
 // index.html est le seul fichier indispensable ; les autres sont un confort.
 const ESSENTIELS = ['./', './index.html'];
-const OPTIONNELS = ['./manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const OPTIONNELS = ['./manifest.webmanifest',
+  './icon-192.png', './icon-256.png', './icon-512.png', './icon-1024.png',
+  './icon-maskable-192.png', './icon-maskable-512.png', './apple-touch-icon.png',
+  './capture-large.png', './capture-mobile.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil((async () => {

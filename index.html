@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0F1117">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="256x256" href="icon-256.png">
+<meta name="application-name" content="Budget">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Budget">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Budget v4">
@@ -623,6 +629,15 @@ button, select, input[type="date"], input[type="checkbox"]{min-height:40px}
 .ryt-legende i.cette{background:var(--menthe)}
 .ryt-legende i.avant{background:var(--trait)}
 
+
+/* ===== Guide d'installation ===== */
+.inst-guide{background:var(--carte2);border-radius:var(--r-m);padding:12px 14px;margin-top:var(--esp-2)}
+.inst-titre{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--violet);margin-bottom:8px}
+.inst-guide ol{margin:0;padding-left:20px}
+.inst-guide li{font-size:13px;line-height:1.6;color:var(--encre);margin-bottom:5px}
+.inst-guide li:last-child{margin-bottom:0}
+
 /* ===== Micro-interactions =====
    Le mouvement sert à comprendre : d'où vient un élément, ce qui vient de
    changer, ce qui est en cours. Tout est désactivé si le système demande
@@ -1059,6 +1074,10 @@ details.etaler .eta-n{width:76px;text-align:right;font-weight:600}
     </div>
     <h2 class="sect">Confort et sécurité</h2>
     <div class="carte">
+      <div class="tete"><h3>📥 Installer l'application</h3><button class="info-btn" data-infocle="installer" aria-label="Informations">i</button></div>
+      <div class="corps" id="installer-corps"></div>
+    </div>
+    <div class="carte">
       <div class="tete"><h3>🎨 Apparence</h3></div>
       <div class="corps">
         <div class="ligne"><span class="lab">Thème</span>
@@ -1455,6 +1474,7 @@ const INFOS = {
   cashcomptes: ['Cash dédié PEA / PER', "Une poche « → Cash PEA » ou « → Cash PER » met de l'argent de côté pour ces comptes, en plus de tes versements mensuels programmés (qui restent prélevés sur le budget du mois). Le cash PEA est consommé par tes achats directs PEA ; le cash PER par les versements exceptionnels que tu saisis ici. Si un achat PEA dépasse le cash dédié, le complément est pris sur le disponible général."],
   raccourci: ['Raccourci iOS / Android', "L'application peut enregistrer une dépense directement depuis une adresse : ?ajout=Boulangerie&montant=6 ajoute 6 € en dépenses libres du mois en cours, avec une confirmation à l'écran. Sur iPhone, l'app Raccourcis permet d'en faire un bouton d'écran d'accueil ou une commande Siri (« Dis Siri, ajoute une dépense »). Ajoute &cat=transport (ou une autre catégorie) pour changer la destination. L'adresse est nettoyée après enregistrement : recharger la page ne crée pas de doublon."],
   clavier: ['Raccourcis clavier', "Sur ordinateur : les touches 1 à 6 ouvrent les onglets dans l'ordre de la barre du bas, « n » place le curseur dans la dépense rapide, « / » ou Ctrl+K (⌘K sur Mac) ouvre la recherche, Ctrl+Z (⌘Z) annule la dernière action, « ? » affiche cette aide. Les raccourcis sont ignorés pendant la saisie dans un champ."],
+  installer: ['Installer l\u2019application', "Installée, l'application s'ouvre dans sa propre fenêtre — sans barre d'adresse ni onglets — depuis le menu Démarrer, le Dock ou l'écran d'accueil, et fonctionne sans connexion. Les données restent celles du navigateur qui a servi à l'installer : elles ne sont ni copiées ni synchronisées ailleurs. Sur Chrome et Edge, un bouton lance l'installation directement ; Safari ne l'expose pas, d'où les instructions manuelles. Firefox pour ordinateur ne prend pas en charge cette fonction."],
   profils: ['Profils', "Plusieurs budgets indépendants sur le même appareil : chacun a ses mois, ses comptes, son portefeuille et ses réglages, sans aucun mélange. Pensé pour un couple qui gère séparément, ou pour distinguer un budget personnel d'une activité annexe. Le profil actif est mémorisé, et l'application se recharge au changement. Chaque profil s'exporte séparément, et le verrouillage reste commun à l'appareil."],
   etiquettes: ['Étiquettes', "Un mot précédé de # dans un libellé devient une étiquette : « Révision #voiture », « Croquettes #chat ». L'application additionne alors tout ce qui porte la même étiquette, quelles que soient les catégories et les mois — pratique pour savoir ce que coûte réellement une voiture, un animal, un enfant ou un projet, sans créer de rubriques dédiées. La recherche 🔍 accepte aussi les étiquettes."],
   bilanAnnuel: ['Bilan de l\u2019année', "Somme des mois écoulés de l'année civile : entrées, grandes catégories de dépenses, montant investi et épargne totale (ce qui est investi plus ce qui reste). Le taux d'épargne rapporte cette épargne aux entrées — c'est l'indicateur le plus prédictif du patrimoine à long terme, bien plus que le choix des placements. Les écarts avec l'année précédente s'affichent dès qu'elle est disponible."],
@@ -1488,8 +1508,16 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '9.9.1';
+const APP_VERSION = '10.0.1';
 const CHANGELOG = [
+  {v: '10.0.1', d: '20/08/2026', pts: [
+    "Nouvelle icône appliquée à toutes les tailles : 192, 256, 512 et 1024 px, plus une vignette Apple de 180 px et deux versions « maskable » pour Android.",
+    "Les captures d'écran de l'invite d'installation reprennent la nouvelle icône."]},
+  {v: '10.0.0', d: '20/08/2026', pts: [
+    "L'application s'installe sur ordinateur (Windows, macOS, Linux) comme sur téléphone : elle s'ouvre alors dans sa propre fenêtre, sans barre d'adresse, et fonctionne sans connexion.",
+    "Nouvelle carte « Installer l'application » dans les Réglages : bouton d'installation directe sur Chrome et Edge, marche à suivre détaillée sur Safari, iOS, Android et Linux.",
+    "Manifeste complet : icônes dédiées (dont versions « maskable » et 1024 px pour macOS), captures d'écran pour l'invite d'installation, trois raccourcis (saisir une dépense, voir le mois, portefeuille).",
+    "Les raccourcis ouvrent directement la bonne page ou la saisie rapide."]},
   {v: '9.9.1', d: '20/08/2026', pts: [
     "Journal des versions et README expurgés : plus aucun montant réel, nom d'établissement ou de personne — ces fichiers sont publics.",
     "Les noms d'établissements codés en dur dans l'interface (courtier, assureur) laissent place à des libellés génériques : compte-titres, PEA, PER."]},
@@ -4796,6 +4824,7 @@ function rendreReglages(){
         inputmode="decimal" placeholder="aucun plafond"><span class="u">${devise().sym}</span></span></label>`).join('');
 
   // ----- Profils -----
+  rendreInstallation();
   const pl = document.getElementById('profils-liste');
   if (pl){
     const actif = profilActif();
@@ -6495,6 +6524,95 @@ addEventListener('keydown', e => {
   }, {passive: true});
 })();
 
+/* ===== Installation en application =====
+   Chrome et Edge fournissent une invite native qu'il faut capter puis déclencher
+   à la demande. Safari (iOS comme macOS) ne l'expose pas : on donne alors la
+   marche à suivre, différente sur chaque plateforme. */
+let _inviteInstall = null;
+addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _inviteInstall = e;
+  rendreInstallation();
+});
+addEventListener('appinstalled', () => {
+  _inviteInstall = null;
+  rendreInstallation();
+  toast('✅ Application installée');
+});
+function estInstallee(){
+  return matchMedia('(display-mode: standalone)').matches
+      || matchMedia('(display-mode: window-controls-overlay)').matches
+      || navigator.standalone === true;
+}
+function plateforme(){
+  const ua = navigator.userAgent;
+  const tactileMac = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  if (/iPhone|iPad|iPod/.test(ua) || tactileMac) return 'ios';
+  if (/Android/.test(ua)) return 'android';
+  if (/Macintosh/.test(ua)) return 'mac';
+  if (/Windows/.test(ua)) return 'windows';
+  if (/Linux/.test(ua)) return 'linux';
+  return 'autre';
+}
+function navigateur(){
+  const ua = navigator.userAgent;
+  if (/Firefox\//.test(ua)) return 'firefox';
+  if (/Edg\//.test(ua)) return 'edge';
+  if (/OPR\//.test(ua)) return 'opera';
+  if (/Chrome\//.test(ua)) return 'chrome';
+  if (/Safari\//.test(ua)) return 'safari';
+  return 'autre';
+}
+function rendreInstallation(){
+  const zone = document.getElementById('installer-corps');
+  if (!zone) return;
+  if (estInstallee()){
+    zone.innerHTML = `<p class="note">✅ L'application est installée sur cet appareil : elle s'ouvre dans sa
+      propre fenêtre, sans barre d'adresse, et fonctionne sans connexion.</p>`;
+    return;
+  }
+  const p = plateforme(), n = navigateur();
+  const avantages = `<p class="note">Installée, l'application s'ouvre dans sa propre fenêtre depuis le menu Démarrer,
+    le Dock ou l'écran d'accueil, garde ses données au même endroit et fonctionne <b>sans connexion</b>.</p>`;
+  if (_inviteInstall){
+    zone.innerHTML = `${avantages}
+      <button class="btn or ligne2" id="btn-installer">📥 Installer maintenant</button>
+      <p class="note">Ton navigateur propose l'installation directe : un clic suffit.</p>`;
+    return;
+  }
+  const guides = {
+    ios: ['Sur iPhone et iPad (Safari)', [
+      'Touche le bouton <b>Partager</b> (le carré avec une flèche vers le haut), en bas de l\u2019écran.',
+      'Fais défiler puis choisis <b>« Sur l\u2019écran d\u2019accueil »</b>.',
+      'Confirme avec <b>Ajouter</b> : une icône apparaît comme pour une application classique.']],
+    mac: ['Sur Mac (Safari 17 ou plus récent)', [
+      'Menu <b>Fichier</b> → <b>« Ajouter au Dock… »</b>.',
+      'Confirme le nom, puis <b>Ajouter</b>.',
+      'Avec Chrome ou Edge : icône d\u2019installation à droite de la barre d\u2019adresse, ou menu ⋮ → <b>Installer…</b>']],
+    windows: ['Sur Windows (Chrome, Edge)', [
+      'Clique sur l\u2019icône <b>Installer</b> (un écran avec une flèche) à droite de la barre d\u2019adresse.',
+      'Ou menu <b>⋮</b> → <b>Applications</b> → <b>Installer cette page en tant qu\u2019application</b>.',
+      'L\u2019application apparaît alors dans le menu Démarrer et peut être épinglée à la barre des tâches.']],
+    linux: ['Sur Linux (Chrome, Chromium, Edge)', [
+      'Icône <b>Installer</b> à droite de la barre d\u2019adresse, ou menu <b>⋮</b> → <b>Installer…</b>',
+      'Un raccourci est créé dans le menu des applications.']],
+    android: ['Sur Android (Chrome)', [
+      'Menu <b>⋮</b> → <b>Ajouter à l\u2019écran d\u2019accueil</b> ou <b>Installer l\u2019application</b>.',
+      'Confirme : l\u2019icône rejoint ton écran d\u2019accueil.']],
+  };
+  const [titre, etapes] = guides[p] || ['Sur ton appareil', [
+    'Cherche l\u2019option <b>Installer</b> ou <b>Ajouter à l\u2019écran d\u2019accueil</b> dans le menu de ton navigateur.']];
+  const note = n === 'firefox'
+    ? `<p class="note">⚠️ Firefox pour ordinateur ne propose pas l'installation des applications web.
+       Chrome, Edge ou Safari le permettent — l'adresse et les données restent les mêmes,
+       à condition d'exporter ta sauvegarde puis de la réimporter dans l'autre navigateur.</p>` : '';
+  zone.innerHTML = `${avantages}
+    <div class="inst-guide">
+      <div class="inst-titre">${titre}</div>
+      <ol>${etapes.map(e => `<li>${e}</li>`).join('')}</ol>
+    </div>${note}`;
+}
+
 /* ===== Saisie rapide accessible partout =====
    Le geste le plus fréquent — noter une dépense — ne doit pas imposer de
    revenir à l'Accueil. Une feuille monte depuis le bas, quelle que soit la page. */
@@ -6543,6 +6661,15 @@ function validerSaisie(){
   signaler(document.querySelector('.hero'));
   toast(`${label} ${fmt(montant)}${sup}`, true);
 }
+document.addEventListener('click', e => {
+  if (e.target.id !== 'btn-installer' || !_inviteInstall) return;
+  _inviteInstall.prompt();
+  _inviteInstall.userChoice.then(r => {
+    if (r.outcome !== 'accepted') toast('Installation annulée — tu pourras la relancer depuis les Réglages');
+    _inviteInstall = null;
+    rendreInstallation();
+  });
+});
 document.getElementById('fab').onclick = ouvrirSaisie;
 document.getElementById('ps-fermer').onclick = fermerSaisie;
 document.getElementById('ps-valider').onclick = validerSaisie;
@@ -6720,6 +6847,13 @@ function traiterAjoutURL(){
   if (selTheme) selTheme.value = etat.config.theme || 'auto';
   rendreTout();
   if (traiterAjoutURL()) rendreTout();
+  // raccourcis du manifeste : ?page=mois, ?saisie=1
+  const _p = new URLSearchParams(location.search);
+  const _page = _p.get('page');
+  if (_page && document.querySelector(`nav button[data-page="${_page}"]`))
+    document.querySelector(`nav button[data-page="${_page}"]`).click();
+  if (_p.get('saisie')) setTimeout(ouvrirSaisie, 300);
+  if (_page || _p.get('saisie')) history.replaceState(null, '', location.pathname);
   // Assistant : seulement sur une application réellement vierge. Toute trace de
   // saisie (entrée, dépense, compte garni, position) signifie qu'il est inutile.
   const dejaUtilisee = clesMois().some(k => {

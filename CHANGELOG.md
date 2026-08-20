@@ -6,6 +6,30 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 > montants réels, de noms de comptes ni d'établissements. Les exemples chiffrés y
 > sont fictifs ou génériques.
 
+## v10.0.1 — 20/08/2026
+- **Nouvelle icône.** Déclinée dans toutes les tailles utiles : 192, 256, 512 et 1024 px pour les systèmes de bureau, une vignette de 180 px pour l'écran d'accueil iOS, et deux versions **« maskable »** pour Android. Ces dernières placent le motif dans les 78 % centraux, sur un fond assorti au thème : les masques circulaires ou en goutte appliqués par le système rognent jusqu'à un cinquième de chaque bord sans amputer le dessin. Le fin liseré clair qui entourait l'image d'origine a été détouré, faute de quoi il serait apparu comme une bordure grise.
+- Les captures d'écran de l'invite d'installation reprennent la nouvelle icône.
+
+## v10.0.0 — 20/08/2026 — *installation sur ordinateur*
+
+L'application était installable sur téléphone mais son manifeste ne permettait pas une installation propre sur ordinateur : orientation forcée en portrait, aucune capture d'écran (nécessaire à l'invite enrichie de Chrome et Edge), icônes déclarées « maskable » sans respecter la zone de sécurité, couleurs de thème héritées de l'ancienne identité.
+
+### Manifeste complet
+Identifiant stable, `display_override` (dont le mode fenêtre avec superposition des contrôles), orientation libre, couleurs de la charte, catégories, langue, et reprise du focus si une fenêtre est déjà ouverte. **Six icônes** : quatre classiques (192 à 1024 px, cette dernière pour l'affichage macOS) et deux « maskable » dont le motif tient dans la zone sûre, pour ne pas être rogné par les masques d'Android. **Deux captures d'écran** (large et étroite) alimentent l'invite d'installation. **Trois raccourcis** apparaissent au clic droit sur l'icône : saisir une dépense, ouvrir le mois, ouvrir le portefeuille.
+
+### Carte « Installer l'application »
+Dans Réglages → Confort et sécurité. Sur Chrome et Edge, l'invite native est captée et un bouton lance l'installation en un clic. Ailleurs, la marche à suivre s'adapte à la plateforme détectée :
+- **Windows** — icône d'installation dans la barre d'adresse, ou menu ⋮ → Applications ;
+- **macOS** — Safari 17 : Fichier → « Ajouter au Dock… » ; alternative Chrome/Edge ;
+- **iPhone / iPad** — Partager → « Sur l'écran d'accueil » ;
+- **Android** — menu ⋮ → « Installer l'application » ;
+- **Linux** — icône d'installation ou menu ⋮.
+
+Firefox pour ordinateur ne prenant pas en charge l'installation des applications web, la limitation est signalée plutôt que laissée à deviner. Une fois installée, la carte le confirme au lieu de proposer l'opération.
+
+### Précision sur les données
+Les données restent celles du navigateur qui a servi à l'installer : elles ne sont ni copiées ni synchronisées. Pour passer d'un appareil ou d'un navigateur à un autre, l'export et l'import de sauvegarde restent la voie à suivre.
+
 ## v9.9.1 — 20/08/2026
 - **Journal des versions expurgé.** Ce fichier est publié sur le dépôt : il contenait des montants réels (soldes, revenus, patrimoine), des noms d'établissements et un prénom. Tous les exemples chiffrés sont devenus génériques, sans que le raisonnement décrit y perde quoi que ce soit. Les 55 versions sont conservées.
 - **Interface rendue générique.** Les noms d'établissements étaient codés en dur dans l'application (nom du courtier, de l'assureur, du compte-titres) et un prénom servait d'exemple dans la saisie des remboursements de vacances. Ils laissent place à des libellés neutres — **compte-titres**, **PEA**, **PER**, « part d'un proche ». Les identifiants internes sont inchangés : aucune sauvegarde n'est affectée.
