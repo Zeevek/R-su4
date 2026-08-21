@@ -638,6 +638,20 @@ button, select, input[type="date"], input[type="checkbox"]{min-height:40px}
 .inst-guide li{font-size:13px;line-height:1.6;color:var(--encre);margin-bottom:5px}
 .inst-guide li:last-child{margin-bottom:0}
 
+
+/* ===== Suggestions d'étiquettes ===== */
+#sugg-tags{position:fixed;z-index:130;display:none;flex-direction:column;
+  background:var(--carte);border:1px solid var(--violet);border-radius:var(--r-m);
+  box-shadow:var(--ombre-forte);overflow:hidden;max-height:190px;overflow-y:auto}
+#sugg-tags.vu{display:flex}
+.st-item{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:9px 12px;background:none;color:var(--encre);font-size:13.5px;font-weight:600;
+  text-align:left;min-height:0;border-bottom:1px solid var(--trait)}
+.st-item:last-child{border-bottom:none}
+.st-item.actif, .st-item:hover{background:var(--violet-sourd)}
+.st-nom{color:var(--violet);font-weight:700}
+.st-n{font-size:10.5px;color:var(--encre2);font-weight:600}
+
 /* ===== Micro-interactions =====
    Le mouvement sert à comprendre : d'où vient un élément, ce qui vient de
    changer, ce qui est en cours. Tout est désactivé si le système demande
@@ -1461,7 +1475,8 @@ const INFOS = {
   clavier: ['Raccourcis clavier', "Sur ordinateur : les touches 1 à 6 ouvrent les onglets dans l'ordre de la barre du bas, « n » place le curseur dans la dépense rapide, « / » ou Ctrl+K (⌘K sur Mac) ouvre la recherche, Ctrl+Z (⌘Z) annule la dernière action, « ? » affiche cette aide. Les raccourcis sont ignorés pendant la saisie dans un champ."],
   installer: ['Installer l\u2019application', "Installée, l'application s'ouvre dans sa propre fenêtre — sans barre d'adresse ni onglets — depuis le menu Démarrer, le Dock ou l'écran d'accueil, et fonctionne sans connexion. Les données restent celles du navigateur qui a servi à l'installer : elles ne sont ni copiées ni synchronisées ailleurs. Sur Chrome et Edge, un bouton lance l'installation directement ; Safari ne l'expose pas, d'où les instructions manuelles. Firefox pour ordinateur ne prend pas en charge cette fonction."],
   profils: ['Profils', "Plusieurs budgets indépendants sur le même appareil : chacun a ses mois, ses comptes, son portefeuille et ses réglages, sans aucun mélange. Pensé pour un couple qui gère séparément, ou pour distinguer un budget personnel d'une activité annexe. Le profil actif est mémorisé, et l'application se recharge au changement. Chaque profil s'exporte séparément, et le verrouillage reste commun à l'appareil."],
-  etiquettes: ['Étiquettes', "Un mot précédé de # dans un libellé devient une étiquette : « Révision #voiture », « Croquettes #chat ». L'application additionne alors tout ce qui porte la même étiquette, quelles que soient les catégories et les mois — pratique pour savoir ce que coûte réellement une voiture, un animal, un enfant ou un projet, sans créer de rubriques dédiées. La recherche 🔍 accepte aussi les étiquettes."],
+  etiquettes: ['Étiquettes', "Un mot précédé de # dans un libellé regroupe des dépenses à travers les catégories : « Révision #voiture », « Abonnement #sharesub ». Le montant affiché est le <b>coût net</b> — un remboursement portant la même étiquette vient en déduction. Chaque sujet est comparé à son habitude au même stade du mois, comme les postes de dépense : la barre pleine est ce mois-ci, la barre grise ce qu'on observe d'ordinaire. Un sujet apparu récemment est signalé « nouveau » plutôt que comparé à zéro."],
+  etiquettesOLD: ['Étiquettes', "Un mot précédé de # dans un libellé devient une étiquette : « Révision #voiture », « Croquettes #chat ». L'application additionne alors tout ce qui porte la même étiquette, quelles que soient les catégories et les mois — pratique pour savoir ce que coûte réellement une voiture, un animal, un enfant ou un projet, sans créer de rubriques dédiées. La recherche 🔍 accepte aussi les étiquettes."],
   bilanAnnuel: ['Bilan de l\u2019année', "Somme des mois écoulés de l'année civile : entrées, grandes catégories de dépenses, montant investi et épargne totale (ce qui est investi plus ce qui reste). Le taux d'épargne rapporte cette épargne aux entrées — c'est l'indicateur le plus prédictif du patrimoine à long terme, bien plus que le choix des placements. Les écarts avec l'année précédente s'affichent dès qu'elle est disponible."],
   budgets: ['Budgets par poste', "Un plafond mensuel facultatif par catégorie de dépense. La jauge se remplit au fil du mois : verte tant que tu es dans les clous, rouge en cas de dépassement. Une alerte intermédiaire apparaît quand le rythme actuel laisse prévoir un dépassement — au 10 du mois, avoir consommé la moitié d'un budget est un signal, même si le plafond n'est pas encore atteint. Laisse un champ vide pour ne pas fixer de plafond sur ce poste."],
   tendances: ['Tendances du mois', "Chaque poste de dépense est comparé à sa moyenne des trois mois précédents, en tenant compte de la portion du mois déjà écoulée : au 10 du mois, on ne compare pas un mois complet à un tiers de mois. Seuls les écarts de plus de 25 % sont signalés, et les postes trop petits sont ignorés. C'est un repère, pas un jugement : un écart peut être parfaitement justifié (vacances, achat prévu, mois à cinq week-ends)."],
@@ -1493,8 +1508,13 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '10.1.0';
+const APP_VERSION = '10.2.0';
 const CHANGELOG = [
+  {v: '10.2.0', d: '21/08/2026', pts: [
+    "Correctif : un remboursement portant une étiquette n'était pas déduit du coût de ce sujet dans le diagramme de flux. Les étiquettes affichent désormais un coût net.",
+    "Étiquettes de l'Accueil : elles sont analysées comme les postes de dépense — comparaison avec l'habitude, barres et projection de fin de mois — au lieu d'un simple cumul.",
+    "Taper « # » dans un libellé propose les étiquettes déjà utilisées, avec leur fréquence, insensible aux accents.",
+    "Correctif : replier des cartes puis modifier un réglage de la page les rouvrait toutes."]},
   {v: '10.1.0', d: '20/08/2026', pts: [
     "Correctif : la barre de mois passait sous l'en-tête. Sa hauteur, qui varie avec le mode compact et la barre d'état, est désormais mesurée en continu.",
     "Le bloc « Raccourci iOS / Android » est retiré : le procédé ne fonctionnait pas de façon fiable."]},
@@ -2849,13 +2869,14 @@ function construireFlux(cle){
   for (const cat of cats){
     const champs = CHAMPS_CAT[cat.nom];
     if (!champs || cat.detail) continue;
+    /* Le coût net d'un sujet : les remboursements portant la même étiquette
+       viennent en déduction. Une ligne positive (part reversée, ristourne)
+       compte donc en moins, comme sur un relevé. */
     const par = {};
     for (const champ of champs)
-      for (const it of (m[champ] || [])){
-        const v = -(+it.montant || 0);
-        if (v <= 0.004) continue;
-        for (const t of etiquettesDe(it.label)) par['#' + t] = (par['#' + t] || 0) + v;
-      }
+      for (const it of (m[champ] || []))
+        for (const t of etiquettesDe(it.label))
+          par['#' + t] = (par['#' + t] || 0) - (+it.montant || 0);
     const liste = Object.entries(par).map(([nom, v]) => ({nom, v: +v.toFixed(2)}))
       .filter(d => d.v > 0.004).sort((a, b) => b.v - a.v).slice(0, 4);
     if (liste.length){ cat.detail = liste; nbTags += liste.length; }
@@ -3545,19 +3566,38 @@ function carteProjection(){
 function etiquettesDe(label){
   return (String(label || '').match(/#[\p{L}\p{N}_-]{2,}/gu) || []).map(t => t.slice(1).toLowerCase());
 }
-function bilanEtiquettes(nbMois = 12){
-  const cles = clesMois().filter(k => k <= cleAujourdhui()).slice(-nbMois);
-  const par = {};
-  for (const cle of cles)
+/* Tendance d'une étiquette : ce mois-ci comparé à la moyenne des mois
+   précédents, ramenée à la portion de mois écoulée — même méthode que les
+   postes de dépense, pour que les deux lectures soient comparables. */
+function tendancesEtiquettes(nbRef = 3){
+  const cleCourante = cleAujourdhui();
+  const cles = clesMois().filter(k => k <= cleCourante);
+  if (!cles.length) return [];
+  const passees = cles.filter(k => k < cleCourante).slice(-nbRef);
+  const auj = new Date();
+  const partMois = Math.max(0.15, auj.getDate() / joursDansMois(cleCourante));
+  const netParMois = cle => {
+    const m = etat.months[cle], par = {};
+    if (!m) return par;
     for (const cat of Object.keys(LIBELLES_CATS))
-      for (const it of (etat.months[cle][cat] || []))
-        for (const t of etiquettesDe(it.label)){
-          par[t] = par[t] || {total: 0, nb: 0};
-          par[t].total += +it.montant || 0;
-          par[t].nb++;
-        }
-  return Object.entries(par).map(([t, v]) => ({tag: t, ...v}))
-    .sort((a, b) => Math.abs(b.total) - Math.abs(a.total));
+      for (const it of (m[cat] || []))
+        for (const t of etiquettesDe(it.label))
+          par[t] = (par[t] || 0) - (+it.montant || 0);   // net : remboursements déduits
+    return par;
+  };
+  const courant = netParMois(cleCourante);
+  const historique = passees.map(netParMois);
+  const tags = [...new Set([...Object.keys(courant), ...historique.flatMap(Object.keys)])];
+  return tags.map(t => {
+    const reel = courant[t] || 0;
+    const serie = historique.map(h => h[t] || 0);
+    const moy = serie.length ? serie.reduce((s, v) => s + v, 0) / serie.length : 0;
+    const attendu = moy * partMois;
+    const ecart = attendu > 0.004 ? (reel - attendu) / attendu : (reel > 0.004 ? 1 : 0);
+    return {tag: t, reel, moy, attendu, serie, ecart, mois: serie.length,
+            projection: reel / partMois, nouveau: serie.every(v => Math.abs(v) < 0.004)};
+  }).filter(x => Math.abs(x.reel) > 0.004 || Math.abs(x.moy) > 0.004)
+    .sort((a, b) => Math.abs(b.reel) - Math.abs(a.reel));
 }
 
 /* ===== Bilan d'une année civile =====
@@ -3945,14 +3985,35 @@ function rendreAccueil(){
   }
   document.getElementById('est-grille').innerHTML = g;
 
-  const tags = bilanEtiquettes();
+  const refEtiq = etat.config.tendanceRef || 3;
+  const tags = tendancesEtiquettes(refEtiq);
+  const maxTag = Math.max(0.01, ...tags.map(t => Math.max(Math.abs(t.reel), Math.abs(t.attendu))));
   document.getElementById('etiquettes-corps').innerHTML = tags.length
-    ? tags.slice(0, 8).map(t => `<div class="ligne">
-        <input class="lab" value="#${echap(t.tag)}  ·  ${t.nb} ligne${t.nb > 1 ? 's' : ''}" readonly>
-        <span class="mnt ${cls(t.total)}">${fmt(t.total)}</span></div>`).join('')
-      + `<p class="note">Cumul sur les 12 derniers mois. Tape 🔍 puis « #${echap(tags[0].tag)} » pour voir le détail.</p>`
+    ? `<p class="note" style="margin-bottom:11px">Ce que chaque sujet a coûté <b>net</b> ce mois-ci
+        (remboursements déduits), comparé à son habitude au même stade du mois.</p>
+      ${tags.slice(0, 8).map(t => {
+        const fort = Math.abs(t.ecart) >= 0.25 && !t.nouveau;
+        const couleur = t.ecart > 0 ? 'var(--corail)' : 'var(--menthe)';
+        return `<div class="tend">
+          <div class="tend-tete">
+            <span class="tend-nom" style="color:var(--violet)">#${echap(t.tag)}</span>
+            <span class="tend-ecart" style="color:${t.nouveau ? 'var(--encre2)' : (fort ? couleur : 'var(--encre2)')}">
+              ${t.nouveau ? 'nouveau' : `${t.ecart > 0 ? '▲' : t.ecart < 0 ? '▼' : '='} ${Math.abs(t.ecart * 100).toFixed(0)} %`}</span>
+          </div>
+          <div class="tend-barres">
+            <div class="tend-b"><span class="tend-jauge" style="width:${(Math.abs(t.reel) / maxTag * 100).toFixed(1)}%;background:${fort ? couleur : 'var(--violet)'}"></span>
+              <span class="tend-val">${fmt(-t.reel)}</span></div>
+            ${t.nouveau ? '' : `<div class="tend-b"><span class="tend-jauge attendu" style="width:${(Math.abs(t.attendu) / maxTag * 100).toFixed(1)}%"></span>
+              <span class="tend-val faible">${fmt(-t.attendu)} habituel</span></div>`}
+          </div>
+          <p class="note" style="margin:5px 0 0">${t.nouveau
+            ? `Première apparition sur les ${refEtiq} derniers mois.`
+            : `${fmt(-t.moy)} par mois en moyenne · ${fmt(-t.projection)} prévus en fin de mois`}</p>
+        </div>`;
+      }).join('')}`
     : `<p class="note">Ajoute un mot précédé de <b>#</b> dans un libellé pour suivre un sujet à travers les catégories :
-       « Révision #voiture », « Croquettes #chat », « Cadeau #noel ». Le cumul apparaîtra ici.</p>`;
+       « Révision #voiture », « Croquettes #chat ». Les remboursements portant la même étiquette sont déduits.</p>`;
+
   const annees = anneesDisponibles();
   const anSel = etat.config.anneeBilan && annees.includes(etat.config.anneeBilan) ? etat.config.anneeBilan : annees[0];
   const ba = anSel ? bilanAnnuel(anSel) : null;
@@ -4874,6 +4935,14 @@ function rendreReglages(){
    six pages à chaque saisie produisait un demi-Mo de HTML pour rien. */
 const RENDUS = {accueil: () => rendreAccueil(), mois: () => rendreMois(), livrets: () => rendreLivrets(),
                 invest: () => rendreInvest(), av: () => rendreAV(), reglages: () => rendreReglages()};
+/* Chaque rendu reconstruit les cartes : sans cela, l'état replié serait perdu
+   à la moindre interaction. On enveloppe donc les fonctions de rendu une fois
+   pour toutes, plutôt que de compter sur chaque appelant pour y penser. */
+(function envelopperRendus(){
+  const cibles = {rendreAccueil, rendreMois, rendreLivrets, rendreInvest, rendreAV, rendreReglages};
+  for (const [nom, fn] of Object.entries(cibles))
+    globalThis[nom] = function(...args){ const r = fn.apply(this, args); appliquerReplis(); return r; };
+})();
 let _pagesObsoletes = new Set();
 function rendreTout(){
   const active = pageActive();
@@ -6617,6 +6686,95 @@ function rendreInstallation(){
       <ol>${etapes.map(e => `<li>${e}</li>`).join('')}</ol>
     </div>${note}`;
 }
+
+/* ===== Suggestion d'étiquettes =====
+   Taper « # » dans un libellé propose les étiquettes déjà utilisées. Sans cela,
+   il faut se souvenir de l'orthographe exacte, et « #telepayage » créerait un
+   sujet distinct de « #télépayage ». */
+function toutesEtiquettes(){
+  const par = {};
+  for (const cle of clesMois())
+    for (const cat of Object.keys(LIBELLES_CATS))
+      for (const it of (etat.months[cle][cat] || []))
+        for (const t of etiquettesDe(it.label)) par[t] = (par[t] || 0) + 1;
+  return Object.entries(par).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'fr'))
+    .map(([t, n]) => ({tag: t, n}));
+}
+(function suggestionsEtiquettes(){
+  let champ = null, debut = -1;
+  const boite = document.createElement('div');
+  boite.id = 'sugg-tags';
+  boite.setAttribute('role', 'listbox');
+  document.body.appendChild(boite);
+
+  const fermer = () => { boite.classList.remove('vu'); champ = null; };
+  const placer = () => {
+    const r = champ.getBoundingClientRect();
+    const enBas = r.bottom + 190 < innerHeight;
+    boite.style.left = Math.max(8, Math.min(r.left, innerWidth - 232)) + 'px';
+    boite.style.width = Math.max(180, Math.min(r.width, 280)) + 'px';
+    boite.style.top = (enBas ? r.bottom + 4 : r.top - Math.min(boite.offsetHeight || 180, 180) - 4) + 'px';
+  };
+  const proposer = () => {
+    if (!champ) return;
+    const v = champ.value, pos = champ.selectionStart ?? v.length;
+    const avant = v.slice(0, pos);
+    const d = avant.lastIndexOf('#');
+    // le « # » doit être en cours de saisie : pas d'espace après lui
+    if (d < 0 || /\s/.test(avant.slice(d + 1))) return fermer();
+    debut = d;
+    const saisi = normaliserTexte(avant.slice(d + 1));
+    const liste = toutesEtiquettes()
+      .filter(x => !saisi || normaliserTexte(x.tag).startsWith(saisi))
+      .slice(0, 6);
+    if (!liste.length) return fermer();
+    boite.innerHTML = liste.map((x, i) =>
+      `<button type="button" class="st-item${i ? '' : ' actif'}" data-tag="${echap(x.tag)}">
+         <span class="st-nom">#${echap(x.tag)}</span><span class="st-n">${x.n}×</span></button>`).join('');
+    boite.classList.add('vu');
+    placer();
+  };
+  const inserer = tag => {
+    if (!champ) return;
+    const v = champ.value, pos = champ.selectionStart ?? v.length;
+    const apres = v.slice(pos);
+    champ.value = v.slice(0, debut) + '#' + tag + (apres.startsWith(' ') || !apres ? '' : ' ') + apres;
+    const p = debut + tag.length + 1;
+    champ.focus();
+    champ.setSelectionRange(p, p);
+    fermer();
+  };
+  const estChampLibelle = el =>
+    el && el.tagName === 'INPUT' && el.type !== 'date' &&
+    (el.classList.contains('lab') || el.classList.contains('sl') ||
+     el.id === 'ps-label' || el.hasAttribute('data-cl') || el.classList.contains('pos-nom'));
+
+  document.addEventListener('input', e => {
+    if (!estChampLibelle(e.target)) return;
+    champ = e.target;
+    proposer();
+  });
+  document.addEventListener('keydown', e => {
+    if (!boite.classList.contains('vu')) return;
+    const items = [...boite.querySelectorAll('.st-item')];
+    const i = items.findIndex(b => b.classList.contains('actif'));
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+      e.preventDefault();
+      const j = (i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+      items.forEach((b, k) => b.classList.toggle('actif', k === j));
+    } else if (e.key === 'Enter' || e.key === 'Tab'){
+      if (i >= 0){ e.preventDefault(); inserer(items[i].dataset.tag); }
+    } else if (e.key === 'Escape'){ fermer(); }
+  }, true);
+  boite.addEventListener('mousedown', e => {
+    const b = e.target.closest('[data-tag]');
+    if (b){ e.preventDefault(); inserer(b.dataset.tag); }
+  });
+  document.addEventListener('focusout', e => {
+    if (e.target === champ) setTimeout(() => { if (!boite.matches(':hover')) fermer(); }, 150);
+  });
+  addEventListener('scroll', () => boite.classList.contains('vu') && fermer(), {passive: true});
+})();
 
 /* ===== Saisie rapide accessible partout =====
    Le geste le plus fréquent — noter une dépense — ne doit pas imposer de

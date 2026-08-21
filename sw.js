@@ -1,5 +1,5 @@
 // Service Worker — Budget v4 (cache d'abord, fonctionnement hors ligne)
-const CACHE = 'budget-v4-r60';
+const CACHE = 'budget-v4-r61';
 // index.html est le seul fichier indispensable ; les autres sont un confort.
 const ESSENTIELS = ['./', './index.html'];
 const OPTIONNELS = ['./manifest.webmanifest',
