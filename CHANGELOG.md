@@ -6,6 +6,16 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 > montants réels, de noms de comptes ni d'établissements. Les exemples chiffrés y
 > sont fictifs ou génériques.
 
+## v10.2.1 — 21/08/2026 — *revue de code : sécurité et robustesse*
+- **Sécurité : champs numériques non échappés.** Le montant d'une ligne, le prix/PRU/quantité d'une position, le plafond/taux d'un compte, ainsi que le prix/taux/durée d'un projet, étaient injectés tels quels dans le HTML au lieu de passer par l'échappement déjà utilisé pour les intitulés. Une sauvegarde JSON trafiquée (partagée, récupérée, modifiée à la main) aurait pu y injecter du code exécuté à l'affichage. Corrigé : ces champs passent désormais par le même échappement que le reste.
+- **Intégrité du lecteur Excel.** La bibliothèque SheetJS, chargée depuis un CDN au premier import `.xlsx`, est maintenant vérifiée par hash (SRI) avant exécution : une compromission du CDN ne permettrait plus d'exécuter du code arbitraire à cette occasion.
+- **Correctif : répartition du Non Attribué sans poche « reste ».** Chaque poche en mode « part »/« pct » arrondit à la hausse ; sans poche « reste » pour absorber cet arrondi, la somme distribuée pouvait dépasser le Non Attribué réel. L'écart est désormais résorbé sur la dernière poche concernée.
+- **Correctif : jauge de l'Accueil à NaN** quand l'enveloppe du mois est nulle.
+- **Correctif : bloc Dividendes de l'Accueil construit deux fois** à chaque rafraîchissement (sans impact visible, coût de rendu inutile).
+- **Service worker : page principale en réseau d'abord.** `index.html` était servi en cache d'abord uniquement — un oubli d'incrémenter le nom du cache lors d'un déploiement laissait les appareils déjà installés bloqués indéfiniment sur une ancienne version. Le service worker vérifie maintenant le réseau en premier pour la page principale, avec repli sur le cache hors ligne ; les autres fichiers (icônes, manifeste) restent en cache d'abord.
+- **Thème sombre : couleurs codées en dur corrigées** sur les cellules de prix des tableaux de positions et sur l'état « actif » des puces de suggestion, qui restaient en fond clair quel que soit le thème.
+- **Transparence : relais de cours de bourse.** L'aide « Mise à jour des cours » précise désormais que la requête peut transiter par un relais tiers (allorigins.win, corsproxy.io) pour contourner le blocage CORS de Yahoo Finance — ce relais voit alors le symbole demandé, mais aucune autre donnée du portefeuille.
+
 ## v10.2.0 — 21/08/2026
 - **Étiquettes : le coût net.** Une dépense et un remboursement portant la même étiquette ne se compensaient pas dans le diagramme de flux : seules les lignes négatives étaient comptées. Un abonnement partagé de 29,25 € dont 17,70 € sont reversés apparaissait donc à son coût brut. Le diagramme affiche maintenant le **net**, cohérent avec la carte Étiquettes qui, elle, déduisait déjà les remboursements — les deux lectures se contredisaient.
 - **Étiquettes analysées, plus seulement cumulées.** La carte de l'Accueil listait des totaux sur douze mois, sans point de comparaison. Chaque sujet est désormais traité comme un poste de dépense : montant du mois, montant habituel au même stade, écart en pourcentage, barres comparatives et projection de fin de mois. Un sujet apparu récemment est signalé « nouveau » plutôt que comparé à zéro.

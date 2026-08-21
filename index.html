@@ -81,15 +81,12 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(18,20,28,.92);backdro
 nav button{flex:1;padding:9px 2px 8px;color:var(--encre2);font-size:10px;font-weight:700;
   display:flex;flex-direction:column;align-items:center;gap:3px;background:none;position:relative;
   transition:color var(--duree) var(--courbe)}
-nav button .ico{font-size:19px;transition:transform var(--duree) var(--courbe)}
+nav button .ico{font-size:19px;line-height:1;transition:transform var(--duree) var(--courbe)}
 nav button.actif{color:var(--violet)}
 nav button.actif .ico{transform:translateY(-2px) scale(1.08)}
 nav button.actif::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
   width:26px;height:3px;border-radius:0 0 3px 3px;background:var(--violet);
   box-shadow:0 0 12px var(--violet)}
-nav button .ico{font-size:19px;line-height:1}
-nav button.actif{color:var(--laiton-clair)}
-nav button.actif .ico{transform:translateY(-1px)}
 
 main{max-width:760px;margin:0 auto;padding:14px 12px 24px}
 .page{display:none}
@@ -136,7 +133,6 @@ main{max-width:760px;margin:0 auto;padding:14px 12px 24px}
 /* ===== Lignes éditables ===== */
 .ligne{display:flex;align-items:center;gap:var(--esp-2);padding:9px 0;border-bottom:1px solid var(--trait)}
 .ligne:last-child{border-bottom:none}
-.ligne:last-child{border-bottom:none}
 .ligne input.lab, .ligne span.lab{flex:1;min-width:0;border:none;background:transparent;
   padding:4px 2px;font-size:14px;color:var(--encre)}
 /* un intitulé n'est pas un champ : il s'affiche en texte, aligné comme les autres */
@@ -169,14 +165,14 @@ th:first-child,td:first-child{text-align:left}
 td{padding:6px 4px;border-bottom:1px dashed var(--trait);text-align:right;white-space:nowrap}
 td:first-child{white-space:normal;max-width:120px;overflow-wrap:break-word}
 td input{width:100%;min-width:52px;border:none;background:transparent;text-align:right;font-size:12.5px;padding:2px}
-td input:focus{outline:none;background:#FBF7EC;border-radius:4px}
+td input:focus{outline:none;background:var(--carte2);border-radius:4px}
 tr.total td{font-weight:700;border-top:2px solid var(--laiton);border-bottom:none;background:var(--tete);color:var(--encre)}
 
 .pastille{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;letter-spacing:.04em}
 /* Fraîcheur des cours : la colonne Prix change de teinte */
-td.px-ancien{background:#FDF3E3;box-shadow:inset 2px 0 0 var(--laiton)}
-td.px-ancien input{color:#8A6D1F;font-weight:700}
-td.px-manuel{background:#EFF6F2}
+td.px-ancien{background:var(--ambre-sourd);box-shadow:inset 2px 0 0 var(--laiton)}
+td.px-ancien input{color:var(--ambre);font-weight:700}
+td.px-manuel{background:var(--menthe-sourd)}
 td.px-manuel input{color:var(--vert)}
 .legende-prix{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
 .legende-prix .lp{font-size:10.5px;padding:3px 9px;border-radius:99px;font-weight:700;letter-spacing:.02em}
@@ -184,8 +180,8 @@ td.px-manuel input{color:var(--vert)}
 .legende-prix .px-manuel{background:var(--menthe-sourd);color:var(--menthe)}
 .legende-prix .px-auto{background:var(--carte2);color:var(--encre2)}
 .legende-prix .px-fige{background:var(--carte2);color:var(--encre2);font-style:italic}
-td.px-fige{background:#F4F5F8}
-td.px-fige input{color:#4A5570;font-style:italic}
+td.px-fige{background:var(--carte2)}
+td.px-fige input{color:var(--encre2);font-style:italic}
 .barre-tri{display:flex;align-items:center;gap:7px;padding:2px 0 8px;font-size:11px;color:var(--encre2)}
 .barre-tri label, .eti-groupe{letter-spacing:.08em;text-transform:uppercase;font-weight:700;font-size:11px;color:var(--encre2)}
 .ind-aide{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
@@ -306,9 +302,8 @@ details.aide summary{cursor:pointer;font-weight:600;color:var(--laiton)}
 .chip{font-size:12.5px;padding:7px 13px;border:1px solid var(--trait);border-radius:var(--r-rond);
   background:var(--carte2);color:var(--encre2);font-weight:600;
   transition:transform .14s var(--courbe), background var(--duree) var(--courbe), color var(--duree) var(--courbe)}
-.chip:active{transform:scale(.95);background:var(--violet-sourd)}
+.chip:active{transform:scale(.95);background:var(--violet-sourd);border-color:var(--laiton);color:var(--laiton)}
 .chip:hover{background:var(--violet-sourd);color:var(--violet);border-color:var(--violet)}
-.chip:active{background:#FDF8EC;border-color:var(--laiton);color:var(--laiton)}
 .chip .chip-x{opacity:.5;margin-left:5px;font-weight:800}
 .chip .chip-x:active{background:var(--rouge);color:#fff}
 
@@ -1490,7 +1485,7 @@ const INFOS = {
   chiffrement: ['Sauvegarde chiffrée', "Le verrou de l'application protège l'écran, pas les fichiers : une sauvegarde posée sur un cloud ou une clé USB est lisible par quiconque l'ouvre. L'export chiffré protège le fichier lui-même (AES-GCM 256 bits, clé dérivée du mot de passe par PBKDF2 avec 210 000 itérations, via les fonctions cryptographiques du navigateur — aucune bibliothèque externe). À l'import, l'application détecte le format et demande le mot de passe. Celui-ci n'est stocké nulle part : s'il est perdu, le fichier est définitivement illisible, y compris pour moi."],
   dossierIA: ['Dossier pour une IA', "Génère un document Markdown avec ta situation patrimoniale, tes flux mensuels, ta règle de répartition, ton portefeuille et tes projets, suivi d'une question adaptée à l'angle choisi. Tu peux le télécharger ou le copier, puis le donner à ChatGPT, Claude ou Gemini. L'option « anonymiser » ne garde que des totaux, sans libellé de dépense ni nom de position — utile avant de partager avec un service tiers."],
   invest: ['Positions', "Nb × prix actuel − Nb × PRU = performance latente. « Enregistrer » fige la performance du moment dans l'historique pour suivre l'évolution mois par mois."],
-  cours: ['Mise à jour des cours', "Si un ISIN n'est pas trouvé, saisis le ticker de la place de cotation (ex. TSM pour l'ADR TSMC, SGLN.L pour l'or iShares en pence, SOL-EUR pour Solana). Pour un fonds non coté, inscris « manuel ». Toutes les devises sont gérées : le taux de change est récupéré en direct au moment de l'appui (une requête par devise) et les taux appliqués s'affichent sous le bouton. Saisis une fois l'ISIN (ex. FR0000120271) ou le ticker Yahoo (ex. TTE.PA, 8001.T, BTC-EUR) de chaque position, puis appuie sur le bouton — à la demande, par exemple une fois par mois. Toutes les devises sont converties en euros (USD, JPY, CHF, HKD, GBP, pence…) avec les taux de change récupérés en direct au moment de l'appui. Les produits non cotés (private equity, fonds fermés) n'ont pas de cotation publique : mets leur prix à jour à la main. Internet n'est requis qu'à ce moment-là ; seuls les symboles sont interrogés, rien de ton portefeuille ne sort de l'appareil."],
+  cours: ['Mise à jour des cours', "Si un ISIN n'est pas trouvé, saisis le ticker de la place de cotation (ex. TSM pour l'ADR TSMC, SGLN.L pour l'or iShares en pence, SOL-EUR pour Solana). Pour un fonds non coté, inscris « manuel ». Toutes les devises sont gérées : le taux de change est récupéré en direct au moment de l'appui (une requête par devise) et les taux appliqués s'affichent sous le bouton. Saisis une fois l'ISIN (ex. FR0000120271) ou le ticker Yahoo (ex. TTE.PA, 8001.T, BTC-EUR) de chaque position, puis appuie sur le bouton — à la demande, par exemple une fois par mois. Toutes les devises sont converties en euros (USD, JPY, CHF, HKD, GBP, pence…) avec les taux de change récupérés en direct au moment de l'appui. Les produits non cotés (private equity, fonds fermés) n'ont pas de cotation publique : mets leur prix à jour à la main. Internet n'est requis qu'à ce moment-là ; seuls les symboles sont interrogés, rien de ton portefeuille (montants, quantités) ne sort de l'appareil — la requête passe parfois par un relais tiers (allorigins.win, corsproxy.io) pour contourner le blocage CORS de Yahoo Finance, qui voit alors le symbole demandé mais rien d'autre."],
   rapport: ['Compte rendu PDF', "Génère une page A4 par mois et ouvre la boîte d'impression : choisis « Enregistrer en PDF ». Sur iPhone : Partager → Imprimer, puis pince l'aperçu pour l'enregistrer dans Fichiers."],
 };
 const infoBtn = cle => `<button class="info-btn" data-infocle="${cle}" aria-label="Informations">i</button>`;
@@ -1508,8 +1503,17 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '10.2.0';
+const APP_VERSION = '10.2.1';
 const CHANGELOG = [
+  {v: '10.2.1', d: '21/08/2026', pts: [
+    "Sécurité : plusieurs champs numériques (montant d'une ligne, prix/PRU/quantité d'une position, plafond/taux d'un compte, prix/taux/durée d'un projet) n'étaient pas échappés à l'affichage. Une sauvegarde JSON trafiquée aurait pu y injecter du code — ils passent désormais tous par le même échappement que les intitulés.",
+    "L'import du lecteur Excel (SheetJS) vérifie maintenant l'intégrité du fichier téléchargé (SRI) avant de l'exécuter.",
+    "Correctif : sans poche « reste » dans la répartition du Non Attribué, l'arrondi supérieur de chaque poche pouvait cumuler plus que le Non Attribué réel — l'écart est maintenant résorbé sur la dernière poche.",
+    "Correctif : la jauge de l'Accueil affichait une valeur invalide (NaN) quand l'enveloppe du mois était nulle.",
+    "Correctif : le bloc Dividendes de l'Accueil était construit deux fois à chaque rafraîchissement.",
+    "Le service worker sert désormais la page principale en réseau d'abord (avec repli hors ligne sur le cache), pour ne plus rester bloqué sur une version périmée en cas d'oubli de version de cache.",
+    "Couleurs codées en dur corrigées sur les tableaux de positions et les puces actives, qui restaient claires en thème sombre.",
+    "L'aide « Mise à jour des cours » précise que la requête peut transiter par un relais tiers (allorigins.win, corsproxy.io) qui voit alors le symbole demandé."]},
   {v: '10.2.0', d: '21/08/2026', pts: [
     "Correctif : un remboursement portant une étiquette n'était pas déduit du coût de ce sujet dans le diagramme de flux. Les étiquettes affichent désormais un coût net.",
     "Étiquettes de l'Accueil : elles sont analysées comme les postes de dépense — comparaison avec l'habitude, barres et projection de fin de mois — au lieu d'un simple cumul.",
@@ -2611,6 +2615,14 @@ function repartirNA(na, override){
     restes.forEach((i, k) => {
       res[i].montant = +(k === restes.length - 1 ? reste - part * (restes.length - 1) : part).toFixed(2);
     });
+  } else if (attribue > na + 0.004){
+    // Pas de poche "reste" pour absorber l'arrondi supérieur : on résorbe le
+    // dépassement sur la dernière poche part/pct plutôt que de sur-verser l'épargne.
+    const ajustables = poches.map((p, i) => (p.mode === 'part' || p.mode === 'pct') ? i : -1).filter(i => i >= 0);
+    if (ajustables.length){
+      const derniere = ajustables[ajustables.length - 1];
+      res[derniere].montant = +(res[derniere].montant - (attribue - na)).toFixed(2);
+    }
   }
   return res;
 }
@@ -3837,7 +3849,7 @@ let moisActif = null;
 function ligneEditable(chemin, item, i){
   return `<div class="ligne">
     <input class="lab" value="${echap(item.label)}" data-ch="${chemin}" data-i="${i}" data-f="label" placeholder="Intitulé" name="label">
-    <input class="mnt ${cls(item.montant)}" value="${item.montant ?? ''}" data-ch="${chemin}" data-i="${i}" data-f="montant" inputmode="text" placeholder="0" name="montant">
+    <input class="mnt ${cls(item.montant)}" value="${echap(item.montant ?? '')}" data-ch="${chemin}" data-i="${i}" data-f="montant" inputmode="text" placeholder="0" name="montant">
     <button class="pointe ${item.pointe ? 'ok' : ''}" data-pointe="${chemin}" data-i="${i}"
       aria-label="${item.pointe ? 'Vérifié sur le relevé' : 'Marquer comme vérifié'}" title="Pointer sur le relevé bancaire">${item.pointe ? '✓' : '○'}</button>
     <button class="sup" data-supch="${chemin}" data-i="${i}" aria-label="Supprimer">✕</button>
@@ -3940,7 +3952,7 @@ function rendreAccueil(){
   document.getElementById('h-sous').textContent =
     `Enveloppe restante ${fmt(ref)} · ${nbJ + 1 - jour} jour${nbJ-jour ? 's' : ''} restant${nbJ-jour ? 's' : ''} — ${libelleMois(cle)}`;
   requestAnimationFrame(() => {
-    document.getElementById('h-jauge').style.width = Math.max(0, Math.min(100, ref / c.sommeMois * 100)) + '%';
+    document.getElementById('h-jauge').style.width = Math.max(0, Math.min(100, c.sommeMois > 0 ? ref / c.sommeMois * 100 : 0)) + '%';
   });
 
   const liv = calculerLivrets(), inv = calculerInvest(), avc = calculerAchatVente();
@@ -4069,10 +4081,6 @@ function rendreAccueil(){
         </div>`;
       }).join('')}`
     : `<p class="note">Rien à comparer pour l\u2019instant : il faut au moins un mois complet d\u2019historique.</p>`}`;
-
-  document.getElementById('acc-dividendes').innerHTML = carteDividendes() + carteRythmeDividendes();
-  majApercuDividende();
-
 
   document.getElementById('acc-dividendes').innerHTML = carteDividendes() + carteRythmeDividendes();
   majApercuDividende();
@@ -4331,7 +4339,7 @@ function rendreLivrets(){
 function champEng(lab, val, id, nature, f, unite, ph, type){
   const attr = nature === 'projet' ? `data-proj="${echap(id)}" data-pjf="${f}"` : `data-passif="${echap(id)}" data-paf="${f}"`;
   return `<label class="ch"><span>${lab}</span>
-    ${unite ? `<span class="unite"><input value="${val ?? ''}" ${attr} inputmode="decimal" placeholder="${ph || ''}"><span class="u">${unite}</span></span>`
+    ${unite ? `<span class="unite"><input value="${echap(String(val ?? ''))}" ${attr} inputmode="decimal" placeholder="${ph || ''}"><span class="u">${unite}</span></span>`
       : `<input value="${echap(String(val ?? ''))}" ${attr}${type ? ' type="' + type + '"' : ''} placeholder="${ph || ''}">`}
   </label>`;
 }
@@ -4506,7 +4514,7 @@ function tablePositions(titre, chemin, calc, totalCompte){
   const tri = (etat.config.triPositions || {})[chemin] || 'manuel';
   const lignes = trierLignes(calc.lignes, tri);
   const champ = (p, f, val, opts = {}) =>
-    `<input name="${f}" value="${val ?? ''}" data-pch="${chemin}" data-i="${p.idx}" data-f="${f}"
+    `<input name="${f}" value="${echap(val ?? '')}" data-pch="${chemin}" data-i="${p.idx}" data-f="${f}"
       inputmode="${opts.texte ? 'text' : 'text'}" placeholder="${opts.ph || ''}"
       class="${opts.cl || ''}" ${opts.style ? `style="${opts.style}"` : ''}>`;
 
@@ -4530,7 +4538,7 @@ function tablePositions(titre, chemin, calc, totalCompte){
         <label><span>Quantité</span>${champ(p, 'nb', fmtNb(p.nb))}</label>
         <label><span>PRU</span>${champ(p, 'pru', p.pru)}</label>
         <label class="px-${etatPrix}"><span>Cours</span>${champ(p, 'prix', p.prix, {ph: '0'})}</label>
-        <label><span>ISIN / ticker</span>${champ(p, 'symbole', echap(p.symbole || ''), {ph: 'auto', cl: 'petit'})}</label>
+        <label><span>ISIN / ticker</span>${champ(p, 'symbole', p.symbole || '', {ph: 'auto', cl: 'petit'})}</label>
       </div>
     </div>`;
   }).join('');
@@ -4840,13 +4848,13 @@ function rendreReglages(){
         <label class="ch"><span>Nom du compte</span>
           <input value="${echap(c.nom)}" data-cpt="${echap(c.id)}" data-cf="nom" placeholder="ex. Livret A" name="nom"></label>
         <label class="ch"><span>Plafond légal</span>
-          <span class="unite"><input value="${c.plafond ?? ''}" data-cpt="${echap(c.id)}" data-cf="plafond"
+          <span class="unite"><input value="${echap(c.plafond ?? '')}" data-cpt="${echap(c.id)}" data-cf="plafond"
             inputmode="decimal" placeholder="aucun" name="plafond"><span class="u">${devise().sym}</span></span></label>
         <label class="ch"><span>Taux annuel</span>
-          <span class="unite"><input value="${c.taux ?? ''}" data-cpt="${echap(c.id)}" data-cf="taux"
+          <span class="unite"><input value="${echap(c.taux ?? '')}" data-cpt="${echap(c.id)}" data-cf="taux"
             inputmode="decimal" placeholder="0" name="taux"><span class="u">%/an</span></span></label>
         <label class="ch"><span>Solde de départ</span>
-          <span class="unite"><input value="${c.initial ?? 0}" data-cpt="${echap(c.id)}" data-cf="initial"
+          <span class="unite"><input value="${echap(c.initial ?? 0)}" data-cpt="${echap(c.id)}" data-cf="initial"
             inputmode="decimal" placeholder="0" name="initial"><span class="u">${devise().sym}</span></span></label>
       </div>
       <div class="bilan-bloc">
@@ -6063,7 +6071,9 @@ document.getElementById('fic-xlsx').addEventListener('change', async e => {
       await new Promise((res, rej) => {
         const s = document.createElement('script');
         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-        s.onload = res; s.onerror = () => rej(new Error('librairie inaccessible (connexion requise la 1re fois)'));
+        s.integrity = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw';
+        s.crossOrigin = 'anonymous';
+        s.onload = res; s.onerror = () => rej(new Error('librairie inaccessible (connexion requise la 1re fois, ou intégrité invalide)'));
         document.head.appendChild(s);
       });
     }
