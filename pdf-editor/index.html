@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Éditeur PDF — modifier, annoter, fusionner</title>
+<meta name="description" content="Éditeur PDF 100% local : texte, dessin, formes, images, rotation, fusion, découpe, formulaires. Rien n'est envoyé sur un serveur.">
+<meta name="theme-color" content="#1b1f27">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="icon" href="../icon-192.png">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<div id="dropOverlay" class="drop-overlay" hidden>
+  <div>📄 Dépose un ou plusieurs fichiers PDF ici</div>
+</div>
+
+<header id="topbar">
+  <div class="brand">
+    <a class="back" href="../index.html" title="Retour à l'accueil">←</a>
+    <span class="logo">🖋️</span>
+    <span class="title">Éditeur PDF</span>
+  </div>
+
+  <div class="toolgroup" id="toolButtons">
+    <button data-tool="select" class="tool active" title="Sélectionner / déplacer (V)">↖️</button>
+    <button data-tool="text" class="tool" title="Ajouter du texte (T)">🔤</button>
+    <button data-tool="draw" class="tool" title="Dessin libre (D)">✏️</button>
+    <button data-tool="rect" class="tool" title="Rectangle (R)">▭</button>
+    <button data-tool="ellipse" class="tool" title="Ellipse (E)">◯</button>
+    <button data-tool="line" class="tool" title="Ligne (L)">╱</button>
+    <button data-tool="image" class="tool" title="Insérer une image (I)">🖼️</button>
+    <button data-tool="redact" class="tool" title="Masquer / caviarder (M)">⬛</button>
+    <button data-tool="sign" class="tool" title="Signature manuscrite (S)">✒️</button>
+  </div>
+
+  <div class="toolgroup" id="styleButtons">
+    <input type="color" id="colorPicker" value="#e02424" title="Couleur">
+    <input type="range" id="sizePicker" min="1" max="48" value="4" title="Épaisseur / taille">
+    <span id="sizeLabel">4</span>
+  </div>
+
+  <div class="toolgroup right">
+    <button id="btnUndo" title="Annuler (Ctrl+Z)">↩️</button>
+    <button id="btnRedo" title="Rétablir (Ctrl+Y)">↪️</button>
+    <button id="btnZoomOut" title="Zoom arrière">➖</button>
+    <span id="zoomLabel">100%</span>
+    <button id="btnZoomIn" title="Zoom avant">➕</button>
+    <button id="btnOpen" title="Ouvrir un PDF">📂 Ouvrir</button>
+    <button id="btnMerge" title="Ajouter un autre PDF">➕📄 Fusionner</button>
+    <button id="btnSave" class="primary" title="Exporter le PDF modifié">💾 Exporter PDF</button>
+  </div>
+</header>
+
+<input type="file" id="fileInput" accept="application/pdf" hidden>
+<input type="file" id="mergeInput" accept="application/pdf" multiple hidden>
+<input type="file" id="imageInput" accept="image/png,image/jpeg" hidden>
+
+<main id="workspace">
+  <aside id="pagesPanel">
+    <div class="panel-head">
+      <span>Pages</span>
+      <button id="btnAddBlank" title="Ajouter une page blanche">➕ Page</button>
+    </div>
+    <div id="selectionActions" class="selection-actions" hidden>
+      <button id="btnExtractSelected" title="Exporter les pages cochées dans un nouveau PDF">🧩 Extraire</button>
+      <button id="btnDeleteSelectedPages" title="Supprimer les pages cochées">🗑️ Suppr.</button>
+    </div>
+    <div id="pagesList"></div>
+  </aside>
+
+  <section id="viewerWrap">
+    <div id="emptyState">
+      <p>Aucun PDF ouvert.</p>
+      <button id="btnOpenEmpty" class="primary">📂 Ouvrir un fichier PDF</button>
+      <p class="hint">Tout se passe dans ton navigateur : aucun fichier n'est envoyé à un serveur.</p>
+    </div>
+    <div id="viewer"></div>
+  </section>
+
+  <aside id="rightPanel">
+    <div id="formFieldsBox" hidden>
+      <div class="panel-head">Champs de formulaire</div>
+      <div id="formFieldsList"></div>
+      <button id="btnFlattenForm">🧷 Aplatir le formulaire</button>
+    </div>
+    <div id="selectionBox" hidden>
+      <div class="panel-head">Élément sélectionné</div>
+      <div id="selectionProps"></div>
+      <button id="btnDeleteSelected">🗑️ Supprimer</button>
+    </div>
+    <div id="helpBox">
+      <div class="panel-head">Aide rapide</div>
+      <ul>
+        <li><b>V</b> sélection, <b>T</b> texte, <b>D</b> dessin</li>
+        <li><b>R</b> rectangle, <b>E</b> ellipse, <b>L</b> ligne</li>
+        <li><b>M</b> masquer une zone, <b>S</b> signature</li>
+        <li>Glisse les vignettes de pages pour réordonner</li>
+        <li>⬛ Masquer = cache visuellement. Pour supprimer vraiment le contenu, utilise « Rastériser » sur la page.</li>
+      </ul>
+    </div>
+  </aside>
+</main>
+
+<div id="toast"></div>
+
+<script src="./vendor/pdf.min.js"></script>
+<script src="./vendor/pdf-lib.min.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
