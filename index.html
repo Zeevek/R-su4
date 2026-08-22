@@ -1503,8 +1503,10 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '10.2.2';
+const APP_VERSION = '10.2.3';
 const CHANGELOG = [
+  {v: '10.2.3', d: '22/08/2026', pts: [
+    "Correctif iOS : la puce de suggestion d'étiquettes restait mal placée en haut de l'écran une fois le clavier ouvert. Sur iPhone, le clavier décale la zone visible sans redimensionner la page — la puce ne suivait pas ce décalage. Elle se recale désormais avec le clavier (API visualViewport) au lieu de disparaître ou de rester coincée en haut."]},
   {v: '10.2.2', d: '22/08/2026', pts: [
     "Correctif : la puce de suggestion d'étiquettes (« # ») pouvait s'afficher hors écran, coupée par la barre d'état, quand le champ édité était proche du haut d'une feuille modale (ex. Dépense rapide). Sa position est désormais toujours contenue dans l'écran visible.",
     "Cibles de la liste de suggestions agrandies pour un appui plus sûr au doigt, et navigation clavier/lecteur d'écran (rôles ARIA, défilement automatique vers l'élément survolé).",
@@ -6728,16 +6730,23 @@ function toutesEtiquettes(){
 
   const fermer = () => { boite.classList.remove('vu'); champ = null; };
   const placer = () => {
+    if (!champ) return;
     const r = champ.getBoundingClientRect();
-    const vpH = window.visualViewport ? window.visualViewport.height : innerHeight;
+    const vp = window.visualViewport;
+    // Sur iOS, le clavier ne redimensionne pas la fenêtre : il décale la zone
+    // visible (visualViewport) vers le bas sans bouger le viewport de mise en
+    // page. Sans ce décalage, la puce se calcule comme si l'écran entier était
+    // visible et finit au-dessus de la zone réellement affichée.
+    const vpH = vp ? vp.height : innerHeight;
+    const decalage = vp ? vp.offsetTop : 0;
     const hauteur = Math.min(boite.scrollHeight || 190, 190);
-    const enBas = r.bottom + hauteur + 8 < vpH;
+    const enBas = (r.bottom - decalage) + hauteur + 8 < vpH;
     const haut = enBas ? r.bottom + 4 : r.top - hauteur - 4;
     boite.style.left = Math.max(8, Math.min(r.left, innerWidth - 232)) + 'px';
     boite.style.width = Math.max(180, Math.min(r.width, 280)) + 'px';
-    // clamp() protège des positions hors écran (notch, barre d'état) quand le
-    // champ édité est trop près du bord — cas fréquent dans une feuille modale.
-    boite.style.top = `clamp(calc(env(safe-area-inset-top) + 8px), ${haut}px, ${vpH - hauteur - 8}px)`;
+    // clamp() protège des positions hors écran (notch, barre d'état, clavier)
+    // quand le champ édité est trop près du bord de la zone visible.
+    boite.style.top = `clamp(calc(env(safe-area-inset-top) + ${decalage + 8}px), ${haut}px, ${decalage + vpH - hauteur - 8}px)`;
   };
   const proposer = () => {
     if (!champ) return;
@@ -6801,7 +6810,15 @@ function toutesEtiquettes(){
   document.addEventListener('focusout', e => {
     if (e.target === champ) setTimeout(() => { if (!boite.matches(':hover')) fermer(); }, 150);
   });
-  addEventListener('scroll', () => boite.classList.contains('vu') && fermer(), {passive: true});
+  // Repositionner plutôt que fermer : un défilement de page ferme la puce
+  // (le champ s'est éloigné), mais l'apparition du clavier (iOS) ne fait que
+  // décaler la zone visible — la puce doit suivre, pas disparaître.
+  addEventListener('scroll', () => { if (boite.classList.contains('vu')) fermer(); }, {passive: true});
+  if (window.visualViewport){
+    const suivre = () => { if (boite.classList.contains('vu')) placer(); };
+    visualViewport.addEventListener('resize', suivre);
+    visualViewport.addEventListener('scroll', suivre);
+  }
 })();
 
 /* ===== Saisie rapide accessible partout =====

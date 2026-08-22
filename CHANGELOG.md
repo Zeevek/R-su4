@@ -6,6 +6,9 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 > montants réels, de noms de comptes ni d'établissements. Les exemples chiffrés y
 > sont fictifs ou génériques.
 
+## v10.2.3 — 22/08/2026 — *correctif iOS : puce de suggestion et clavier*
+- **Correctif : puce de suggestion mal placée avec le clavier iOS.** Le correctif précédent (v10.2.2) bornait la puce à l'écran au moment de son ouverture, mais sur iPhone le clavier virtuel décale ensuite la zone visible (visualViewport) sans redimensionner la page elle-même — la puce restait donc calée sur une position devenue fausse, hors de la zone réellement visible. Elle se recale désormais en suivant les événements `resize`/`scroll` du clavier, au lieu de rester coincée en haut de l'écran.
+
 ## v10.2.2 — 22/08/2026 — *suggestions d'étiquettes*
 - **Correctif : puce de suggestion d'étiquettes hors écran.** Quand le champ édité était proche du haut d'une feuille modale (ex. « ⚡ Dépense rapide »), la puce pouvait s'ouvrir vers le haut et se retrouver coupée par la barre d'état du téléphone au lieu de rester dans l'écran visible. Sa position est maintenant toujours contenue dans la zone visible (respecte aussi l'encoche via `env(safe-area-inset-top)`).
 - **Cibles tactiles agrandies** dans la liste de suggestions (44 px minimum), et accessibilité clavier/lecteur d'écran améliorée (rôles ARIA `option`/`aria-selected`, défilement automatique vers l'élément sélectionné).
