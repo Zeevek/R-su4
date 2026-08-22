@@ -6,6 +6,11 @@ Toutes les évolutions notables de l'application. Le journal est aussi consultab
 > montants réels, de noms de comptes ni d'établissements. Les exemples chiffrés y
 > sont fictifs ou génériques.
 
+## v10.2.2 — 22/08/2026 — *suggestions d'étiquettes*
+- **Correctif : puce de suggestion d'étiquettes hors écran.** Quand le champ édité était proche du haut d'une feuille modale (ex. « ⚡ Dépense rapide »), la puce pouvait s'ouvrir vers le haut et se retrouver coupée par la barre d'état du téléphone au lieu de rester dans l'écran visible. Sa position est maintenant toujours contenue dans la zone visible (respecte aussi l'encoche via `env(safe-area-inset-top)`).
+- **Cibles tactiles agrandies** dans la liste de suggestions (44 px minimum), et accessibilité clavier/lecteur d'écran améliorée (rôles ARIA `option`/`aria-selected`, défilement automatique vers l'élément sélectionné).
+- **Correctif : étiquette d'un nom de position jamais reproposée.** Taper « # » dans le nom d'une position (compte-titres, PEA, PER) proposait déjà les étiquettes existantes, mais une étiquette qui n'apparaissait que dans un nom de position n'était elle-même jamais proposée ensuite. Les noms de position sont désormais inclus dans le calcul des étiquettes connues, comme les libellés de dépenses.
+
 ## v10.2.1 — 21/08/2026 — *revue de code : sécurité et robustesse*
 - **Sécurité : champs numériques non échappés.** Le montant d'une ligne, le prix/PRU/quantité d'une position, le plafond/taux d'un compte, ainsi que le prix/taux/durée d'un projet, étaient injectés tels quels dans le HTML au lieu de passer par l'échappement déjà utilisé pour les intitulés. Une sauvegarde JSON trafiquée (partagée, récupérée, modifiée à la main) aurait pu y injecter du code exécuté à l'affichage. Corrigé : ces champs passent désormais par le même échappement que le reste.
 - **Intégrité du lecteur Excel.** La bibliothèque SheetJS, chargée depuis un CDN au premier import `.xlsx`, est maintenant vérifiée par hash (SRI) avant exécution : une compromission du CDN ne permettrait plus d'exécuter du code arbitraire à cette occasion.

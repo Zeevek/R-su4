@@ -641,7 +641,7 @@ button, select, input[type="date"], input[type="checkbox"]{min-height:40px}
 #sugg-tags.vu{display:flex}
 .st-item{display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:9px 12px;background:none;color:var(--encre);font-size:13.5px;font-weight:600;
-  text-align:left;min-height:0;border-bottom:1px solid var(--trait)}
+  text-align:left;min-height:44px;border-bottom:1px solid var(--trait)}
 .st-item:last-child{border-bottom:none}
 .st-item.actif, .st-item:hover{background:var(--violet-sourd)}
 .st-nom{color:var(--violet);font-weight:700}
@@ -1503,8 +1503,12 @@ document.addEventListener('click', e => {
   if (e.target.id === 'info-fermer' || e.target.id === 'voile-info')
     document.getElementById('voile-info').classList.remove('vu');
 });
-const APP_VERSION = '10.2.1';
+const APP_VERSION = '10.2.2';
 const CHANGELOG = [
+  {v: '10.2.2', d: '22/08/2026', pts: [
+    "Correctif : la puce de suggestion d'étiquettes (« # ») pouvait s'afficher hors écran, coupée par la barre d'état, quand le champ édité était proche du haut d'une feuille modale (ex. Dépense rapide). Sa position est désormais toujours contenue dans l'écran visible.",
+    "Cibles de la liste de suggestions agrandies pour un appui plus sûr au doigt, et navigation clavier/lecteur d'écran (rôles ARIA, défilement automatique vers l'élément survolé).",
+    "Correctif : une étiquette utilisée uniquement dans le nom d'une position (compte-titres, PEA, PER) n'était jamais reproposée ensuite — elle est maintenant prise en compte comme les autres libellés."]},
   {v: '10.2.1', d: '21/08/2026', pts: [
     "Sécurité : plusieurs champs numériques (montant d'une ligne, prix/PRU/quantité d'une position, plafond/taux d'un compte, prix/taux/durée d'un projet) n'étaient pas échappés à l'affichage. Une sauvegarde JSON trafiquée aurait pu y injecter du code — ils passent désormais tous par le même échappement que les intitulés.",
     "L'import du lecteur Excel (SheetJS) vérifie maintenant l'intégrité du fichier téléchargé (SRI) avant de l'exécuter.",
@@ -6707,6 +6711,11 @@ function toutesEtiquettes(){
     for (const cat of Object.keys(LIBELLES_CATS))
       for (const it of (etat.months[cle][cat] || []))
         for (const t of etiquettesDe(it.label)) par[t] = (par[t] || 0) + 1;
+  // Les noms de position (invest.) proposent aussi des étiquettes en cours de
+  // saisie (champ .pos-nom) : ils doivent pouvoir être retrouvés ensuite.
+  for (const compte of ['positionsTR', 'positionsPEA', 'positionsPER'])
+    for (const p of ((etat.investissements || {})[compte] || []))
+      for (const t of etiquettesDe(p.label)) par[t] = (par[t] || 0) + 1;
   return Object.entries(par).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'fr'))
     .map(([t, n]) => ({tag: t, n}));
 }
@@ -6720,10 +6729,15 @@ function toutesEtiquettes(){
   const fermer = () => { boite.classList.remove('vu'); champ = null; };
   const placer = () => {
     const r = champ.getBoundingClientRect();
-    const enBas = r.bottom + 190 < innerHeight;
+    const vpH = window.visualViewport ? window.visualViewport.height : innerHeight;
+    const hauteur = Math.min(boite.scrollHeight || 190, 190);
+    const enBas = r.bottom + hauteur + 8 < vpH;
+    const haut = enBas ? r.bottom + 4 : r.top - hauteur - 4;
     boite.style.left = Math.max(8, Math.min(r.left, innerWidth - 232)) + 'px';
     boite.style.width = Math.max(180, Math.min(r.width, 280)) + 'px';
-    boite.style.top = (enBas ? r.bottom + 4 : r.top - Math.min(boite.offsetHeight || 180, 180) - 4) + 'px';
+    // clamp() protège des positions hors écran (notch, barre d'état) quand le
+    // champ édité est trop près du bord — cas fréquent dans une feuille modale.
+    boite.style.top = `clamp(calc(env(safe-area-inset-top) + 8px), ${haut}px, ${vpH - hauteur - 8}px)`;
   };
   const proposer = () => {
     if (!champ) return;
@@ -6739,7 +6753,7 @@ function toutesEtiquettes(){
       .slice(0, 6);
     if (!liste.length) return fermer();
     boite.innerHTML = liste.map((x, i) =>
-      `<button type="button" class="st-item${i ? '' : ' actif'}" data-tag="${echap(x.tag)}">
+      `<button type="button" role="option" aria-selected="${i === 0}" class="st-item${i ? '' : ' actif'}" data-tag="${echap(x.tag)}">
          <span class="st-nom">#${echap(x.tag)}</span><span class="st-n">${x.n}×</span></button>`).join('');
     boite.classList.add('vu');
     placer();
@@ -6771,7 +6785,11 @@ function toutesEtiquettes(){
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
       e.preventDefault();
       const j = (i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
-      items.forEach((b, k) => b.classList.toggle('actif', k === j));
+      items.forEach((b, k) => {
+        b.classList.toggle('actif', k === j);
+        b.setAttribute('aria-selected', k === j);
+      });
+      items[j].scrollIntoView({block: 'nearest'});
     } else if (e.key === 'Enter' || e.key === 'Tab'){
       if (i >= 0){ e.preventDefault(); inserer(items[i].dataset.tag); }
     } else if (e.key === 'Escape'){ fermer(); }
